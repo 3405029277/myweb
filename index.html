@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>在线五子棋 Gomoku（19路·棋子数·更强AI·计时）</title>
+  <style>
+    :root { --bg:#0b1225; --panel:rgba(255,255,255,.08); --line:rgba(255,255,255,.18); --txt:#e5e7eb; }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+    #wrap{height:100%;display:grid;grid-template-rows:auto 1fr;}
+    header{
+      display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+      padding:10px 12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.06);
+    }
+    .left{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
+    .title{font-weight:800;letter-spacing:.3px}
+    .hint{opacity:.85;font-size:12px}
+    .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .pill{padding:7px 10px;border:1px solid var(--line);background:var(--panel);border-radius:999px;font-size:12px;white-space:nowrap}
+    button,select{
+      background:var(--panel);color:var(--txt);border:1px solid var(--line);
+      padding:10px 12px;border-radius:12px;font-size:14px;
+    }
+    button:active{transform:scale(.98)}
+    #game{position:relative;touch-action:none;}
+    canvas{width:100%;height:100%;display:block;touch-action:none;}
+    #toast{
+      position:absolute;left:12px;right:12px;bottom:12px;
+      padding:10px 12px;border-radius:14px;border:1px solid var(--line);
+      background:rgba(0,0,0,.35);backdrop-filter:blur(6px);
+      font-size:13px;opacity:0;transform:translateY(6px);transition:.18s ease;
+      pointer-events:none;
+    }
+    #toast.show{opacity:1;transform:translateY(0)}
+    .hidden{display:none !important;}
+  </style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <div class="left">
+      <div class="title">在线五子棋（19×19 · 棋子数 · 更强AI · 每步60秒）</div>
+      <div class="hint">人机可选执黑/白；黑181白180；每步60秒超时判负。</div>
+    </div>
+
+    <div class="right">
+      <span class="pill" id="turn">回合：黑</span>
+      <span class="pill" id="timer">剩余：60s</span>
+
+      <span class="pill" id="remainB">黑剩：181</span>
+      <span class="pill" id="remainW">白剩：180</span>
+
+      <label class="pill" style="display:flex;gap:6px;align-items:center">
+        模式
+        <select id="mode">
+          <option value="pvp">双人对弈</option>
+          <option value="ai">人机对战</option>
+        </select>
+      </label>
+
+      <label class="pill" id="sideWrap" style="display:flex;gap:6px;align-items:center">
+        你执
+        <select id="side">
+          <option value="black">黑（先手）</option>
+          <option value="white">白（后手）</option>
+        </select>
+      </label>
+
+      <button id="undo">悔棋</button>
+      <button id="restart">重开</button>
+    </div>
+  </header>
+
+  <div id="game">
+    <canvas id="c"></canvas>
+    <div id="toast"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ===== 19路棋盘 =====
+  const SIZE = 19;
+  const EMPTY = 0, BLACK = 1, WHITE = 2;
+
+  // ===== 棋子总数（常见 19 路配置：黑 181 白 180）=====
+  const MAX_BLACK = 181;
+  const MAX_WHITE = 180;
+
+  // ===== 计时 =====
+  const MOVE_LIMIT_SEC = 60;
+
+  // ===== AI 强度参数（越大越强但更耗性能）=====
+  const SEARCH_DEPTH = 3;       // 3：明显强于单步；手机也能跑
+  const CAND_LIMIT   = 12;      // 每层保留候选点数量（越大越强但更慢）
+  const NEAR_RANGE   = 2;       // 只考虑距离已有棋子 NEAR_RANGE 范围内的空点
+
+  const canvas = document.getElementById('c');
+  const gameEl = document.getElementById('game');
+  const turnEl = document.getElementById('turn');
+  const timerEl = document.getElementById('timer');
+  const remainBEl = document.getElementById('remainB');
+  const remainWEl = document.getElementById('remainW');
+  const toastEl = document.getElementById('toast');
+  const modeEl = document.getElementById('mode');
+  const sideEl = document.getElementById('side');
+  const sideWrap = document.getElementById('sideWrap');
+  const undoBtn = document.getElementById('undo');
+  const restartBtn = document.getElementById('restart');
+
+  const ctx = canvas.getContext('2d');
+
+  let board, moves, current, gameOver, cell, pad, pxRatio;
+  let aiThinking = false;
+
+  // 选边：人机模式下有效
+  let humanColor = BLACK;
+  let aiColor = WHITE;
+
+  // 计时
+  let timeLeft = MOVE_LIMIT_SEC;
+  let timerId = null;
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(() => toastEl.classList.remove('show'), 1200);
+  }
+
+  function colorName(p){ return p===BLACK ? "黑" : "白"; }
+  function other(p){ return p===BLACK ? WHITE : BLACK; }
+
+  function setSideFromUI(){
+    if (sideEl.value === "white") { humanColor = WHITE; aiColor = BLACK; }
+    else { humanColor = BLACK; aiColor = WHITE; }
+  }
+
+  function placedCount(color){
+    let n = 0;
+    for (const m of moves) if (m.p === color) n++;
+    return n;
+  }
+  function remainCount(color){
+    const used = placedCount(color);
+    return (color===BLACK ? MAX_BLACK : MAX_WHITE) - used;
+  }
+  function updateRemainUI(){
+    remainBEl.textContent = `黑剩：${remainCount(BLACK)}`;
+    remainWEl.textContent = `白剩：${remainCount(WHITE)}`;
+  }
+
+  function updateTurn(extra="") {
+    turnEl.textContent = `回合：${colorName(current)}${extra}`;
+  }
+  function updateTimerUI(){
+    timerEl.textContent = `剩余：${timeLeft}s`;
+  }
+  function stopTimer(){
+    if (timerId) clearInterval(timerId);
+    timerId = null;
+  }
+
+  function endGame(winner, msg){
+    gameOver = true;
+    aiThinking = false;
+    stopTimer();
+    updateTurn("（结束）");
+    toast(msg || `${colorName(winner)}胜！`);
+  }
+
+  function startTurnTimer(){
+    stopTimer();
+    if (gameOver) return;
+
+    timeLeft = MOVE_LIMIT_SEC;
+    updateTimerUI();
+
+    timerId = setInterval(() => {
+      if (gameOver) { stopTimer(); return; }
+      timeLeft -= 1;
+      updateTimerUI();
+      if (timeLeft <= 0){
+        stopTimer();
+        const winner = other(current);
+        endGame(winner, `${colorName(current)}超时！${colorName(winner)}胜`);
+      }
+    }, 1000);
+  }
+
+  function reset() {
+    stopTimer();
+
+    setSideFromUI();
+
+    board = Array.from({length: SIZE}, () => Array(SIZE).fill(EMPTY));
+    moves = [];
+    current = BLACK;       // 黑先
+    gameOver = false;
+    aiThinking = false;
+
+    draw();
+    updateTurn();
+    updateRemainUI();
+    startTurnTimer();
+
+    if (modeEl.value === "ai") {
+      toast(`人机：你执${colorName(humanColor)}（黑181白180 / 每步${MOVE_LIMIT_SEC}s）`);
+      // 若你执白，则 AI（黑）先走
+      if (current === aiColor) aiMove();
+    } else {
+      toast(`双人对弈：黑先（黑181白180 / 每步${MOVE_LIMIT_SEC}s）`);
+    }
+  }
+
+  function resize() {
+    const w = gameEl.clientWidth;
+    const h = gameEl.clientHeight;
+    const side = Math.min(w, h);
+
+    pxRatio = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(side * pxRatio);
+    canvas.height = Math.floor(side * pxRatio);
+    canvas.style.width = side + "px";
+    canvas.style.height = side + "px";
+
+    pad = Math.floor(16 * pxRatio);
+    cell = Math.floor((canvas.width - pad*2) / (SIZE - 1));
+    draw();
+  }
+
+  function draw() {
+    if (!board) return;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#0b1225";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // 棋盘底色
+    ctx.fillStyle = "rgba(234,179,8,0.10)";
+    ctx.fillRect(pad - cell*0.5, pad - cell*0.5, cell*(SIZE-1)+cell, cell*(SIZE-1)+cell);
+
+    // 网格线
+    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    ctx.lineWidth = Math.max(1, Math.floor(1 * pxRatio));
+    for (let i=0;i<SIZE;i++){
+      const x = pad + i*cell;
+      const y = pad + i*cell;
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + (SIZE-1)*cell, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + (SIZE-1)*cell); ctx.stroke();
+    }
+
+    // 星位（19路常见：3,9,15）
+    const stars = [3, 9, 15];
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    for (const r of stars) for (const c of stars) {
+      const x = pad + c*cell, y = pad + r*cell;
+      ctx.beginPath(); ctx.arc(x,y,Math.max(2, 3*pxRatio),0,Math.PI*2); ctx.fill();
+    }
+
+    // 棋子
+    for (let r=0;r<SIZE;r++){
+      for (let c=0;c<SIZE;c++){
+        const v = board[r][c];
+        if (v===EMPTY) continue;
+        const x = pad + c*cell, y = pad + r*cell;
+        const radius = cell*0.42;
+
+        // 阴影
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.beginPath(); ctx.arc(x+2*pxRatio, y+2*pxRatio, radius, 0, Math.PI*2); ctx.fill();
+
+        // 渐变
+        const g = ctx.createRadialGradient(x - radius*0.3, y - radius*0.3, radius*0.2, x, y, radius);
+        if (v===BLACK) { g.addColorStop(0, "#334155"); g.addColorStop(1, "#0b0f1a"); }
+        else { g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#cbd5e1"); }
+
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x,y,radius,0,Math.PI*2); ctx.fill();
+
+        // 最后一步标记
+        if (moves.length && moves[moves.length-1].r===r && moves[moves.length-1].c===c) {
+          ctx.strokeStyle = "rgba(239,68,68,0.85)";
+          ctx.lineWidth = Math.max(2, 2*pxRatio);
+          ctx.beginPath(); ctx.arc(x,y,radius*0.35,0,Math.PI*2); ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function inBounds(r,c){ return r>=0 && r<SIZE && c>=0 && c<SIZE; }
+
+  function checkWin(r,c,player){
+    const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+    for (const [dr,dc] of dirs){
+      let cnt = 1;
+      for (let k=1;k<5;k++){
+        const rr=r+dr*k, cc=c+dc*k;
+        if (!inBounds(rr,cc) || board[rr][cc]!==player) break;
+        cnt++;
+      }
+      for (let k=1;k<5;k++){
+        const rr=r-dr*k, cc=c-dc*k;
+        if (!inBounds(rr,cc) || board[rr][cc]!==player) break;
+        cnt++;
+      }
+      if (cnt>=5) return true;
+    }
+    return false;
+  }
+
+  function isHumanTurn(){
+    return modeEl.value !== "ai" || current === humanColor;
+  }
+
+  function nextTurn(){
+    current = other(current);
+    updateTurn();
+    startTurnTimer();
+
+    if (modeEl.value === "ai" && current === aiColor && !gameOver){
+      aiMove();
+    }
+  }
+
+  function canPlace(color){
+    return remainCount(color) > 0;
+  }
+
+  function doPlace(r,c){
+    // 不走“人类回合限制”，给 AI 内部使用
+    if (gameOver) return false;
+    if (!inBounds(r,c) || board[r][c]!==EMPTY) return false;
+
+    if (!canPlace(current)){
+      // 当前方无子可下：判负
+      endGame(other(current), `${colorName(current)}棋子用尽！${colorName(other(current))}胜`);
+      return false;
+    }
+
+    board[r][c] = current;
+    moves.push({r,c,p:current});
+    updateRemainUI();
+    draw();
+
+    if (checkWin(r,c,current)){
+      endGame(current);
+      return false;
+    }
+    return true;
+  }
+
+  function place(r,c){
+    if (gameOver || aiThinking) return;
+    if (!inBounds(r,c) || board[r][c]!==EMPTY) return;
+
+    // 人机：只允许人类在自己回合落
+    if (!isHumanTurn()) return;
+
+    if (!doPlace(r,c)) return;
+    nextTurn();
+  }
+
+  function eventToCell(e){
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * pxRatio;
+    const y = (e.clientY - rect.top) * pxRatio;
+    const c = Math.round((x - pad) / cell);
+    const r = Math.round((y - pad) / cell);
+    return {r,c};
+  }
+
+  // =========================
+  // 更强 AI：候选点 + 评估 + Minimax(αβ)
+  // =========================
+
+  function hasNeighbor(r,c,range=NEAR_RANGE){
+    for (let dr=-range; dr<=range; dr++){
+      for (let dc=-range; dc<=range; dc++){
+        if (dr===0 && dc===0) continue;
+        const rr=r+dr, cc=c+dc;
+        if (inBounds(rr,cc) && board[rr][cc]!==EMPTY) return true;
+      }
+    }
+    return false;
+  }
+
+  // 评估窗口（5 连窗口）得分：只要同窗内有双方棋子则无效
+  function windowScore(count, open){
+    // count: 该方在窗口/线段中形成的连势（近似），open: 两端开放(0/1/2)
+    // 用于整体评估：分值层级拉开，AI 更重视威胁
+    if (count >= 5) return 1e9;
+    if (count === 4 && open === 2) return 500000;
+    if (count === 4 && open === 1) return 120000;
+    if (count === 3 && open === 2) return 22000;
+    if (count === 3 && open === 1) return 4500;
+    if (count === 2 && open === 2) return 1200;
+    if (count === 2 && open === 1) return 250;
+    if (count === 1 && open === 2) return 45;
+    return 8;
+  }
+
+  // 线段评估：以“连续段+开放端”来打分（比单点更稳）
+  function lineEvalAt(r,c,dr,dc,player){
+    // 从 (r,c) 向两端扩展统计连续 player 与开放端
+    let cnt1=0, cnt2=0, open1=0, open2=0;
+
+    for (let k=1;k<6;k++){
+      const rr=r+dr*k, cc=c+dc*k;
+      if (!inBounds(rr,cc)) break;
+      if (board[rr][cc]===player) cnt1++;
+      else { if (board[rr][cc]===EMPTY) open1=1; break; }
+    }
+    for (let k=1;k<6;k++){
+      const rr=r-dr*k, cc=c-dc*k;
+      if (!inBounds(rr,cc)) break;
+      if (board[rr][cc]===player) cnt2++;
+      else { if (board[rr][cc]===EMPTY) open2=1; break; }
+    }
+
+    const cnt = cnt1+cnt2+1;
+    const open = open1+open2;
+    return windowScore(cnt, open);
+  }
+
+  // 点打分（用于候选点排序）：进攻 + 防守
+  function pointHeuristic(r,c,player){
+    const opp = other(player);
+    const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+    let s = 0;
+    for (const [dr,dc] of dirs){
+      // 进攻
+      s += lineEvalAt(r,c,dr,dc,player) * 1.0;
+      // 防守（略大一点，让 AI 更难被“秒杀”）
+      s += lineEvalAt(r,c,dr,dc,opp) * 0.95;
+    }
+    // 中心偏好（微弱）
+    const center = (SIZE-1)/2;
+    const dist = Math.abs(r-center)+Math.abs(c-center);
+    s += Math.max(0, 9 - dist) * 2;
+    return s;
+  }
+
+  // 生成候选空点（只取附近 & 取前 K）
+  function genCandidates(player){
+    const cands = [];
+    if (moves.length === 0) {
+      const mid = Math.floor(SIZE/2);
+      return [{r:mid,c:mid}];
+    }
+    for (let r=0;r<SIZE;r++){
+      for (let c=0;c<SIZE;c++){
+        if (board[r][c]!==EMPTY) continue;
+        if (!hasNeighbor(r,c,NEAR_RANGE)) continue;
+        const h = pointHeuristic(r,c,player);
+        cands.push({r,c,h});
+      }
+    }
+    cands.sort((a,b)=>b.h-a.h);
+    return cands.slice(0, CAND_LIMIT);
+  }
+
+  // 全局评估：对所有已有棋子附近空点进行“潜力和”评估（AI - 人类）
+  function evaluate(forPlayer){
+    const opp = other(forPlayer);
+    let score = 0;
+
+    // 只在“相关区域”打分（靠近棋子），避免 19x19 全扫太慢
+    const seen = new Set();
+    const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+
+    function key(r,c){ return r+"#"+c; }
+
+    // 收集相关点：所有棋子周围 2 格内的空位 + 棋子本身
+    for (const m of moves){
+      for (let dr=-2; dr<=2; dr++){
+        for (let dc=-2; dc<=2; dc++){
+          const rr=m.r+dr, cc=m.c+dc;
+          if (!inBounds(rr,cc)) continue;
+          const k = key(rr,cc);
+          if (seen.has(k)) continue;
+          seen.add(k);
+
+          if (board[rr][cc] === EMPTY){
+            // 假设这里落子，评估进攻/防守潜力
+            const pPot = pointHeuristic(rr,cc,forPlayer);
+            const oPot = pointHeuristic(rr,cc,opp);
+            score += pPot * 0.06;
+            score -= oPot * 0.06;
+          } else {
+            // 对已落子位置：按连势给少量加成
+            const owner = board[rr][cc];
+            for (const [d1,d2] of dirs){
+              const v = lineEvalAt(rr,cc,d1,d2,owner);
+              if (owner === forPlayer) score += v * 0.0008;
+              else score -= v * 0.0008;
+            }
+          }
+        }
+      }
+    }
+    return score;
+  }
+
+  function minimax(depth, alpha, beta, playerToMove, maximizingFor){
+    // 终止
+    if (depth === 0 || gameOver) {
+      return evaluate(maximizingFor);
+    }
+
+    // 若该方没棋可下，直接判负（对评估来说给极大负/正）
+    if (!canPlace(playerToMove)) {
+      return (playerToMove === maximizingFor) ? -1e8 : 1e8;
+    }
+
+    const cands = genCandidates(playerToMove);
+    if (cands.length === 0) return evaluate(maximizingFor);
+
+    const isMax = (playerToMove === maximizingFor);
+    let best = isMax ? -Infinity : Infinity;
+
+    for (const {r,c} of cands){
+      // 落子
+      const prevCurrent = current;
+      current = playerToMove;
+
+      board[r][c] = playerToMove;
+      moves.push({r,c,p:playerToMove});
+
+      // 立即胜负判断：比继续搜索更快更准
+      let val;
+      if (checkWin(r,c,playerToMove)) {
+        val = (playerToMove === maximizingFor) ? 1e8 : -1e8;
+      } else {
+        val = minimax(depth-1, alpha, beta, other(playerToMove), maximizingFor);
+      }
+
+      // 撤销
+      moves.pop();
+      board[r][c] = EMPTY;
+      current = prevCurrent;
+
+      if (isMax){
+        if (val > best) best = val;
+        if (best > alpha) alpha = best;
+        if (beta <= alpha) break; // β剪枝
+      } else {
+        if (val < best) best = val;
+        if (best < beta) beta = best;
+        if (beta <= alpha) break; // α剪枝
+      }
+    }
+    return best;
+  }
+
+  function aiChooseMove(){
+    // 先找“必胜一步”或“必防一步”，减少搜索压力
+    const opp = other(aiColor);
+    const cands = genCandidates(aiColor);
+
+    // 1) AI 一步必胜
+    for (const {r,c} of cands){
+      board[r][c] = aiColor;
+      const win = checkWin(r,c,aiColor);
+      board[r][c] = EMPTY;
+      if (win) return {r,c};
+    }
+
+    // 2) 必须防守对手下一步必胜
+    for (const {r,c} of genCandidates(opp)){
+      board[r][c] = opp;
+      const win = checkWin(r,c,opp);
+      board[r][c] = EMPTY;
+      if (win) return {r,c}; // 这里 AI 下这个点去堵
+    }
+
+    // 3) Minimax 搜索
+    let bestMove = null;
+    let bestVal = -Infinity;
+
+    const searchCands = genCandidates(aiColor);
+    for (const {r,c} of searchCands){
+      // 试走
+      const prevCurrent = current;
+      current = aiColor;
+
+      board[r][c] = aiColor;
+      moves.push({r,c,p:aiColor});
+
+      let val;
+      if (checkWin(r,c,aiColor)) val = 1e8;
+      else val = minimax(SEARCH_DEPTH-1, -Infinity, Infinity, opp, aiColor);
+
+      // 撤销
+      moves.pop();
+      board[r][c] = EMPTY;
+      current = prevCurrent;
+
+      if (val > bestVal){
+        bestVal = val;
+        bestMove = {r,c};
+      }
+    }
+
+    if (!bestMove) {
+      const mid = Math.floor(SIZE/2);
+      bestMove = {r:mid, c:mid};
+    }
+    return bestMove;
+  }
+
+  function aiMove(){
+    if (gameOver) return;
+    if (!canPlace(aiColor)){
+      endGame(humanColor, `AI（${colorName(aiColor)}）棋子用尽！你胜`);
+      return;
+    }
+
+    aiThinking = true;
+    updateTurn("（AI思考中…）");
+
+    // 给 UI 一点时间刷新
+    setTimeout(() => {
+      if (gameOver) { aiThinking=false; return; }
+
+      const {r,c} = aiChooseMove();
+
+      aiThinking = false;
+      updateTurn();
+
+      // AI 落子
+      if (!doPlace(r,c)) return;
+      nextTurn();
+    }, 80);
+  }
+
+  // 悔棋：
+  // - PVP：撤 1 步
+  // - AI：撤 2 步（尽量回到你走之前）
+  function undo(){
+    if (aiThinking) return;
+    if (moves.length === 0) return toast("还没下子");
+
+    stopTimer();
+    if (gameOver) gameOver = false;
+
+    const popOne = () => {
+      const m = moves.pop();
+      if (!m) return false;
+      board[m.r][m.c] = EMPTY;
+      current = m.p;
+      return true;
+    };
+
+    if (modeEl.value === "ai"){
+      const a = popOne();
+      const b = popOne();
+      toast(b ? "已悔棋（两步）" : "已悔棋（一步）");
+    } else {
+      popOne();
+      toast("已悔棋");
+    }
+
+    updateRemainUI();
+    draw();
+    updateTurn();
+    startTurnTimer();
+
+    // 悔棋后如果轮到 AI，让 AI 接着走（保持自然对局）
+    if (modeEl.value === "ai" && current === aiColor && !gameOver){
+      aiMove();
+    }
+  }
+
+  // 触屏/鼠标落子
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (gameOver) return toast("已结束，点重开");
+    const {r,c} = eventToCell(e);
+    place(r,c);
+  }, {passive:false});
+
+  // 防止部分安卓浏览器滚动干扰
+  document.addEventListener("touchmove", (e) => {
+    if (e.target === canvas) e.preventDefault();
+  }, { passive: false });
+
+  undoBtn.addEventListener('click', undo);
+  restartBtn.addEventListener('click', reset);
+
+  modeEl.addEventListener('change', () => {
+    sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+    reset();
+  });
+
+  sideEl.addEventListener('change', () => {
+    if (modeEl.value === "ai") reset();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase()==='r') reset();
+    if (e.key.toLowerCase()==='z') undo();
+  });
+
+  // 初始化
+  sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+  const ro = new ResizeObserver(() => resize());
+  ro.observe(gameEl);
+  resize();
+  reset();
+})();
+</script>
+</body>
+</html>
