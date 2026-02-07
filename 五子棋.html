@@ -7,7 +7,12 @@
   <style>
     :root { --bg:#0b1225; --panel:rgba(255,255,255,.08); --line:rgba(255,255,255,.18); --txt:#e5e7eb; }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
-    #wrap{height:100%;display:grid;grid-template-rows:auto 1fr;}
+    #wrap{
+  min-height:100dvh;   /* ✅ 关键：使用动态视口高度 */
+  display:grid;
+  grid-template-rows:auto 1fr;
+}
+
     header{
       display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
       padding:10px 12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.06);
@@ -33,6 +38,25 @@
     }
     #toast.show{opacity:1;transform:translateY(0)}
     .hidden{display:none !important;}
+    @media (max-width: 520px){
+  header{padding:8px 10px; gap:8px;}
+  .hint{display:none;}                 /* 提示语先隐藏，省高度 */
+  button,select{padding:8px 10px; border-radius:12px; font-size:13px;}
+  .pill{padding:6px 8px; font-size:12px;}
+
+  /* 右侧控件改成两列网格，减少换行后的高度 */
+  .right{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:8px;
+    align-items:stretch;
+  }
+  .right > *{min-width:0;}
+  #turn,#timer,#remainB,#remainW{grid-column: span 1;}
+  #undo,#restart{grid-column: span 1;}
+  #sideWrap{grid-column: span 2;}      /* “你执”占一整行更好点 */
+}
+
   </style>
 </head>
 <body>

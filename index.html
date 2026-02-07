@@ -4,500 +4,91 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="个人博客主页：项目、文章与日常记录。" />
+  <meta name="theme-color" content="#f5f7fb" />
 
-  <!-- =========================
-    可修改：博客名称（浏览器标签页标题）
-  ========================== -->
-  <title>你的博客名称 · 蓝灰笔记</title>
+  <title>家轩的博客</title>
+  <link rel="icon" href="assets/favicon.png">
 
-  <style>
-    /* =========================================================
-      现代简约高级风：低饱和蓝灰（莫兰迪）主题
-      可修改：:root 里的配色变量、圆角、阴影强度
-    ========================================================== */
-    :root{
-      --bg: #f5f7fb;
-      --bg-2: #eef2f7;
-      --surface: rgba(255,255,255,.72);
-      --surface-solid: #ffffff;
-      --line: rgba(15, 23, 42, .10);
+  <!-- ✅ 关键：在 CSS 加载前应用主题，避免切页“闪一下/突兀” -->
+  <script>
+    (function(){
+      try{
+        var t = localStorage.getItem('theme');
+        var isDark;
+        if (t === 'light' || t === 'dark'){
+          document.documentElement.dataset.theme = t;
+          isDark = (t === 'dark');
+        } else {
+          isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        document.documentElement.classList.toggle('is-dark', !!isDark);
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.setAttribute('content', isDark ? '#0b1225' : '#f5f7fb');
+      }catch(e){}
+    })();
+  </script>
 
-      --text: #0f172a;      /* 主文字 */
-      --muted: rgba(15,23,42,.62);
-
-      --primary: #3b6d8c;   /* 主色：低饱和蓝灰 */
-      --accent:  #b38f7a;   /* 辅助色：低饱和暖棕（不刺眼） */
-
-      --radius: 18px;
-      --shadow: 0 12px 30px rgba(15, 23, 42, .08);
-      --shadow-2: 0 18px 48px rgba(15, 23, 42, .12);
-
-      --nav-h: 64px;
-      --max: 1100px;
-
-      --ease: cubic-bezier(.22,1,.36,1);
-    }
-
-    /* 字体抗锯齿：细节加分 */
-    html, body{
-      height: 100%;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-      scroll-behavior: smooth;
-    }
-
-    body{
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-        Roboto, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(1200px 600px at 20% -10%, rgba(59,109,140,.10), transparent 55%),
-        radial-gradient(900px 500px at 90% 0%, rgba(179,143,122,.10), transparent 52%),
-        linear-gradient(180deg, var(--bg), var(--bg-2));
-    }
-
-    /* 页面轻微淡入动画 */
-    .page{
-      min-height: 100%;
-      opacity: 0;
-      transform: translateY(8px);
-      animation: pageIn .65s var(--ease) forwards;
-    }
-    @keyframes pageIn{
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @media (prefers-reduced-motion: reduce){
-      .page{ animation: none; opacity: 1; transform: none; }
-      *{ transition: none !important; animation: none !important; }
-    }
-
-    /* ===== 顶部导航栏 ===== */
-    .nav{
-      position: fixed;
-      inset: 0 0 auto 0;
-      height: var(--nav-h);
-      z-index: 50;
-
-      display: flex;
-      align-items: center;
-
-      /* 初始：近乎透明 */
-      background: linear-gradient(180deg, rgba(245,247,251,.25), rgba(245,247,251,0));
-      border-bottom: 1px solid transparent;
-
-      transition: background .35s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease);
-      backdrop-filter: saturate(140%) blur(10px);
-      -webkit-backdrop-filter: saturate(140%) blur(10px);
-    }
-    /* 滚动后：渐变更实 + 阴影层次 */
-    .nav.scrolled{
-      background: linear-gradient(180deg, rgba(245,247,251,.92), rgba(245,247,251,.70));
-      border-bottom-color: var(--line);
-      box-shadow: 0 10px 24px rgba(15,23,42,.06);
-    }
-
-    .nav-inner{
-      width: min(var(--max), calc(100% - 32px));
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .brand{
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: inherit;
-    }
-    .logo{
-      width: 34px; height: 34px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(59,109,140,.20), rgba(179,143,122,.18));
-      border: 1px solid var(--line);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
-      position: relative;
-      overflow: hidden;
-    }
-    .logo::after{
-      content:"";
-      position:absolute; inset:-60%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
-      transform: rotate(18deg);
-      animation: shimmer 2.8s var(--ease) infinite;
-      opacity: .8;
-    }
-    @keyframes shimmer{
-      0% { transform: translateX(-40%) rotate(18deg); }
-      60%{ transform: translateX(40%) rotate(18deg); }
-      100%{ transform: translateX(40%) rotate(18deg); }
-    }
-
-    .brand strong{
-      font-weight: 800;
-      letter-spacing: .2px;
-    }
-    .brand span{
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .menu{
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    /* 超链接：去下划线 → hover 才出现底部边框 */
-    a.link{
-      color: rgba(15,23,42,.78);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      padding-bottom: 2px;
-      transition: color .2s var(--ease), border-color .2s var(--ease), transform .2s var(--ease);
-    }
-    a.link:hover{
-      color: var(--text);
-      border-bottom-color: rgba(59,109,140,.45);
-      transform: translateY(-1px);
-    }
-
-    .btn{
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.60);
-      color: rgba(15,23,42,.82);
-      text-decoration: none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
-      transition: transform .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
-      user-select: none;
-    }
-    .btn:hover{
-      transform: translateY(-1px);
-      box-shadow: var(--shadow);
-      background: rgba(255,255,255,.78);
-    }
-    .btn.primary{
-      background: rgba(59,109,140,.14);
-      border-color: rgba(59,109,140,.28);
-      color: rgba(15,23,42,.88);
-    }
-    .btn.primary:hover{
-      box-shadow: 0 16px 40px rgba(59,109,140,.18);
-    }
-
-    /* ===== 主体布局 ===== */
-    main{
-      width: min(var(--max), calc(100% - 32px));
-      margin: 0 auto;
-      padding: calc(var(--nav-h) + 26px) 0 40px;
-    }
-
-    .hero{
-      display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 18px;
-      align-items: stretch;
-    }
-    @media (max-width: 860px){
-      .hero{ grid-template-columns: 1fr; }
-    }
-
-    .card{
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
-    }
-    .card::before{
-      content:"";
-      position:absolute; inset: 0;
-      background: radial-gradient(600px 220px at 20% 0%, rgba(59,109,140,.16), transparent 55%),
-                  radial-gradient(520px 220px at 85% 10%, rgba(179,143,122,.14), transparent 50%);
-      opacity: .55;
-      pointer-events: none;
-    }
-    .card > *{ position: relative; }
-
-    .intro{
-      padding: 18px 18px 16px;
-      display: grid;
-      grid-template-columns: 110px 1fr;
-      gap: 16px;
-      align-items: center;
-    }
-    @media (max-width: 520px){
-      .intro{ grid-template-columns: 86px 1fr; }
-    }
-
-    /* 头像骨架屏：你可以换成 img（下方有注释） */
-    .avatar{
-      width: 104px; height: 104px;
-      border-radius: 24px;
-      background: linear-gradient(135deg, rgba(15,23,42,.06), rgba(15,23,42,.02));
-      border: 1px solid var(--line);
-      position: relative;
-      overflow: hidden;
-      display: grid;
-      place-items: center;
-      color: rgba(15,23,42,.55);
-      font-weight: 800;
-      letter-spacing: .6px;
-    }
-    .avatar::after{
-      content:"";
-      position:absolute; inset:-60%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.70), transparent);
-      transform: rotate(12deg);
-      animation: shimmer 2.6s var(--ease) infinite;
-    }
-
-    .intro h1{
-      margin: 0 0 8px;
-      font-size: clamp(22px, 2.4vw, 30px);
-      letter-spacing: .2px;
-    }
-    .intro p{
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.75;
-      font-size: 14.5px;
-    }
-
-    .meta{
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    .chip{
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.55);
-      color: rgba(15,23,42,.70);
-    }
-
-    .sidebox{
-      padding: 18px;
-      display: grid;
-      gap: 12px;
-    }
-    .sidebox h2{
-      margin: 0;
-      font-size: 14px;
-      color: rgba(15,23,42,.66);
-      letter-spacing: .25px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .sidebox .tip{
-      line-height: 1.75;
-      color: var(--muted);
-      font-size: 14px;
-      margin: 0;
-    }
-
-    .stats{
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-    @media (max-width: 520px){
-      .stats{ grid-template-columns: repeat(2, 1fr); }
-    }
-    .stat{
-      background: rgba(255,255,255,.55);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 12px;
-    }
-    .stat b{
-      display:block;
-      font-size: 18px;
-      letter-spacing: .2px;
-      margin-bottom: 4px;
-    }
-    .stat span{
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    /* ===== 文章列表 ===== */
-    .section{
-      margin-top: 22px;
-    }
-    .section-head{
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .section-head h3{
-      margin: 0;
-      font-size: 16px;
-      letter-spacing: .2px;
-    }
-    .section-head p{
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .grid{
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-    @media (max-width: 860px){
-      .grid{ grid-template-columns: 1fr; }
-    }
-
-    .post{
-      display: block;
-      text-decoration: none;
-      color: inherit;
-      padding: 16px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.62);
-      box-shadow: 0 10px 24px rgba(15,23,42,.06);
-      transition: transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
-      position: relative;
-      overflow: hidden;
-    }
-    .post::before{
-      content:"";
-      position:absolute; inset: 0;
-      background: radial-gradient(520px 220px at 20% 0%, rgba(59,109,140,.16), transparent 55%);
-      opacity: .35;
-      pointer-events:none;
-    }
-    .post:hover{
-      transform: translateY(-4px) scale(1.01);
-      box-shadow: var(--shadow-2);
-      border-color: rgba(59,109,140,.22);
-    }
-
-    .post h4{
-      margin: 0 0 8px;
-      font-size: 18px;
-      letter-spacing: .2px;
-    }
-    .post .desc{
-      margin: 0 0 12px;
-      color: var(--muted);
-      line-height: 1.75;
-      font-size: 14px;
-    }
-    .post .row{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 10px;
-      color: rgba(15,23,42,.60);
-      font-size: 12px;
-    }
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(59,109,140,.22);
-      background: rgba(59,109,140,.10);
-      color: rgba(15,23,42,.72);
-      white-space: nowrap;
-    }
-    .dot{
-      width: 6px; height: 6px; border-radius: 999px;
-      background: rgba(179,143,122,.95);
-      box-shadow: 0 0 0 4px rgba(179,143,122,.14);
-    }
-
-    /* ===== 页脚 ===== */
-    footer{
-      width: min(var(--max), calc(100% - 32px));
-      margin: 0 auto;
-      padding: 22px 0 40px;
-      color: rgba(15,23,42,.62);
-      border-top: 1px solid var(--line);
-    }
-    .foot{
-      display:flex;
-      gap: 10px;
-      align-items:center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-    .foot small{ font-size: 12px; }
-  </style>
+  <link rel="stylesheet" href="assets/site.css" />
 </head>
 
 <body>
   <div class="page">
-    <!-- 固定导航栏 -->
     <header class="nav" id="nav">
       <div class="nav-inner">
         <a class="brand" href="index.html" aria-label="回到主页">
-          <div class="logo" aria-hidden="true"></div>
+          <img class="logo-img" src="assets/logo.png" alt="站点 Logo" />
           <div>
-            <!-- =========================
-              可修改：博客名称 & 副标题
-            ========================== -->
-            <strong>你的博客名称</strong><br/>
-            <span>Front-end · Notes · Projects</span>
+            <strong>家轩的网页</strong><br/>
+            <span>记录想法 · 打磨作品 · 持续进化</span>
           </div>
         </a>
 
-        <nav class="menu" aria-label="主导航">
-          <a class="link" href="#about">关于</a>
-          <a class="link" href="#posts">文章</a>
-          <a class="link" href="#contact">联系</a>
+        <div class="nav-actions">
+          <nav class="menu" id="menu" aria-label="主导航">
+            <a class="link" href="#about">关于</a>
+            <a class="link" href="#posts">文章</a>
+            <a class="link" href="#contact">联系</a>
+            <a class="btn primary" href="#posts">查看项目</a>
+          </nav>
 
-          <!-- 可修改：按钮文案 & 链接 -->
-          <a class="btn primary" href="#posts">查看项目</a>
-        </nav>
+          <button class="icon-btn" id="themeToggle" type="button"
+            aria-label="切换主题（Shift+点击：跟随系统）"
+            title="切换浅色/深色（Shift+点击：跟随系统）">
+            <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+            </svg>
+            <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h0m0 20h0M2 12h0m20 12h0M4.2 4.2h0m15.6 15.6h0M19.8 4.2h0M4.2 19.8h0"/>
+            </svg>
+            <span class="sr-only">切换主题</span>
+          </button>
+
+          <button class="icon-btn menu-toggle" id="menuToggle" type="button"
+            aria-label="打开菜单" aria-expanded="false" aria-controls="menu" title="菜单">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span class="sr-only">菜单</span>
+          </button>
+        </div>
       </div>
     </header>
 
     <main>
-      <!-- 个人简介模块 -->
       <section class="hero" id="about">
         <div class="card">
           <div class="intro">
-            <!-- =========================
-              可修改：头像
-              方案1：保持现在的骨架占位
-              方案2：换成 img（推荐）：
-              <img class="avatar-img" src="assets/avatar.jpg" alt="你的头像" />
-            ========================== -->
-            <div class="avatar" aria-label="头像占位">ME</div>
+            <div class="avatar" id="avatar" aria-label="头像">
+              <img src="assets/avatar.jpg" alt="你的头像" loading="lazy" decoding="async" />
+              <span class="fallback" aria-hidden="true">ME</span>
+            </div>
 
             <div>
-              <!-- =========================
-                可修改：个人简介
-              ========================== -->
-              <h1>你好，我是 <span style="color:var(--primary)">你的名字</span> 👋</h1>
+              <h1>你好，我是 <span style="color:var(--primary)">cjx</span> 👋</h1>
               <p>
-                我是一名前端工程师，偏爱<strong>现代简约</strong>的视觉与<strong>高可读性</strong>的排版。
-                这里会记录：项目复盘、技术笔记、以及一些“做着玩但很认真”的小作品。
+                我是一名前端开发者，关注<strong>交互手感</strong>、<strong>页面质感</strong>和<strong>可维护性</strong>。
+                这个站点是我的小实验室：把想法做成能点的作品，把经验写成更清晰的笔记——
+                目前主要在完善两个小游戏（五子棋 / 中国象棋）并持续打磨它们的 UI 与体验。
               </p>
 
               <div class="meta" aria-label="标签">
@@ -513,32 +104,24 @@
           <div class="sidebox">
             <h2>现在在做</h2>
             <p class="tip">
-              把以前写的小游戏（五子棋 / 中国象棋）整理成一个更“像样”的个人站点入口：
-              统一导航、统一风格、移动端也好看。
+              把“能玩”的页面升级成“耐看”的作品：统一视觉语言、移动端更好点、暗黑模式更舒服，
+              再把每次优化的思路写下来（方便自己复盘，也欢迎你来抄作业）。
             </p>
 
             <div class="stats" aria-label="站点概览">
-              <div class="stat">
-                <b>2</b><span>项目页面</span>
-              </div>
-              <div class="stat">
-                <b>0→∞</b><span>持续更新</span>
-              </div>
-              <div class="stat">
-                <b>简洁</b><span>但不无聊</span>
-              </div>
+              <div class="stat"><b>2</b><span>项目文章</span></div>
+              <div class="stat"><b>响应式</b><span>全设备适配</span></div>
+              <div class="stat"><b>主题</b><span>浅色 / 深色</span></div>
             </div>
 
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:2px">
-              <!-- 可修改：社交链接 -->
-              <a class="btn" href="#" onclick="alert('把这里换成你的 GitHub/掘金/公众号链接'); return false;">GitHub</a>
+              <a class="btn" href="#" onclick="alert('暂时不方便透露'); return false;">GitHub</a>
               <a class="btn" href="#contact">Email</a>
             </div>
           </div>
         </aside>
       </section>
 
-      <!-- 文章列表模块 -->
       <section class="section" id="posts" aria-label="文章列表">
         <div class="section-head">
           <div>
@@ -549,8 +132,8 @@
         </div>
 
         <div class="grid">
-          <!-- 卡片1：链接到 page1.html -->
-          <a class="post" href="page1.html" aria-label="打开子页面1">
+          <!-- ✅ 新开标签页 -->
+          <a class="post" href="page1.html" target="_blank" rel="noopener noreferrer" aria-label="打开子页面1（新标签页）">
             <h4>子页面1标题：在线五子棋 · 交互与 AI</h4>
             <p class="desc">
               记录一次“把小游戏做得更像产品”的过程：UI/响应式/计时规则，以及一个更稳的候选点 + 评分 AI 思路。
@@ -561,8 +144,8 @@
             </div>
           </a>
 
-          <!-- 卡片2：链接到 page2.html -->
-          <a class="post" href="page2.html" aria-label="打开子页面2">
+          <!-- ✅ 新开标签页 -->
+          <a class="post" href="page2.html" target="_blank" rel="noopener noreferrer" aria-label="打开子页面2（新标签页）">
             <h4>子页面2标题：中国象棋 · 布局与细节</h4>
             <p class="desc">
               从棋盘渲染到动效反馈：选中态高亮、将军提示、翻转视角、移动端点击映射等。做一个“耐看”的棋类页面。
@@ -575,12 +158,11 @@
         </div>
       </section>
 
-      <!-- 联系方式占位 -->
       <section class="section" id="contact" aria-label="联系方式">
         <div class="section-head">
           <div>
             <h3>联系</h3>
-            <p>这里是占位信息，你可以换成真实的邮箱/社交账号。</p>
+            <p></p>
           </div>
         </div>
 
@@ -588,7 +170,7 @@
           <p style="margin:0; color:var(--muted); line-height:1.9;">
             📮 Email：<a class="link" href="mailto:yourname@example.com">yourname@example.com</a><br/>
             💬 WeChat：your_wechat_id<br/>
-            🌐 站点：your-domain.com
+            🌐 站点：www.cjx88.eu.cc
           </p>
         </div>
       </section>
@@ -596,30 +178,12 @@
 
     <footer>
       <div class="foot">
-        <!-- 可修改：版权信息 -->
-        <small>© <span id="year"></span> 你的博客名称 · All rights reserved.</small>
+        <small>© <span id="year"></span> 轩· All rights reserved.</small>
         <small>Made with HTML/CSS/JS · 简约但讲究</small>
       </div>
     </footer>
   </div>
 
-  <script>
-    // =========================================================
-    // 基础交互：导航栏滚动渐变 + 年份自动更新
-    // =========================================================
-    (function(){
-      const nav = document.getElementById('nav');
-      const year = document.getElementById('year');
-
-      year.textContent = String(new Date().getFullYear());
-
-      function onScroll(){
-        if (window.scrollY > 8) nav.classList.add('scrolled');
-        else nav.classList.remove('scrolled');
-      }
-      onScroll();
-      window.addEventListener('scroll', onScroll, { passive: true });
-    })();
-  </script>
+  <script src="assets/site.js"></script>
 </body>
 </html>

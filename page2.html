@@ -4,281 +4,31 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="子页面2：中国象棋项目介绍与复盘。" />
+  <meta name="theme-color" content="#f5f7fb" />
 
-  <!-- 可修改：子页面标题 -->
-  <title>中国象棋 · 项目复盘 | 你的博客名称</title>
+  <title>中国象棋 · 布局与细节 | 家轩的博客</title>
+  <link rel="icon" href="assets/favicon.png">
 
-  <style>
-    :root{
-      --bg: #f5f7fb;
-      --bg-2: #eef2f7;
-      --surface: rgba(255,255,255,.72);
-      --line: rgba(15, 23, 42, .10);
+  <!-- ✅ 关键：提前应用主题，避免闪烁 -->
+  <script>
+    (function(){
+      try{
+        var t = localStorage.getItem('theme');
+        var isDark;
+        if (t === 'light' || t === 'dark'){
+          document.documentElement.dataset.theme = t;
+          isDark = (t === 'dark');
+        } else {
+          isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        document.documentElement.classList.toggle('is-dark', !!isDark);
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.setAttribute('content', isDark ? '#0b1225' : '#f5f7fb');
+      }catch(e){}
+    })();
+  </script>
 
-      --text: #0f172a;
-      --muted: rgba(15,23,42,.62);
-
-      --primary: #3b6d8c;
-      --accent:  #b38f7a;
-
-      --radius: 18px;
-      --shadow: 0 12px 30px rgba(15, 23, 42, .08);
-      --shadow-2: 0 18px 48px rgba(15, 23, 42, .12);
-
-      --nav-h: 64px;
-      --max: 1100px;
-
-      --ease: cubic-bezier(.22,1,.36,1);
-    }
-
-    html, body{
-      height: 100%;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-      scroll-behavior: smooth;
-    }
-    body{
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-        Roboto, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(1200px 600px at 20% -10%, rgba(59,109,140,.10), transparent 55%),
-        radial-gradient(900px 500px at 90% 0%, rgba(179,143,122,.10), transparent 52%),
-        linear-gradient(180deg, var(--bg), var(--bg-2));
-    }
-
-    .page{
-      min-height: 100%;
-      opacity: 0;
-      transform: translateY(8px);
-      animation: pageIn .65s var(--ease) forwards;
-    }
-    @keyframes pageIn{
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @media (prefers-reduced-motion: reduce){
-      .page{ animation: none; opacity: 1; transform: none; }
-      *{ transition: none !important; animation: none !important; }
-    }
-
-    .nav{
-      position: fixed;
-      inset: 0 0 auto 0;
-      height: var(--nav-h);
-      z-index: 50;
-      display: flex;
-      align-items: center;
-      background: linear-gradient(180deg, rgba(245,247,251,.25), rgba(245,247,251,0));
-      border-bottom: 1px solid transparent;
-      transition: background .35s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease);
-      backdrop-filter: saturate(140%) blur(10px);
-      -webkit-backdrop-filter: saturate(140%) blur(10px);
-    }
-    .nav.scrolled{
-      background: linear-gradient(180deg, rgba(245,247,251,.92), rgba(245,247,251,.70));
-      border-bottom-color: var(--line);
-      box-shadow: 0 10px 24px rgba(15,23,42,.06);
-    }
-    .nav-inner{
-      width: min(var(--max), calc(100% - 32px));
-      margin: 0 auto;
-      display:flex; align-items:center; justify-content: space-between;
-      gap: 16px;
-    }
-    .brand{
-      display:flex; align-items:center; gap: 10px;
-      text-decoration:none; color: inherit;
-    }
-    .logo{
-      width: 34px; height: 34px; border-radius: 12px;
-      background: linear-gradient(135deg, rgba(59,109,140,.20), rgba(179,143,122,.18));
-      border: 1px solid var(--line);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
-    }
-    .brand strong{ font-weight: 800; letter-spacing:.2px; }
-    .brand span{ color: var(--muted); font-size: 12px; }
-
-    .menu{ display:flex; align-items:center; gap: 14px; flex-wrap: wrap; justify-content:flex-end; }
-
-    a.link{
-      color: rgba(15,23,42,.78);
-      text-decoration:none;
-      border-bottom: 1px solid transparent;
-      padding-bottom: 2px;
-      transition: color .2s var(--ease), border-color .2s var(--ease), transform .2s var(--ease);
-    }
-    a.link:hover{
-      color: var(--text);
-      border-bottom-color: rgba(59,109,140,.45);
-      transform: translateY(-1px);
-    }
-
-    .btn{
-      display:inline-flex; align-items:center; justify-content:center; gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.60);
-      color: rgba(15,23,42,.82);
-      text-decoration:none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
-      transition: transform .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
-      user-select:none;
-      cursor:pointer;
-    }
-    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow); background: rgba(255,255,255,.78); }
-    .btn.primary{
-      background: rgba(59,109,140,.14);
-      border-color: rgba(59,109,140,.28);
-    }
-    .btn.primary:hover{ box-shadow: 0 16px 40px rgba(59,109,140,.18); }
-
-    main{
-      width: min(var(--max), calc(100% - 32px));
-      margin: 0 auto;
-      padding: calc(var(--nav-h) + 26px) 0 40px;
-    }
-
-    .layout{
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 260px;
-      gap: 16px;
-      align-items: start;
-    }
-    @media (max-width: 980px){
-      .layout{ grid-template-columns: 1fr; }
-    }
-
-    .card{
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
-    }
-    .card::before{
-      content:"";
-      position:absolute; inset:0;
-      background: radial-gradient(640px 240px at 22% 0%, rgba(59,109,140,.16), transparent 55%),
-                  radial-gradient(520px 220px at 85% 10%, rgba(179,143,122,.14), transparent 50%);
-      opacity:.55;
-      pointer-events:none;
-    }
-    .card > *{ position: relative; }
-
-    article{ padding: 18px 18px 10px; }
-    .title{
-      margin: 0 0 6px;
-      font-size: clamp(22px, 2.4vw, 30px);
-      letter-spacing: .2px;
-    }
-    .sub{
-      margin: 0 0 14px;
-      color: var(--muted);
-      display:flex; gap: 10px; flex-wrap: wrap;
-      font-size: 13px;
-      line-height: 1.8;
-    }
-    .hr{
-      height: 1px;
-      background: var(--line);
-      margin: 12px 0 16px;
-    }
-
-    .prose{
-      font-size: 15px;
-      line-height: 1.8;
-      color: rgba(15,23,42,.86);
-    }
-    .prose p{ margin: 0 0 14px; }
-    .prose h2{
-      margin: 22px 0 10px;
-      font-size: 16px;
-      letter-spacing: .2px;
-    }
-    .prose h2::before{
-      content:"";
-      display:inline-block;
-      width: 10px; height: 10px;
-      border-radius: 999px;
-      background: rgba(179,143,122,.22);
-      border: 1px solid rgba(179,143,122,.30);
-      margin-right: 10px;
-      vertical-align: middle;
-    }
-    .prose ul{ margin: 0 0 14px 18px; }
-    .prose li{ margin: 6px 0; }
-
-    .actions{
-      display:flex; gap: 10px; flex-wrap: wrap;
-      padding: 0 18px 18px;
-    }
-
-    .toc{
-      padding: 16px;
-      position: sticky;
-      top: calc(var(--nav-h) + 14px);
-    }
-    .toc h3{
-      margin: 0 0 10px;
-      font-size: 13px;
-      color: rgba(15,23,42,.66);
-      letter-spacing: .25px;
-      text-transform: uppercase;
-    }
-    .toc a{
-      display:block;
-      padding: 8px 10px;
-      border-radius: 12px;
-      text-decoration:none;
-      color: rgba(15,23,42,.76);
-      border: 1px solid transparent;
-      transition: background .18s var(--ease), border-color .18s var(--ease), transform .18s var(--ease);
-      font-size: 13px;
-      line-height: 1.4;
-    }
-    .toc a:hover{
-      background: rgba(255,255,255,.60);
-      border-color: var(--line);
-      transform: translateY(-1px);
-    }
-    .toc a.active{
-      background: rgba(179,143,122,.12);
-      border-color: rgba(179,143,122,.22);
-    }
-
-    footer{
-      width: min(var(--max), calc(100% - 32px));
-      margin: 0 auto;
-      padding: 22px 0 40px;
-      color: rgba(15,23,42,.62);
-      border-top: 1px solid var(--line);
-    }
-    .foot{
-      display:flex; gap: 10px; align-items:center; justify-content: space-between;
-      flex-wrap: wrap;
-    }
-    .foot small{ font-size: 12px; }
-
-    .top{
-      position: fixed;
-      right: 14px;
-      bottom: 14px;
-      z-index: 60;
-      opacity: 0;
-      transform: translateY(8px);
-      pointer-events: none;
-      transition: opacity .18s var(--ease), transform .18s var(--ease);
-    }
-    .top.show{
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-  </style>
+  <link rel="stylesheet" href="assets/site.css" />
 </head>
 
 <body>
@@ -286,18 +36,40 @@
     <header class="nav" id="nav">
       <div class="nav-inner">
         <a class="brand" href="index.html" aria-label="回到主页">
-          <div class="logo" aria-hidden="true"></div>
+          <img class="logo-img" src="assets/logo.png" alt="站点 Logo" />
           <div>
-            <strong>你的博客名称</strong><br/>
+            <strong>家轩的网页</strong><br/>
             <span>Project · Xiangqi</span>
           </div>
         </a>
 
-        <nav class="menu" aria-label="主导航">
-          <a class="link" href="page1.html">上一篇</a>
-          <a class="link" href="index.html#posts">返回列表</a>
-          <a class="btn primary" href="index.html">返回主页</a>
-        </nav>
+        <div class="nav-actions">
+          <nav class="menu" id="menu" aria-label="主导航">
+            <a class="link" href="page1.html">上一篇</a>
+            <a class="link" href="index.html#posts">返回列表</a>
+            <a class="btn primary" href="index.html">返回主页</a>
+          </nav>
+
+          <button class="icon-btn" id="themeToggle" type="button"
+            aria-label="切换主题（Shift+点击：跟随系统）"
+            title="切换浅色/深色（Shift+点击：跟随系统）">
+            <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+            </svg>
+            <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h0m0 20h0M2 12h0m20 12h0M4.2 4.2h0m15.6 15.6h0M19.8 4.2h0M4.2 19.8h0"/>
+            </svg>
+            <span class="sr-only">切换主题</span>
+          </button>
+
+          <button class="icon-btn menu-toggle" id="menuToggle" type="button"
+            aria-label="打开菜单" aria-expanded="false" aria-controls="menu" title="菜单">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span class="sr-only">菜单</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -345,9 +117,7 @@
 
           <div class="actions">
             <a class="btn" href="index.html">← 返回主页</a>
-
-            <!-- 可修改：跳转到你的象棋页面（当前仓库文件名：中国象棋ai.html） -->
-            <a class="btn primary" href="中国象棋ai.html">打开中国象棋试玩 →</a>
+            <a class="btn primary" href="中国象棋ai.html" target="_blank" rel="noopener noreferrer">打开中国象棋试玩 →</a>
           </div>
         </section>
 
@@ -364,7 +134,7 @@
 
     <footer>
       <div class="foot">
-        <small>© <span id="year"></span> 你的博客名称 · All rights reserved.</small>
+        <small>© <span id="year"></span> 轩· All rights reserved.</small>
         <small><a class="link" href="index.html#contact">联系方式</a></small>
       </div>
     </footer>
@@ -372,57 +142,6 @@
     <button class="btn top" id="backTop" aria-label="返回顶部">↑ 顶部</button>
   </div>
 
-  <script>
-    (function(){
-      const nav = document.getElementById('nav');
-      const year = document.getElementById('year');
-      const backTop = document.getElementById('backTop');
-      const tocEl = document.getElementById('toc');
-      const article = document.getElementById('article');
-
-      year.textContent = String(new Date().getFullYear());
-
-      function onScroll(){
-        nav.classList.toggle('scrolled', window.scrollY > 8);
-        backTop.classList.toggle('show', window.scrollY > 420);
-      }
-      onScroll();
-      window.addEventListener('scroll', onScroll, { passive: true });
-
-      backTop.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-
-      // --- TOC ---
-      const headings = Array.from(article.querySelectorAll('.prose h2'));
-      if (headings.length === 0){
-        tocEl.innerHTML = '<span style="color:rgba(15,23,42,.55); font-size:13px;">暂无小标题</span>';
-        return;
-      }
-
-      headings.forEach((h, idx) => {
-        if (!h.id) h.id = 'sec-' + (idx + 1);
-        const a = document.createElement('a');
-        a.href = '#' + h.id;
-        a.textContent = h.textContent.trim();
-        tocEl.appendChild(a);
-      });
-
-      const links = Array.from(tocEl.querySelectorAll('a'));
-      const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
-
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return;
-          const id = entry.target.id;
-          links.forEach(a => a.classList.remove('active'));
-          const hit = map.get(id);
-          if (hit) hit.classList.add('active');
-        });
-      }, { rootMargin: '-20% 0px -70% 0px', threshold: 0.01 });
-
-      headings.forEach(h => io.observe(h));
-    })();
-  </script>
+  <script src="assets/site.js"></script>
 </body>
 </html>
