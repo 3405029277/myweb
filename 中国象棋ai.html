@@ -7,6 +7,7 @@
   <style>
     /* --- 基础设置 --- */
     :root{
+      color-scheme: dark;
       --board-bg:#e6b380;
       --line-color:#5d3a1a;
       --red-color:#ce1f1f;
@@ -22,7 +23,10 @@
       margin:0; padding:0;
       background:#262626;
       font-family:"KaiTi","楷体",serif;
-      height:100vh; width:100vw;
+      /* ✅ 使用动态视口高度，修复手机浏览器地址栏导致的棋盘“显示不出来/被挤没” */
+      min-height:100dvh; height:100dvh; width:100vw;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      box-sizing:border-box;
       display:flex; flex-direction:column;
       align-items:center; justify-content:center;
       overflow:hidden; user-select:none; -webkit-user-select:none;
@@ -31,8 +35,11 @@
     /* --- 游戏主区域 --- */
     .game-area{
       position:relative;
-      width:95vmin; height:95vmin;
-      max-width:600px; max-height:800px;
+      width:min(96vw, 600px);
+      height:min(96dvh, 860px);
+      max-height:860px;
+      /* flex 子元素允许收缩（避免某些手机上 board-wrapper 被挤到 0 高度） */
+      min-height:0;
       display:flex; flex-direction:column;
       align-items:center;
     }
@@ -110,6 +117,7 @@
         linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
       background-size:4% 4%;
+      min-height:0;
       transition:transform .6s cubic-bezier(0.4,0.0,0.2,1);
     }
     .board-wrapper.flipped{transform:rotate(180deg);}
@@ -120,7 +128,7 @@
 
     .board-svg{position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none;}
     .pieces-layer{position:absolute; inset:0; z-index:10;}
-    .click-layer{position:absolute; inset:0; z-index:20; cursor:pointer;}
+    .click-layer{position:absolute; inset:0; z-index:20; cursor:pointer; touch-action:none; -webkit-tap-highlight-color:transparent;}
 
     .piece{
       position:absolute;
@@ -787,10 +795,13 @@
       }
 
       net = new OnlineClient({
+        // ✅ wsBase 支持数组：国内/海外双线路兜底（可按你自己的域名替换）
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://你的国内线路域名"],
         wsBase: "wss://ws.cjx88.eu.cc",
         wsPath: "/relay",
         query: { game: "xq" },
         tokenKeyPrefix: "xq_token",
+        connectTimeoutMs: 8000,
         onStatus: (s) => {
           // 兼容 string / object 两种回调
           const status = (typeof s === "string") ? s : (s && s.status) || "";
@@ -954,6 +965,12 @@
         updateVoteHint(msg.votes || {});
         return;
       }
+
+      if (msg.type === "reject") {
+        uiLock = false;
+        toast(msg.reason || "操作无效");
+        return;
+      }
     }
 
     function updateVoteHint(votes){
@@ -970,16 +987,17 @@
     // ===========================
     // 走子 / 渲染 / AI
     // ===========================
-    document.getElementById("clickLayer").addEventListener("click", (e) => {
+    document.getElementById("clickLayer").addEventListener("pointerdown", (e) => {
+      e.preventDefault();
       if (engine.gameOver || uiLock) return;
 
       // ✅ 联机：观战禁止、非自己回合禁止
       if (onlineMode) {
         if (engine.mySide === 0) return toast("观战中，不能操作");
-        if (engine.turn !== engine.mySide) return;
+        if (engine.turn !== engine.mySide) return toast("还没轮到你");
       } else {
         // offline：人机时只有自己回合可点
-        if (engine.mySide !== 0 && engine.turn !== engine.mySide) return;
+        if (engine.mySide !== 0 && engine.turn !== engine.mySide) return toast("电脑回合");
       }
 
       const rect = e.target.getBoundingClientRect();
@@ -992,7 +1010,7 @@
       const c = Math.round((xPct * 900 - 50) / 100);
       const r = Math.round((yPct * 1000 - 50) / 100);
       if (c >= 0 && c < COLS && r >= 0 && r < ROWS) handleClick(r, c);
-    });
+    }, { passive:false });
 
     function handleClick(r, c){
       const p = engine.board[r][c];
