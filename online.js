@@ -79,6 +79,12 @@
     }
 
     connect() {
+      // 如果外部重复调用 connect，先干净地关闭上一条连接，避免“互踢/重连循环”
+      if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+        try { this.ws.close(); } catch {}
+        this.ws = null;
+      }
+
       this._closedByUser = false;
       this._clearReconnectTimer();
       this._clearConnectTimeout();
