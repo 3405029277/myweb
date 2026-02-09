@@ -43,15 +43,6 @@
       this.connectTimeoutMs = Number.isFinite(opts.connectTimeoutMs) ? opts.connectTimeoutMs : 8000;
       this._connectTimeoutTimer = null;
 
-      // 自动重连退避（避免服务器不可达时疯狂重连）
-      this.baseReconnectDelayMs = Number.isFinite(opts.baseReconnectDelayMs) ? opts.baseReconnectDelayMs : 1200;
-      this.maxReconnectDelayMs = Number.isFinite(opts.maxReconnectDelayMs) ? opts.maxReconnectDelayMs : 15000;
-      this.maxConsecutiveFails = Number.isFinite(opts.maxConsecutiveFails) ? opts.maxConsecutiveFails : 12;
-      this._reconnectDelayMs = this.baseReconnectDelayMs;
-      this._consecutiveFails = 0;
-      this._openedThisAttempt = false;
-
-
       // 兼容旧回调
       this.onInit = opts.onInit || (() => {});
       this.onMove = opts.onMove || (() => {});
@@ -91,8 +82,13 @@
       this._closedByUser = false;
       this._clearReconnectTimer();
       this._clearConnectTimeout();
+      // ✅ 如果已经有连接（open/connecting），先关掉避免“重复连接=房间人数变多/按钮失效”
+      if (this.ws) {
+        try { this.ws.onopen = this.ws.onclose = this.ws.onmessage = this.ws.onerror = null; } catch {}
+        try { this.ws.close(); } catch {}
+        this.ws = null;
+      }
 
-      this._openedThisAttempt = false;
 
       const roomId = this._ensureRoom();
       this.token = this._loadToken();
@@ -119,9 +115,6 @@
       }, this.connectTimeoutMs);
 
       this.ws.onopen = () => {
-        this._openedThisAttempt = true;
-        this._consecutiveFails = 0;
-        this._reconnectDelayMs = this.baseReconnectDelayMs;
         this._clearConnectTimeout();
         this._emitStatus("connected");
       };
@@ -129,22 +122,9 @@
       this.ws.onclose = () => {
         this._clearConnectTimeout();
         this._emitStatus("disconnected");
-
-        // 如果本次连接从未成功 open，就算一次失败（常见：后端不可达/路由没配）
-        if (!this._openedThisAttempt) {
-          this._consecutiveFails += 1;
-          // 失败时先切换线路再重连
-          this._rotateWsBase();
-          this._emitStatus("retrying", { failCount: this._consecutiveFails, nextDelayMs: this._reconnectDelayMs });
-
-          if (this._consecutiveFails >= this.maxConsecutiveFails) {
-            this.autoReconnect = false;
-            this._emitStatus("fatal", { reason: "connect_failed", failCount: this._consecutiveFails });
-            return;
-          }
-        }
-
         if (!this._closedByUser && this.autoReconnect) {
+          // 多线路：下一次重连换一个 wsBase
+          this._rotateWsBase();
           this._scheduleReconnect();
         }
       };
@@ -299,13 +279,9 @@
 
     _scheduleReconnect() {
       this._clearReconnectTimer();
-      const delay = Math.min(this._reconnectDelayMs, this.maxReconnectDelayMs);
       this._reconnectTimer = setTimeout(() => {
         if (!this._closedByUser) this.connect();
-      }, delay);
-
-      // 指数退避：下一次更慢一点，避免后端挂了/域名没解析导致狂刷
-      this._reconnectDelayMs = Math.min(Math.round(delay * 1.6), this.maxReconnectDelayMs);
+      }, 1200);
     }
 
     _clearReconnectTimer() {

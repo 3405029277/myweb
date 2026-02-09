@@ -23,8 +23,9 @@
       margin:0; padding:0;
       background:#262626;
       font-family:"KaiTi","楷体",serif;
-      /* ✅ 使用动态视口高度，修复手机浏览器地址栏导致的棋盘“显示不出来/被挤没” */
-      min-height:100dvh; height:100dvh; width:100vw;
+      /* ✅ 视口高度兼容：先用 100vh 兜底，再用 100dvh 修复手机地址栏导致的高度跳变 */
+      min-height:100vh; height:100vh; width:100vw;
+      min-height:100dvh; height:100dvh;
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
       box-sizing:border-box;
       display:flex; flex-direction:column;
@@ -36,6 +37,7 @@
     .game-area{
       position:relative;
       width:min(96vw, 600px);
+      height:min(96vh, 860px);
       height:min(96dvh, 860px);
       max-height:860px;
       /* flex 子元素允许收缩（避免某些手机上 board-wrapper 被挤到 0 高度） */
@@ -108,9 +110,14 @@
     /* --- 棋盘容器 --- */
     .board-wrapper{
       position:relative;
+      /* ✅ 用 JS + 明确宽高来适配手机（防止部分浏览器用高度推导宽度导致“超出屏幕”） */
+      width:100%;
+      max-width:100%;
+      margin:0 auto;
       aspect-ratio: 9 / 10;
-      flex:1;
-      background:var(--board-bg);
+      flex:0 0 auto;
+
+      background-color:var(--board-bg);
       border-radius:4px;
       box-shadow:0 0 20px rgba(0,0,0,0.6);
       background-image:
@@ -118,6 +125,8 @@
         linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
       background-size:4% 4%;
       min-height:0;
+      will-change:transform;
+      backface-visibility:hidden;
       transition:transform .6s cubic-bezier(0.4,0.0,0.2,1);
     }
     .board-wrapper.flipped{transform:rotate(180deg);}
@@ -676,6 +685,40 @@
 
     const toastEl = document.getElementById("toast");
 
+    // ===== 手机端棋盘自适配（避免宽度超屏 + 首帧不绘制）=====
+    const gameAreaEl = document.querySelector(".game-area");
+    const headerEl = document.querySelector(".header");
+    const controlsEl = document.querySelector(".controls");
+    const boardRefEl = document.getElementById("boardRef");
+
+    function fitBoard(){
+      if (!boardRefEl || !gameAreaEl) return;
+      const gaW = gameAreaEl.clientWidth || gameAreaEl.getBoundingClientRect().width;
+      const gaH = gameAreaEl.clientHeight || gameAreaEl.getBoundingClientRect().height;
+      const headerH = headerEl ? headerEl.offsetHeight : 0;
+      const controlsH = controlsEl ? controlsEl.offsetHeight : 0;
+      const padding = 12;
+
+      const availH = Math.max(200, gaH - headerH - controlsH - padding);
+      const availW = Math.max(200, gaW);
+
+      // 9/10 的棋盘比例：w <= availW 且 h=w*10/9 <= availH  => w <= availH*9/10
+      const w = Math.floor(Math.min(availW, availH * 9 / 10));
+      const h = Math.floor(w * 10 / 9);
+
+      boardRefEl.style.width = w + "px";
+      boardRefEl.style.height = h + "px";
+    }
+
+    window.addEventListener("resize", () => {
+      fitBoard();
+      try { render(); } catch {}
+    }, { passive:true });
+
+    window.addEventListener("orientationchange", () => {
+      setTimeout(() => { fitBoard(); try { render(); } catch {} }, 50);
+    }, { passive:true });
+
     function toast(msg){
       toastEl.textContent = msg;
       toastEl.classList.add("show");
@@ -749,8 +792,16 @@
       if (side === BLACK) br.classList.add("flipped");
       else br.classList.remove("flipped");
 
+      // ✅ 先计算棋盘宽高（移动端避免超屏 / 首帧不绘制）
+      fitBoard();
+      // 强制一次重排，修复部分手机背景/棋盘线首帧不显示
+      void br.offsetHeight;
+
       render();
       updateStatus();
+      // ✅ 某些手机浏览器首次布局会出现 0 高度/不刷新：下一帧再渲染一次
+      requestAnimationFrame(() => { fitBoard(); try { render(); } catch {} });
+      setTimeout(() => { fitBoard(); try { render(); } catch {} }, 80);
       setRoleBadgeText();
       startTimer();
 
@@ -797,15 +848,7 @@
       net = new OnlineClient({
         // ✅ wsBase 支持数组：国内/海外双线路兜底（可按你自己的域名替换）
         // wsBase: ["wss://ws.cjx88.eu.cc", "wss://你的国内线路域名"],
-        wsBase: (function(){
-          const sp = new URL(location.href).searchParams;
-          // 可选：?ws=wss://xxx.com 或 ?ws=wss://a.com,wss://b.com
-          const wsParam = sp.get("ws");
-          if (wsParam) return wsParam.split(",").map(s=>s.trim()).filter(Boolean);
-          // 默认：先尝试 ws 子域名，失败会在 online.js 里自动切线路
-          const fallback = (location.protocol === "https:" ? "wss://" : "ws://") + location.host;
-          return ["wss://ws.cjx88.eu.cc", fallback];
-        })(),
+        wsBase: "wss://ws.cjx88.eu.cc",
         wsPath: "/relay",
         query: { game: "xq" },
         tokenKeyPrefix: "xq_token",
@@ -962,6 +1005,11 @@
 
       if (msg.type === "xq_reset") {
         // reset 会在双方同意后触发；也可能是 swap 的重连前触发
+        // ✅ 新局开始时自动关闭结算弹窗，避免按钮仍在弹窗里导致“再来一局没反应”的错觉
+        closeModal("endModal");
+        updateVoteHint({});
+        uiLock = false;
+
         const mySide = engine.mySide;
         startGame(mySide);
         toast(msg.reason === "swap" ? "已换边，正在刷新身份…" : "新局开始");
@@ -1354,15 +1402,17 @@
 
     onlineRematchBtn.addEventListener("click", () => {
       if (!onlineMode || !net) return;
+      if (!engine.gameOver) return toast("对局还没结束");
       if (engine.mySide === 0) return toast("观战不能发起");
-      net.send({ type:"xq_rematch" });
+      if (!net.send({ type:"xq_rematch" })) return toast("未连接联机");
       toast("已请求：再来一局（等待对方）");
     });
 
     onlineSwapBtn.addEventListener("click", () => {
       if (!onlineMode || !net) return;
+      if (!engine.gameOver && engine.history.length > 0) return toast("对局进行中不能换边");
       if (engine.mySide === 0) return toast("观战不能发起");
-      net.send({ type:"xq_swap" });
+      if (!net.send({ type:"xq_swap" })) return toast("未连接联机");
       toast("已请求：换边（等待对方）");
     });
 
