@@ -24,7 +24,6 @@
     }
 
     #wrap {
-      min-height: 100vh;
       min-height: 100dvh;
       /* ✅ 关键：使用动态视口高度 */
       display: grid;
@@ -297,7 +296,6 @@
         onRole: (role) => {
           roleBadgeEl.textContent =
             role === 1 ? "身份：黑" : role === 2 ? "身份：白" : "身份：观战";
-          updateGameButtons();
         },
         onMessage: (msg) => {
 
@@ -312,7 +310,6 @@
 
             roleBadgeEl.textContent =
               net.role === 1 ? "身份：黑" : net.role === 2 ? "身份：白" : "身份：观战";
-            updateGameButtons();
             return;
           }
 
@@ -351,7 +348,6 @@
             startTurnTimer();
 
             toast("新一局开始！");
-            updateGameButtons();
             return;
           }
 
@@ -376,7 +372,6 @@
             updateRemainUI();
             draw();
             startTurnTimer();
-            updateGameButtons();
             return;
           }
 
@@ -538,25 +533,6 @@
         updateGameButtons();
 
       }
-
-
-      // ✅ “重开”按钮：人机=直接重开；联机=对局结束后发起“再来一局”（避免本地清空后又被服务器旧棋谱覆盖）
-      function restartOrRematch() {
-        if (modeEl.value === "ai") {
-          reset();
-          return;
-        }
-
-        // 联机
-        if (!gameOver) {
-          toast("联机对局中不能重开；请等结束后点“再来一局”");
-          return;
-        }
-        if (!(net.role === 1 || net.role === 2)) return toast("观战不能点");
-        if (!net.send({ type: "rematch" })) return toast("未连接联机");
-        toast("已请求再来一局（双方都点才会开始）");
-      }
-
 
       function resize() {
         const w = gameEl.clientWidth;
@@ -1051,7 +1027,7 @@
       }, { passive: false });
 
       undoBtn.addEventListener('click', undo);
-restartBtn.addEventListener('click', restartOrRematch);
+restartBtn.addEventListener('click', reset);
 
 // ===== 开始前换黑白 =====
 swapBtn.addEventListener("click", () => {
@@ -1100,7 +1076,7 @@ rematchBtn.addEventListener("click", () => {
       });
 
       window.addEventListener('keydown', (e) => {
-        if (e.key.toLowerCase() === 'r') restartOrRematch();
+        if (e.key.toLowerCase() === 'r') reset();
         if (e.key.toLowerCase() === 'z') undo();
       });
 
