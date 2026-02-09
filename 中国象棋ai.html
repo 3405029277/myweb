@@ -110,9 +110,14 @@
     /* --- 棋盘容器 --- */
     .board-wrapper{
       position:relative;
+      /* ✅ 用 JS + 明确宽高来适配手机（防止部分浏览器用高度推导宽度导致“超出屏幕”） */
+      width:100%;
+      max-width:100%;
+      margin:0 auto;
       aspect-ratio: 9 / 10;
-      flex:1;
-      background:var(--board-bg);
+      flex:0 0 auto;
+
+      background-color:var(--board-bg);
       border-radius:4px;
       box-shadow:0 0 20px rgba(0,0,0,0.6);
       background-image:
@@ -120,6 +125,8 @@
         linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
       background-size:4% 4%;
       min-height:0;
+      will-change:transform;
+      backface-visibility:hidden;
       transition:transform .6s cubic-bezier(0.4,0.0,0.2,1);
     }
     .board-wrapper.flipped{transform:rotate(180deg);}
@@ -678,6 +685,40 @@
 
     const toastEl = document.getElementById("toast");
 
+    // ===== 手机端棋盘自适配（避免宽度超屏 + 首帧不绘制）=====
+    const gameAreaEl = document.querySelector(".game-area");
+    const headerEl = document.querySelector(".header");
+    const controlsEl = document.querySelector(".controls");
+    const boardRefEl = document.getElementById("boardRef");
+
+    function fitBoard(){
+      if (!boardRefEl || !gameAreaEl) return;
+      const gaW = gameAreaEl.clientWidth || gameAreaEl.getBoundingClientRect().width;
+      const gaH = gameAreaEl.clientHeight || gameAreaEl.getBoundingClientRect().height;
+      const headerH = headerEl ? headerEl.offsetHeight : 0;
+      const controlsH = controlsEl ? controlsEl.offsetHeight : 0;
+      const padding = 12;
+
+      const availH = Math.max(200, gaH - headerH - controlsH - padding);
+      const availW = Math.max(200, gaW);
+
+      // 9/10 的棋盘比例：w <= availW 且 h=w*10/9 <= availH  => w <= availH*9/10
+      const w = Math.floor(Math.min(availW, availH * 9 / 10));
+      const h = Math.floor(w * 10 / 9);
+
+      boardRefEl.style.width = w + "px";
+      boardRefEl.style.height = h + "px";
+    }
+
+    window.addEventListener("resize", () => {
+      fitBoard();
+      try { render(); } catch {}
+    }, { passive:true });
+
+    window.addEventListener("orientationchange", () => {
+      setTimeout(() => { fitBoard(); try { render(); } catch {} }, 50);
+    }, { passive:true });
+
     function toast(msg){
       toastEl.textContent = msg;
       toastEl.classList.add("show");
@@ -751,10 +792,16 @@
       if (side === BLACK) br.classList.add("flipped");
       else br.classList.remove("flipped");
 
+      // ✅ 先计算棋盘宽高（移动端避免超屏 / 首帧不绘制）
+      fitBoard();
+      // 强制一次重排，修复部分手机背景/棋盘线首帧不显示
+      void br.offsetHeight;
+
       render();
       updateStatus();
       // ✅ 某些手机浏览器首次布局会出现 0 高度/不刷新：下一帧再渲染一次
-      requestAnimationFrame(() => { try { render(); } catch {} });
+      requestAnimationFrame(() => { fitBoard(); try { render(); } catch {} });
+      setTimeout(() => { fitBoard(); try { render(); } catch {} }, 80);
       setRoleBadgeText();
       startTimer();
 
