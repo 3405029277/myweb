@@ -23,8 +23,9 @@
       margin:0; padding:0;
       background:#262626;
       font-family:"KaiTi","楷体",serif;
-      /* ✅ 使用动态视口高度，修复手机浏览器地址栏导致的棋盘“显示不出来/被挤没” */
-      min-height:100dvh; height:100dvh; width:100vw;
+      /* ✅ 视口高度兼容：先用 100vh 兜底，再用 100dvh 修复手机地址栏导致的高度跳变 */
+      min-height:100vh; height:100vh; width:100vw;
+      min-height:100dvh; height:100dvh;
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
       box-sizing:border-box;
       display:flex; flex-direction:column;
@@ -36,6 +37,7 @@
     .game-area{
       position:relative;
       width:min(96vw, 600px);
+      height:min(96vh, 860px);
       height:min(96dvh, 860px);
       max-height:860px;
       /* flex 子元素允许收缩（避免某些手机上 board-wrapper 被挤到 0 高度） */
@@ -751,6 +753,8 @@
 
       render();
       updateStatus();
+      // ✅ 某些手机浏览器首次布局会出现 0 高度/不刷新：下一帧再渲染一次
+      requestAnimationFrame(() => { try { render(); } catch {} });
       setRoleBadgeText();
       startTimer();
 
@@ -954,6 +958,11 @@
 
       if (msg.type === "xq_reset") {
         // reset 会在双方同意后触发；也可能是 swap 的重连前触发
+        // ✅ 新局开始时自动关闭结算弹窗，避免按钮仍在弹窗里导致“再来一局没反应”的错觉
+        closeModal("endModal");
+        updateVoteHint({});
+        uiLock = false;
+
         const mySide = engine.mySide;
         startGame(mySide);
         toast(msg.reason === "swap" ? "已换边，正在刷新身份…" : "新局开始");
@@ -1346,15 +1355,17 @@
 
     onlineRematchBtn.addEventListener("click", () => {
       if (!onlineMode || !net) return;
+      if (!engine.gameOver) return toast("对局还没结束");
       if (engine.mySide === 0) return toast("观战不能发起");
-      net.send({ type:"xq_rematch" });
+      if (!net.send({ type:"xq_rematch" })) return toast("未连接联机");
       toast("已请求：再来一局（等待对方）");
     });
 
     onlineSwapBtn.addEventListener("click", () => {
       if (!onlineMode || !net) return;
+      if (!engine.gameOver && engine.history.length > 0) return toast("对局进行中不能换边");
       if (engine.mySide === 0) return toast("观战不能发起");
-      net.send({ type:"xq_swap" });
+      if (!net.send({ type:"xq_swap" })) return toast("未连接联机");
       toast("已请求：换边（等待对方）");
     });
 

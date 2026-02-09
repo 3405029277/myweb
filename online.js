@@ -82,6 +82,13 @@
       this._closedByUser = false;
       this._clearReconnectTimer();
       this._clearConnectTimeout();
+      // ✅ 如果已经有连接（open/connecting），先关掉避免“重复连接=房间人数变多/按钮失效”
+      if (this.ws) {
+        try { this.ws.onopen = this.ws.onclose = this.ws.onmessage = this.ws.onerror = null; } catch {}
+        try { this.ws.close(); } catch {}
+        this.ws = null;
+      }
+
 
       const roomId = this._ensureRoom();
       this.token = this._loadToken();
