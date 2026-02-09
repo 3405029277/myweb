@@ -1,4 +1,3 @@
-
 /**
  * online.js
  * 轻量 WebSocket 联机客户端（兼容旧用法 + 支持 token 断线重连）
@@ -11,13 +10,21 @@
  * - 支持固定 query（例如 {game:"xq"}）
  * - 支持动态 query（例如 want=red/black/spectate）
  * - token 本地持久化（用于断线重连/续座）
+ * - wsBase 支持数组：自动轮询多线路（适合“国内/海外”双线路兜底）
  */
 (function () {
   class OnlineClient {
     constructor(opts) {
       opts = opts || {};
 
-      this.wsBase = opts.wsBase || (location.protocol === "https:" ? "wss://" : "ws://") + location.host;
+      const defaultBase = (location.protocol === "https:" ? "wss://" : "ws://") + location.host;
+      const base = opts.wsBase || defaultBase;
+
+      // wsBase 支持字符串或数组：['wss://a.com','wss://b.com']
+      this.wsBases = Array.isArray(base) ? base.filter(Boolean) : [base];
+      if (!this.wsBases.length) this.wsBases = [defaultBase];
+      this._wsBaseIndex = 0;
+
       this.wsPath = opts.wsPath || "/relay";
 
       // 固定 query（例如 {game:"xq"}）
@@ -31,6 +38,10 @@
 
       // token 存储 key 前缀（每个 room 单独存）
       this.tokenKeyPrefix = opts.tokenKeyPrefix || "";
+
+      // 连接超时（移动网络下经常会“卡住不触发 onclose”）
+      this.connectTimeoutMs = Number.isFinite(opts.connectTimeoutMs) ? opts.connectTimeoutMs : 8000;
+      this._connectTimeoutTimer = null;
 
       // 兼容旧回调
       this.onInit = opts.onInit || (() => {});
@@ -70,26 +81,45 @@
     connect() {
       this._closedByUser = false;
       this._clearReconnectTimer();
+      this._clearConnectTimeout();
 
       const roomId = this._ensureRoom();
       this.token = this._loadToken();
 
       const wsUrl = this._buildWsUrl(roomId);
-      this.onStatus({ status: "connecting", wsUrl });
+      this._emitStatus("connecting", { wsUrl });
 
       try {
         this.ws = new WebSocket(wsUrl);
       } catch (e) {
-        this.onStatus({ status: "error", error: e });
+        this._emitStatus("error", { error: e });
+        this._rotateWsBase();
         this._scheduleReconnect();
         return;
       }
 
-      this.ws.onopen = () => this.onStatus({ status: "connected" });
+      // 连接超时兜底（尤其移动端）
+      this._connectTimeoutTimer = setTimeout(() => {
+        if (!this.ws) return;
+        if (this.ws.readyState !== WebSocket.OPEN) {
+          try { this.ws.close(); } catch {}
+          this._emitStatus("timeout");
+        }
+      }, this.connectTimeoutMs);
+
+      this.ws.onopen = () => {
+        this._clearConnectTimeout();
+        this._emitStatus("connected");
+      };
 
       this.ws.onclose = () => {
-        this.onStatus({ status: "disconnected" });
-        if (!this._closedByUser && this.autoReconnect) this._scheduleReconnect();
+        this._clearConnectTimeout();
+        this._emitStatus("disconnected");
+        if (!this._closedByUser && this.autoReconnect) {
+          // 多线路：下一次重连换一个 wsBase
+          this._rotateWsBase();
+          this._scheduleReconnect();
+        }
       };
 
       this.ws.onerror = () => {
@@ -123,7 +153,7 @@
 
         // 兼容旧回调
         if (msg.type === "init") this.onInit(msg);
-        if (msg.type === "move") this.onMove(msg);
+        if (msg.type === "move" || msg.type === "xq_move") this.onMove(msg);
 
         // 通用回调
         this.onMessage(msg);
@@ -133,11 +163,12 @@
     close() {
       this._closedByUser = true;
       this._clearReconnectTimer();
+      this._clearConnectTimeout();
       if (this.ws) {
         try { this.ws.close(); } catch {}
       }
       this.ws = null;
-      this.onStatus({ status: "closed" });
+      this._emitStatus("closed");
     }
 
     send(obj) {
@@ -164,8 +195,25 @@
     }
 
     // ===== internal =====
+    _emitStatus(status, extra) {
+      const payload = { status, ...(extra || {}) };
+      // 1) 新版：对象
+      try { this.onStatus(payload); } catch {}
+      // 2) 旧版：字符串（避免旧页面 if (s==='connecting') 失效）
+      try { this.onStatus(status); } catch {}
+    }
+
+    _currentWsBase() {
+      return this.wsBases[this._wsBaseIndex] || this.wsBases[0];
+    }
+
+    _rotateWsBase() {
+      if (this.wsBases.length <= 1) return;
+      this._wsBaseIndex = (this._wsBaseIndex + 1) % this.wsBases.length;
+    }
+
     _buildWsUrl(roomId) {
-      const u = new URL(this.wsBase + this.wsPath);
+      const u = new URL(this._currentWsBase() + this.wsPath);
 
       // 1) room
       u.searchParams.set("room", roomId);
@@ -233,6 +281,13 @@
       if (this._reconnectTimer) {
         clearTimeout(this._reconnectTimer);
         this._reconnectTimer = null;
+      }
+    }
+
+    _clearConnectTimeout() {
+      if (this._connectTimeoutTimer) {
+        clearTimeout(this._connectTimeoutTimer);
+        this._connectTimeoutTimer = null;
       }
     }
   }

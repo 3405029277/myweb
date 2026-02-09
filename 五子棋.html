@@ -7,6 +7,7 @@
   <title>在线五子棋 Gomoku（19路·棋子数·更强AI·计时）</title>
   <style>
     :root {
+      color-scheme: dark;
       --bg: #0b1225;
       --panel: rgba(255, 255, 255, .08);
       --line: rgba(255, 255, 255, .18);
@@ -274,13 +275,20 @@
 
 
       const net = new OnlineClient({
+        // ✅ 建议：wsBase 支持数组，国内/海外双线路兜底（可按你自己的域名替换）
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://你的国内线路域名"],
         wsBase: "wss://ws.cjx88.eu.cc",
         wsPath: "/ws", // 五子棋用 /ws（权威）
+        tokenKeyPrefix: "gm_token", // ✅ 关键：刷新/断线重连也能“续座”
+        connectTimeoutMs: 8000,
         onStatus: (s) => {
-          if (s === "connecting") toast("正在连接联机…");
-          if (s === "open") toast(`联机成功｜房间 ${net.roomId}`);
-          if (s === "closed") toast("联机断开，正在重连…");
-          if (s === "error") toast("联机错误");
+          // online.js 会同时回调 object + string，这里统一兼容
+          const status = (typeof s === "string") ? s : (s && s.status) || "";
+          if (status === "connecting") toast("正在连接联机…");
+          if (status === "connected") toast("联机已连接");
+          if (status === "timeout") toast("联机连接超时，正在切换线路/重连…");
+          if (status === "disconnected") toast("联机断开，正在重连…");
+          if (status === "error") toast("联机错误");
         },
         onPresence: (n) => {
           roomCountEl.textContent = `房间：${n}人`;
@@ -290,6 +298,11 @@
             role === 1 ? "身份：黑" : role === 2 ? "身份：白" : "身份：观战";
         },
         onMessage: (msg) => {
+
+          if (msg.type === "reject") {
+            toast(msg.reason || "操作无效");
+            return;
+          }
 
           // === 交换黑白后：后端会定向发你是谁 ===
           if (msg.type === "role") {
