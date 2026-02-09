@@ -277,7 +277,15 @@
       const net = new OnlineClient({
         // ✅ 建议：wsBase 支持数组，国内/海外双线路兜底（可按你自己的域名替换）
         // wsBase: ["wss://ws.cjx88.eu.cc", "wss://你的国内线路域名"],
-        wsBase: "wss://ws.cjx88.eu.cc",
+        wsBase: (function(){
+          const sp = new URL(location.href).searchParams;
+          // 可选：?ws=wss://xxx.com 或 ?ws=wss://a.com,wss://b.com
+          const wsParam = sp.get("ws");
+          if (wsParam) return wsParam.split(",").map(s=>s.trim()).filter(Boolean);
+          // 默认：先尝试 ws 子域名，失败会在 online.js 里自动切线路
+          const fallback = (location.protocol === "https:" ? "wss://" : "ws://") + location.host;
+          return ["wss://ws.cjx88.eu.cc", fallback];
+        })(),
         wsPath: "/ws", // 五子棋用 /ws（权威）
         tokenKeyPrefix: "gm_token", // ✅ 关键：刷新/断线重连也能“续座”
         connectTimeoutMs: 8000,
@@ -504,17 +512,6 @@
 }
 
       function reset() {
-// ===== 联机模式：重开需要双方确认（用“再来一局”/“开始前换黑白”），避免本地清空后又被服务器旧局覆盖 =====
-if (modeEl.value === "online") {
-  if (gameOver) {
-    if (!net.send({ type: "rematch" })) return toast("未连接联机");
-    return toast("已请求再来一局（双方都点才会开始）");
-  }
-  if (moves.length > 0) {
-    return toast("联机对局中不能单方面重开，请先下完或双方点“再来一局”");
-  }
-  // moves 为空：说明还没开局/刚进入房间，本地重置即可
-}
         stopTimer();
 
         setSideFromUI();
@@ -1042,8 +1039,6 @@ restartBtn.addEventListener('click', reset);
 
 // ===== 开始前换黑白 =====
 swapBtn.addEventListener("click", () => {
-  if (modeEl.value === "online" && moves.length > 0) return toast("已经开局，不能换边");
-
   if (modeEl.value === "ai") return toast("人机模式不用换边");
   if (gameOver) return toast("已结束，请点再来一局");
   if (moves.length !== 0) return toast("开局后不能换边");
