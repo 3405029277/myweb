@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="子页面1：在线五子棋项目介绍与复盘。" />
+  <meta name="theme-color" content="#f5f7fb" />
+
+  <title>在线五子棋 · 交互与 AI | 家轩的博客</title>
+  <link rel="icon" href="assets/favicon.png">
+
+  <!-- ✅ 关键：提前应用主题，避免闪烁 -->
+  <script>
+    (function(){
+      try{
+        var t = localStorage.getItem('theme');
+        var isDark;
+        if (t === 'light' || t === 'dark'){
+          document.documentElement.dataset.theme = t;
+          isDark = (t === 'dark');
+        } else {
+          isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        document.documentElement.classList.toggle('is-dark', !!isDark);
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.setAttribute('content', isDark ? '#0b1225' : '#f5f7fb');
+      }catch(e){}
+    })();
+  </script>
+
+  <link rel="stylesheet" href="assets/site.css" />
+</head>
+
+<body>
+  <div class="page">
+    <header class="nav" id="nav">
+      <div class="nav-inner">
+        <a class="brand" href="index.html" aria-label="回到主页">
+          <img class="logo-img" src="assets/logo.png" alt="站点 Logo" />
+          <div>
+            <strong>家轩的网页</strong><br/>
+            <span>Project · Gomoku</span>
+          </div>
+        </a>
+
+        <div class="nav-actions">
+          <nav class="menu" id="menu" aria-label="主导航">
+            <a class="link" href="index.html#posts">返回列表</a>
+            <a class="link" href="page2.html">下一篇</a>
+            <a class="btn primary" href="index.html">返回主页</a>
+          </nav>
+
+          <button class="icon-btn" id="themeToggle" type="button"
+            aria-label="切换主题（Shift+点击：跟随系统）"
+            title="切换浅色/深色（Shift+点击：跟随系统）">
+            <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+            </svg>
+            <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h0m0 20h0M2 12h0m20 12h0M4.2 4.2h0m15.6 15.6h0M19.8 4.2h0M4.2 19.8h0"/>
+            </svg>
+            <span class="sr-only">切换主题</span>
+          </button>
+
+          <button class="icon-btn menu-toggle" id="menuToggle" type="button"
+            aria-label="打开菜单" aria-expanded="false" aria-controls="menu" title="菜单">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <span class="sr-only">菜单</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="layout">
+        <section class="card">
+          <article class="article" id="article">
+            <h1 class="title">在线五子棋 · 从“能玩”到“耐看”</h1>
+            <div class="sub">
+              <span>发布时间：2026-02-07</span>
+              <span>·</span>
+              <span>标签：UI / 交互 / 简易 AI</span>
+            </div>
+            <div class="hr"></div>
+
+            <div class="prose">
+              <p>
+                这篇文章主要复盘一个常见但很容易被做“糙”的页面：五子棋。目标不是堆功能，而是让它在<strong>手机/平板/电脑</strong>都保持清晰、顺滑和舒服。
+              </p>
+
+              <h2>1. 视觉与布局策略</h2>
+              <p>
+                我选择了低饱和蓝灰作为主基调，让棋盘/棋子成为视觉焦点；同时用卡片阴影和留白把信息区与棋盘区分层。
+                页面结构建议用 <code>Grid</code> 切分信息栏与主体区域，移动端自然堆叠。
+              </p>
+
+              <h2>2. 交互细节：反馈要“轻”</h2>
+              <p>
+                鼠标/触控落子后，给<strong>最后一步</strong>一个明确标记；按钮 hover 只做轻微位移 + 阴影增强，让界面更“贵”，但不浮夸。
+              </p>
+
+              <h2>3. AI 思路：候选点 + 评分 + 小深度搜索</h2>
+              <p>
+                AI 不需要很复杂也能明显变强：只在“已有棋子附近”生成候选点，做一个攻防评分，再用浅层 Minimax/αβ 剪枝去选最优点。
+                这能在手机上也跑得动。
+              </p>
+
+              <h2>4. 后续可扩展方向</h2>
+              <p>
+                你可以继续加：开局库、禁手规则、对局记录导出、主题切换等。建议始终保持<strong>交互简洁</strong>，不要让 UI 变成控制面板。
+              </p>
+            </div>
+          </article>
+
+          <div class="actions">
+            <a class="btn" href="index.html">← 返回主页</a>
+            <a class="btn primary" href="五子棋.html" target="_blank" rel="noopener noreferrer">打开五子棋试玩 →</a>
+          </div>
+        </section>
+
+        <aside class="card">
+          <nav class="toc" aria-label="文章目录">
+            <h3>目录</h3>
+            <div id="toc"></div>
+            <div class="hr" style="margin:12px 0;"></div>
+            <a class="link" href="index.html#posts">回到文章列表</a>
+          </nav>
+        </aside>
+      </div>
+    </main>
+
+    <footer>
+      <div class="foot">
+        <small>© <span id="year"></span> 轩· All rights reserved.</small>
+        <small><a class="link" href="index.html#contact">联系方式</a></small>
+      </div>
+    </footer>
+
+    <button class="btn top" id="backTop" aria-label="返回顶部">↑ 顶部</button>
+  </div>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>
