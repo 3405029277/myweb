@@ -578,15 +578,43 @@
         if (!board) return;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const boardX = pad - cell * 0.5;
+        const boardY = pad - cell * 0.5;
+        const boardW = cell * (SIZE - 1) + cell;
+        const boardH = cell * (SIZE - 1) + cell;
+
+        // 木质棋盘背景（浅木纹）
+        const woodBase = ctx.createLinearGradient(0, boardY, 0, boardY + boardH);
+        woodBase.addColorStop(0, "#e6c89a");
+        woodBase.addColorStop(0.5, "#d8b07a");
+        woodBase.addColorStop(1, "#c79a63");
+        ctx.fillStyle = woodBase;
+        ctx.fillRect(boardX, boardY, boardW, boardH);
+
+        // 木纹细节（轻微条纹）
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        for (let i = 0; i < 22; i++) {
+          const y = boardY + (boardH / 22) * i + Math.sin(i * 0.9) * (2 * pxRatio);
+          ctx.strokeStyle = i % 2 === 0 ? "#b8844f" : "#e7cda9";
+          ctx.lineWidth = Math.max(1, 1 * pxRatio);
+          ctx.beginPath();
+          ctx.moveTo(boardX, y);
+          ctx.lineTo(boardX + boardW, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // 棋盘外部背景保持深色衬托
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-over";
         ctx.fillStyle = "#0b1225";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // 棋盘底色
-        ctx.fillStyle = "rgba(234,179,8,0.10)";
-        ctx.fillRect(pad - cell * 0.5, pad - cell * 0.5, cell * (SIZE - 1) + cell, cell * (SIZE - 1) + cell);
+        ctx.restore();
 
         // 网格线
-        ctx.strokeStyle = "rgba(255,255,255,0.18)";
+        ctx.strokeStyle = "rgba(90,60,30,0.45)";
         ctx.lineWidth = Math.max(1, Math.floor(1 * pxRatio));
         for (let i = 0; i < SIZE; i++) {
           const x = pad + i * cell;
@@ -597,7 +625,7 @@
 
         // 星位（19路常见：3,9,15）
         const stars = [3, 9, 15];
-        ctx.fillStyle = "rgba(255,255,255,0.35)";
+        ctx.fillStyle = "rgba(59,42,26,0.55)";
         for (const r of stars) for (const c of stars) {
           const x = pad + c * cell, y = pad + r * cell;
           ctx.beginPath(); ctx.arc(x, y, Math.max(2, 3 * pxRatio), 0, Math.PI * 2); ctx.fill();
