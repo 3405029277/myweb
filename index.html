@@ -1,21 +1,19 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="个人博客主页：项目、文章与日常记录。" />
-  <meta name="theme-color" content="#f5f7fb" />
-
-  <title>家轩的博客</title>
-  <link rel="icon" href="assets/favicon.png">
-
-  <!-- ✅ 关键：在 CSS 加载前应用主题，避免切页“闪一下/突兀” -->
-  <script>
-    (function(){
-      try{
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="个人博客主页：项目、文章与日常记录。" name="description"/>
+<meta content="#f5f7fb" name="theme-color"/>
+<title>家轩的博客</title>
+<link href="assets/favicon.png" rel="icon"/>
+<!-- ✅ 关键：在 CSS 加载前应用主题，避免切页“闪一下/突兀” -->
+<script>
+    (function () {
+      try {
         var t = localStorage.getItem('theme');
         var isDark;
-        if (t === 'light' || t === 'dark'){
+        if (t === 'light' || t === 'dark') {
           document.documentElement.dataset.theme = t;
           isDark = (t === 'dark');
         } else {
@@ -24,166 +22,200 @@
         document.documentElement.classList.toggle('is-dark', !!isDark);
         var m = document.querySelector('meta[name="theme-color"]');
         if (m) m.setAttribute('content', isDark ? '#0b1225' : '#f5f7fb');
-      }catch(e){}
+      } catch (e) { }
     })();
   </script>
+  <script defer src="./supabase_all_in_one.jwt.js?v=2"></script>
 
-  <link rel="stylesheet" href="assets/site.css" />
+<link href="assets/site.css" rel="stylesheet"/>
 </head>
-
 <body>
-  <div class="page">
-    <header class="nav" id="nav">
-      <div class="nav-inner">
-        <a class="brand" href="index.html" aria-label="回到主页">
-          <img class="logo-img" src="assets/logo.png" alt="站点 Logo" />
-          <div>
-            <strong>家轩的网页</strong><br/>
-            <span>记录想法 · 打磨作品 · 持续进化</span>
-          </div>
-        </a>
+<div class="page">
+<header class="nav" id="nav">
+<div class="nav-inner">
+<a aria-label="回到主页" class="brand" href="index.html">
+<img alt="站点 Logo" class="logo-img" src="assets/logo.png"/>
+<div>
+<strong>家轩的网页</strong><br/>
+<span>记录想法 · 打磨作品 · 持续进化</span>
+</div>
+</a>
+<div class="nav-actions">
+<nav aria-label="主导航" class="menu" id="menu">
+<a class="link" href="#about">关于</a>
+<a class="link" href="#posts">文章</a>
+<a class="link" href="#contact">联系</a>
+<a class="btn primary" href="#posts">查看项目</a>
 
-        <div class="nav-actions">
-          <nav class="menu" id="menu" aria-label="主导航">
-            <a class="link" href="#about">关于</a>
-            <a class="link" href="#posts">文章</a>
-            <a class="link" href="#contact">联系</a>
-            <a class="btn primary" href="#posts">查看项目</a>
-          </nav>
 
-          <button class="icon-btn" id="themeToggle" type="button"
-            aria-label="切换主题（Shift+点击：跟随系统）"
-            title="切换浅色/深色（Shift+点击：跟随系统）">
-            <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
-            </svg>
-            <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h0m0 20h0M2 12h0m20 12h0M4.2 4.2h0m15.6 15.6h0M19.8 4.2h0M4.2 19.8h0"/>
-            </svg>
-            <span class="sr-only">切换主题</span>
-          </button>
 
-          <button class="icon-btn menu-toggle" id="menuToggle" type="button"
-            aria-label="打开菜单" aria-expanded="false" aria-controls="menu" title="菜单">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
-            </svg>
-            <span class="sr-only">菜单</span>
-          </button>
-        </div>
-      </div>
-    </header>
 
-    <main>
-      <section class="hero" id="about">
-        <div class="card">
-          <div class="intro">
-            <div class="avatar" id="avatar" aria-label="头像">
-              <img src="assets/avatar.jpg" alt="你的头像" loading="lazy" decoding="async" />
-              <span class="fallback" aria-hidden="true">ME</span>
-            </div>
 
-            <div>
-              <h1>你好，我是 <span style="color:var(--primary)">cjx</span> 👋</h1>
-              <p>
+
+</nav>
+<button aria-label="切换主题（Shift+点击：跟随系统）" class="icon-btn" id="themeToggle" title="切换浅色/深色（Shift+点击：跟随系统）" type="button">
+<svg aria-hidden="true" class="icon icon-moon" viewbox="0 0 24 24">
+<path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"></path>
+</svg>
+<svg aria-hidden="true" class="icon icon-sun" viewbox="0 0 24 24">
+<path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h0m0 20h0M2 12h0m20 12h0M4.2 4.2h0m15.6 15.6h0M19.8 4.2h0M4.2 19.8h0"></path>
+</svg>
+<span class="sr-only">切换主题</span>
+</button>
+<button aria-controls="menu" aria-expanded="false" aria-label="打开菜单" class="icon-btn menu-toggle" id="menuToggle" title="菜单" type="button">
+<svg aria-hidden="true" class="icon" viewbox="0 0 24 24">
+<path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+<span class="sr-only">菜单</span>
+</button>
+</div>
+</div>
+</header>
+<main>
+<section class="hero" id="about">
+<div class="card">
+<div class="intro">
+<div aria-label="头像" class="avatar" id="avatar">
+<img alt="你的头像" decoding="async" loading="lazy" src="assets/avatar.jpg"/>
+<span aria-hidden="true" class="fallback">ME</span>
+</div>
+<div>
+<h1>你好，我是 <span style="color:var(--primary)">cjx</span> 👋</h1>
+<p>
                 我是一名前端开发者，关注<strong>交互手感</strong>、<strong>页面质感</strong>和<strong>可维护性</strong>。
                 这个站点是我的小实验室：把想法做成能点的作品，把经验写成更清晰的笔记——
                 目前主要在完善两个小游戏（五子棋 / 中国象棋）并持续打磨它们的 UI 与体验。
               </p>
-
-              <div class="meta" aria-label="标签">
-                <span class="chip">HTML5 / CSS3</span>
-                <span class="chip">原生 JavaScript</span>
-                <span class="chip">UI & 交互细节</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <aside class="card">
-          <div class="sidebox">
-            <h2>现在在做</h2>
-            <p class="tip">
+<div aria-label="标签" class="meta">
+<span class="chip">HTML5 / CSS3</span>
+<span class="chip">原生 JavaScript</span>
+<span class="chip">UI &amp; 交互细节</span>
+</div>
+</div>
+</div>
+</div>
+<aside class="card">
+<div class="sidebox">
+<h2>现在在做</h2>
+<p class="tip">
               把“能玩”的页面升级成“耐看”的作品：统一视觉语言、移动端更好点、暗黑模式更舒服，
               再把每次优化的思路写下来（方便自己复盘，也欢迎你来抄作业）。
             </p>
-
-            <div class="stats" aria-label="站点概览">
-              <div class="stat"><b>2</b><span>项目文章</span></div>
-              <div class="stat"><b>响应式</b><span>全设备适配</span></div>
-              <div class="stat"><b>主题</b><span>浅色 / 深色</span></div>
-            </div>
-
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:2px">
-              <a class="btn" href="#" onclick="alert('暂时不方便透露'); return false;">GitHub</a>
-              <a class="btn" href="#contact">Email</a>
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <section class="section" id="posts" aria-label="文章列表">
-        <div class="section-head">
-          <div>
-            <h3>最新文章 / 项目</h3>
-            <p>两篇子页面：点卡片进入详情，再从详情跳转回主页。</p>
-          </div>
-          <a class="link" href="#contact">想合作？</a>
-        </div>
-
-        <div class="grid">
-          <!-- ✅ 新开标签页 -->
-          <a class="post" href="page1.html" target="_blank" rel="noopener noreferrer" aria-label="打开子页面1（新标签页）">
-            <h4>子页面1标题：在线五子棋 · 交互与 AI</h4>
-            <p class="desc">
+<div aria-label="站点概览" class="stats">
+<div class="stat"><b>2</b><span>项目文章</span></div>
+<div class="stat"><b>响应式</b><span>全设备适配</span></div>
+<div class="stat"><b>主题</b><span>浅色 / 深色</span></div>
+</div>
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:2px">
+<a class="btn" href="#" onclick="alert('暂时不方便透露'); return false;">GitHub</a>
+<a class="btn" href="#contact">Email</a>
+</div>
+</div>
+</aside>
+</section>
+<section aria-label="文章列表" class="section" id="posts">
+<div class="section-head">
+<div>
+<h3>最新文章 / 项目</h3>
+<p>两篇子页面：点卡片进入详情，再从详情跳转回主页。</p>
+</div>
+<a class="link" href="#contact">想合作？</a>
+</div>
+<div class="grid">
+<!-- ✅ 新开标签页 -->
+<a aria-label="打开子页面1（新标签页）" class="post" href="page1.html" rel="noopener noreferrer" target="_blank">
+<h4>子页面1标题：在线五子棋 · 交互与 AI</h4>
+<p class="desc">
               记录一次“把小游戏做得更像产品”的过程：UI/响应式/计时规则，以及一个更稳的候选点 + 评分 AI 思路。
             </p>
-            <div class="row">
-              <span class="tag"><span class="dot"></span> Project</span>
-              <time datetime="2026-02-07">发布时间：2026-02-07</time>
-            </div>
-          </a>
-
-          <!-- ✅ 新开标签页 -->
-          <a class="post" href="page2.html" target="_blank" rel="noopener noreferrer" aria-label="打开子页面2（新标签页）">
-            <h4>子页面2标题：中国象棋 · 布局与细节</h4>
-            <p class="desc">
+<div class="row">
+<span class="tag"><span class="dot"></span> Project</span>
+<time datetime="2026-02-07">发布时间：2026-02-07</time>
+</div>
+</a>
+<!-- ✅ 新开标签页 -->
+<a aria-label="打开子页面2（新标签页）" class="post" href="page2.html" rel="noopener noreferrer" target="_blank">
+<h4>子页面2标题：中国象棋 · 布局与细节</h4>
+<p class="desc">
               从棋盘渲染到动效反馈：选中态高亮、将军提示、翻转视角、移动端点击映射等。做一个“耐看”的棋类页面。
             </p>
-            <div class="row">
-              <span class="tag"><span class="dot"></span> Notes</span>
-              <time datetime="2026-02-07">发布时间：2026-02-07</time>
-            </div>
-          </a>
-        </div>
-      </section>
-
-      <section class="section" id="contact" aria-label="联系方式">
-        <div class="section-head">
-          <div>
-            <h3>联系</h3>
-            <p></p>
-          </div>
-        </div>
-
-        <div class="card" style="padding:16px;">
-          <p style="margin:0; color:var(--muted); line-height:1.9;">
+<div class="row">
+<span class="tag"><span class="dot"></span> Notes</span>
+<time datetime="2026-02-07">发布时间：2026-02-07</time>
+</div>
+</a>
+</div>
+</section>
+<section aria-label="联系方式" class="section" id="contact">
+<div class="section-head">
+<div>
+<h3>联系</h3>
+<p></p>
+</div>
+</div>
+<div class="card" style="padding:16px;">
+<p style="margin:0; color:var(--muted); line-height:1.9;">
             📮 Email：<a class="link" href="mailto:yourname@example.com">yourname@example.com</a><br/>
             💬 WeChat：your_wechat_id<br/>
             🌐 站点：www.cjx88.eu.cc
           </p>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      <div class="foot">
-        <small>© <span id="year"></span> 轩· All rights reserved.</small>
-        <small>Made with HTML/CSS/JS · 简约但讲究</small>
-      </div>
-    </footer>
-  </div>
-
-  <script src="assets/site.js"></script>
+</div>
+</section>
+</main>
+<footer>
+<section class="section" id="comments">
+<div class="section-head">
+<h2>留言 / 评论</h2>
+<p class="desc">登录后即可发表评论（每个页面独立评论区）。</p>
+</div>
+<div class="grid">
+<div class="card" id="authCard">
+<h3 style="margin-top:0">账号</h3>
+<p class="desc" id="authStatus">未登录</p>
+<div class="row" style="gap:10px; flex-wrap:wrap">
+<label class="sr-only" for="authEmail">邮箱</label>
+<input autocomplete="email" id="authEmail" placeholder="邮箱" style="min-width:220px"/>
+<label class="sr-only" for="authPassword">密码</label>
+<input autocomplete="current-password" id="authPassword" placeholder="密码" style="min-width:220px" type="password"/>
+<label class="sr-only" for="authUsername">用户名</label>
+<input autocomplete="username" id="authUsername" placeholder="用户名（注册时填写）" style="min-width:220px"/>
+</div>
+<div class="row" style="gap:10px; flex-wrap:wrap; margin-top:12px">
+<button class="btn primary" id="btnLogin" type="button">登录</button>
+<button class="btn" id="btnSignup" type="button">注册</button>
+<button class="btn" id="btnResetPwd" type="button">忘记密码</button>
+<button class="btn" disabled="" id="btnLogout" type="button">退出登录</button>
+<button class="btn" disabled="" id="btnDeleteAccount" type="button">注销账号</button>
+</div>
+<p class="tip" id="authTip" style="margin-top:12px">
+        注册后需要去邮箱点确认链接，然后再登录。
+      </p>
+</div>
+<div class="card" id="commentCard">
+<div class="row" style="justify-content:space-between; align-items:center; gap:12px">
+<h3 style="margin:0">评论</h3>
+<span class="chip" id="commentCount">0 条</span>
+</div>
+<div style="margin-top:12px">
+<label class="sr-only" for="commentInput">评论内容</label>
+<textarea id="commentInput" placeholder="写下你的评论..." rows="4" style="width:100%; resize:vertical"></textarea>
+<div class="row" style="justify-content:space-between; align-items:center; gap:12px; margin-top:10px; flex-wrap:wrap">
+<span class="tip" id="commentTip">未登录时无法发表评论。</span>
+<button class="btn primary" disabled="" id="btnPost" type="button">发表评论</button>
+</div>
+</div>
+<div id="commentList" style="margin-top:16px"></div>
+</div>
+</div>
+</section><div class="foot">
+<small>© <span id="year"></span> 轩· All rights reserved.</small>
+<small>Made with HTML/CSS/JS · 简约但讲究</small>
+</div>
+</footer>
+</div>
+<script src="assets/site.js"></script>
+<script>
+  // supabase_all_in_one.js 已包含登录/评论逻辑，这里避免重复绑定导致超时/冲突。
+</script>
 </body>
 </html>
