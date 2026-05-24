@@ -1,0 +1,65 @@
+.site-music-player {
+  position: fixed;
+  left: 0;
+  bottom: 18px;
+  z-index: 70;
+  width: min(320px, calc(100vw - 48px));
+  transform: translateX(calc(-100% + 42px));
+  transition: transform 0.2s ease;
+}
+
+.site-music-player:hover,
+.site-music-player:focus-within,
+.site-music-player.is-open {
+  transform: translateX(0);
+}
+
+.site-music-player::after {
+  content: "BGM";
+  position: absolute;
+  right: -42px;
+  bottom: 0;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  letter-spacing: 0;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 0 999px 999px 0;
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.site-music-player:not(:hover):not(:focus-within):not(.is-open) .aplayer {
+  pointer-events: none;
+}
+
+.site-music-player .aplayer {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.site-music-player .aplayer.aplayer-fixed {
+  max-width: none;
+}
+
+@media (max-width: 640px) {
+  .site-music-player {
+    bottom: 10px;
+    width: min(292px, calc(100vw - 46px));
+    transform: translateX(calc(-100% + 40px));
+  }
+
+  .site-music-player::after {
+    right: -40px;
+    width: 40px;
+    height: 40px;
+  }
+}

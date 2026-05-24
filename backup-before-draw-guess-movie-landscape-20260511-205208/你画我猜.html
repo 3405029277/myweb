@@ -1,0 +1,117 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="联机你画我猜小游戏">
+  <meta name="theme-color" content="#f6f7fb">
+  <title>你画我猜 | cjx 知微录</title>
+  <style>
+    :root { color-scheme: light; --bg:#f5f7fb; --panel:#fff; --line:#dfe5ee; --text:#1f2937; --muted:#667085; --primary:#2563eb; --ok:#16a34a; --bad:#dc2626; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100dvh; font-family:"Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--text); background:var(--bg); }
+    a { color: inherit; }
+    button, input { font: inherit; }
+    .page { min-height:100dvh; display:grid; grid-template-rows:auto 1fr; }
+    .topbar { border-bottom:1px solid var(--line); background:rgba(255,255,255,.94); backdrop-filter:blur(10px); }
+    .topbar-inner { width:min(1180px, calc(100% - 24px)); margin:0 auto; min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .brand { display:flex; flex-direction:column; text-decoration:none; line-height:1.25; }
+    .brand strong { font-size:18px; }
+    .brand span { color:var(--muted); font-size:12px; }
+    .top-actions { display:flex; align-items:center; gap:8px; }
+    .button { border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:8px; min-height:38px; padding:0 12px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+    .button.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .button:disabled { opacity:.55; cursor:not-allowed; }
+    .game-shell { width:min(1180px, calc(100% - 24px)); margin:16px auto; display:grid; grid-template-columns:280px minmax(0,1fr) 300px; gap:12px; align-items:start; }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px; }
+    .panel h2, .panel h3 { margin:0 0 10px; font-size:16px; }
+    .form-stack { display:grid; gap:8px; }
+    .field { display:grid; gap:5px; color:var(--muted); font-size:13px; }
+    .field input { width:100%; border:1px solid var(--line); border-radius:8px; min-height:38px; padding:0 10px; color:var(--text); background:#fff; }
+    .status { min-height:42px; padding:10px; border-radius:8px; background:#eef4ff; color:#1d4ed8; font-size:14px; line-height:1.45; }
+    .status.ok { background:#ecfdf3; color:var(--ok); }
+    .status.bad { background:#fef2f2; color:var(--bad); }
+    .word-choices { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:8px; }
+    .word-choices button { min-height:36px; border:1px solid var(--line); border-radius:8px; background:#f8fafc; cursor:pointer; }
+    .canvas-panel { padding:10px; }
+    .canvas-panel.fullscreenCanvas { position:fixed; inset:0; z-index:50; display:grid; grid-template-rows:auto minmax(0,1fr) auto auto; border-radius:0; border:0; padding:8px; background:#f8fafc; }
+    .canvas-panel.fullscreenCanvas .canvas-wrap { height:100%; aspect-ratio:auto; }
+    .fullscreen-head { display:none; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+    .canvas-panel.fullscreenCanvas .fullscreen-head { display:flex; }
+    .round-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+    .round-title { font-weight:700; }
+    .timer { min-width:58px; text-align:center; border:1px solid var(--line); border-radius:999px; padding:5px 10px; color:var(--muted); background:#fff; }
+    .canvas-wrap { width:100%; aspect-ratio:4/3; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff; touch-action:none; }
+    #drawCanvas { display:block; width:100%; height:100%; cursor:crosshair; touch-action:none; }
+    .tools { display:grid; grid-template-columns:auto 1fr auto auto; gap:8px; align-items:center; margin-top:10px; }
+    .tools input[type="color"] { width:42px; height:38px; border:1px solid var(--line); border-radius:8px; background:#fff; padding:3px; }
+    .tools input[type="range"] { width:100%; }
+    .guess-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; margin-top:8px; }
+    .guess-row input { border:1px solid var(--line); border-radius:8px; min-height:40px; padding:0 10px; }
+    .list { display:grid; gap:6px; max-height:260px; overflow:auto; }
+    .list-row { display:flex; justify-content:space-between; gap:8px; border-bottom:1px solid #edf1f6; padding:7px 0; font-size:14px; }
+    .list-row:last-child { border-bottom:0; }
+    .muted { color:var(--muted); }
+    .rules-box { margin-top:12px; border-top:1px solid var(--line); padding-top:12px; color:var(--muted); font-size:13px; line-height:1.55; }
+    .rules-box h3 { color:var(--text); }
+    .rules-box ol { margin:0; padding-left:18px; }
+    .toast { position:fixed; left:50%; bottom:14px; z-index:80; transform:translate(-50%, 20px); max-width:min(420px, calc(100% - 24px)); padding:12px 16px; border-radius:8px; background:#111827; color:#fff; opacity:0; pointer-events:none; transition:.18s ease; text-align:center; box-shadow:0 12px 32px rgba(15,23,42,.2); }
+    .toast.show { opacity:1; transform:translate(-50%, 0); }
+    .toast.ok { background:#16a34a; }
+    .toast.bad { background:#dc2626; }
+    @media (max-width:900px) { .game-shell { grid-template-columns:1fr; } .canvas-panel { order:-1; } }
+    @media (max-width:520px) { body { overscroll-behavior:none; } .topbar-inner,.game-shell { width:calc(100% - 16px); } .game-shell { margin:8px auto; } .word-choices { grid-template-columns:1fr; } .tools { grid-template-columns:auto 1fr auto; } .tools .clear-button { grid-column:1/-1; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html"><strong>你画我猜</strong><span>Cloudflare Worker 联机版</span></a>
+        <div class="top-actions"><a class="button" href="index.html">首页</a><button class="button primary" id="copyRoomBtn" type="button">复制房间</button></div>
+      </div>
+    </header>
+    <main class="game-shell">
+      <aside class="panel room-panel">
+        <h2>房间</h2>
+        <div class="form-stack">
+          <label class="field">昵称<input id="nameInput" maxlength="16" placeholder="输入昵称"></label>
+          <label class="field">房间号<input id="roomInput" maxlength="20" placeholder="例如 520"></label>
+          <label class="field">Worker 地址<input id="endpointInput" placeholder="默认 /draw/ws"></label>
+          <button class="button primary" id="joinBtn" type="button">加入房间</button>
+          <button class="button" id="newRoundBtn" type="button" disabled>换我来画</button>
+          <div class="status" id="statusBox">输入昵称和房间号后加入。</div>
+        </div>
+        <div id="wordPickPanel" style="display:none; margin-top:12px;"><h3>你是画手，先选词</h3><div class="word-choices" id="wordChoices"></div></div>
+        <section class="rules-box" aria-label="玩法规则">
+          <h3>玩法规则</h3>
+          <ol>
+            <li>两人进入同一个房间，房间号一样就能联机。</li>
+            <li>系统会指定一名画手，画手先选词，也可以输入“直接画这个词”。</li>
+            <li>画手只能画图，不能输入答案；另一名玩家输入答案来猜。</li>
+            <li>猜对或倒计时结束后，自动切换画手。</li>
+            <li>手机画画建议点“全屏画板”，退出点右上角 ×。</li>
+          </ol>
+        </section>
+      </aside>
+      <section class="panel canvas-panel" id="canvasPanel">
+        <div class="fullscreen-head"><strong id="fullscreenTitle">画板</strong><button class="button" id="exitFullscreenBtn" type="button">×</button></div>
+        <div class="round-head"><div><div class="round-title" id="roundTitle">等待加入房间</div><div class="muted" id="roleText">未连接</div></div><div class="timer" id="timerText">--</div></div>
+        <div class="canvas-wrap"><canvas id="drawCanvas" width="960" height="720"></canvas></div>
+        <div class="tools"><input id="colorInput" type="color" value="#111827" aria-label="画笔颜色"><input id="sizeInput" type="range" min="2" max="22" value="7" aria-label="画笔粗细"><button class="button" id="fullscreenCanvasBtn" type="button">全屏画板</button><button class="button" id="undoBtn" type="button" disabled>撤销</button><button class="button clear-button" id="clearBtn" type="button" disabled>清空</button></div>
+        <div class="guess-row"><input id="guessInput" placeholder="猜词，答对会提示成功" disabled><button class="button primary" id="guessBtn" type="button" disabled>提交</button></div>
+      </section>
+      <aside class="panel"><h3>玩家</h3><div class="list" id="playersList"><div class="muted">暂无玩家</div></div><h3 style="margin-top:16px;">直接画这个词</h3><div class="guess-row"><input id="customWordInput" maxlength="12" placeholder="输入你要画的词"><button class="button" id="addWordBtn" type="button" disabled>直接画</button></div><h3 style="margin-top:16px;">动态</h3><div class="list" id="logList"><div class="muted">等待加入房间</div></div></aside>
+    </main>
+  </div>
+  <div class="toast" id="toastBox" role="status" aria-live="polite"></div>
+  <script src="draw-guess.js?v=8"></script>
+</body>
+</html>
+
+
+
+
+
+
+

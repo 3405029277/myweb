@@ -1,10 +1,10 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>在线五子棋 Gomoku（19路·棋子数·更强AI·计时）</title>
+  <title>在线五子棋 Gomoku（17路·预落子·更强AI·计时）</title>
   <style>
     :root {
       color-scheme: dark;
@@ -91,13 +91,19 @@
 
     #game {
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px 12px;
+      box-sizing: border-box;
       touch-action: none;
     }
 
     canvas {
-      width: 100%;
-      height: 100%;
       display: block;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18);
       touch-action: none;
     }
 
@@ -110,7 +116,6 @@
       border-radius: 14px;
       border: 1px solid var(--line);
       background: rgba(0, 0, 0, .35);
-      backdrop-filter: blur(6px);
       font-size: 13px;
       opacity: 0;
       transform: translateY(6px);
@@ -127,76 +132,220 @@
       display: none !important;
     }
 
+    .mobile-status {
+      display: none;
+    }
+
+    .mobile-actions-host {
+      display: none;
+    }
+
+    .mobile-primary-bar,
+    .mobile-more-backdrop {
+      display: none;
+    }
+
     @media (max-width: 520px) {
+      :root {
+        color-scheme: light;
+        --bg: #f3ead8;
+        --panel: rgba(255, 255, 255, 0.82);
+        --line: rgba(111, 79, 41, 0.18);
+        --txt: #2a241c;
+      }
+
+      html,
+      body {
+        background: #f3ead8;
+        color: #2a241c;
+      }
+
+      #wrap {
+        min-height: 100dvh;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+      }
+
       header {
-        padding: 8px 10px;
-        gap: 8px;
+        padding: 8px 10px 6px;
+        gap: 6px;
+        background: rgba(255, 252, 245, 0.82);
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .left {
+        width: 100%;
+        gap: 4px;
+        align-items: flex-start;
+      }
+
+      .title {
+        font-size: 14px;
+        line-height: 1.25;
       }
 
       .hint {
         display: none;
       }
 
-      /* 提示语先隐藏，省高度 */
-      button,
-      select {
-        padding: 8px 10px;
-        border-radius: 12px;
-        font-size: 13px;
-      }
-
-      .pill {
-        padding: 6px 8px;
+      .mobile-status {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 2px;
         font-size: 12px;
       }
 
-      /* 右侧控件改成两列网格，减少换行后的高度 */
+      .mobile-status span {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: rgba(255, 252, 245, 0.86);
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        color: #4a3720;
+      }
+
+      #game {
+        padding: 6px 8px 8px;
+        justify-content: center;
+        align-items: center;
+        min-height: 0;
+      }
+
+      canvas {
+        border-radius: 14px;
+        box-shadow: 0 12px 22px rgba(51, 34, 12, 0.14);
+        max-width: 100%;
+      }
+
+      #toast {
+        bottom: 14px;
+        background: #fffaf0;
+        color: #2a241c;
+        border-color: rgba(111, 79, 41, 0.18);
+      }
+
       .right {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
-        align-items: stretch;
+        padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+        border-radius: 16px;
+        background: #fffaf0;
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        box-shadow: 0 16px 30px rgba(79, 55, 28, 0.16);
+        width: calc(100% - 16px);
+        margin: 0 8px 8px;
       }
 
-      .right>* {
+      .right > * {
+        width: 100%;
+      }
+
+      .right .pill,
+      .right label,
+      .right button {
         min-width: 0;
+        font-size: 13px;
       }
 
-      #turn,
-      #timer,
-      #remainB,
-      #remainW {
-        grid-column: span 1;
+      .right .pill {
+        padding: 6px 8px;
       }
 
-      #undo,
-      #restart {
-        grid-column: span 1;
+      .right label {
+        display: flex !important;
+        gap: 6px;
+        align-items: center;
       }
 
-      #sideWrap {
-        grid-column: span 2;
+      .right #sideWrap {
+        grid-column: 1 / -1;
       }
 
-      /* “你执”占一整行更好点 */
+      .right #copyLink {
+        grid-column: 1 / -1;
+      }
+
+      .mobile-actions-host {
+        display: block;
+        padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+        background: #fffaf0;
+        border-top: 1px solid rgba(111, 79, 41, 0.14);
+        box-shadow: 0 -12px 24px rgba(79, 55, 28, 0.12);
+      }
+
+      .mobile-primary-bar {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .mobile-primary-bar button {
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 13px;
+        border-radius: 12px;
+      }
+
+      .mobile-more-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 54;
+        background: rgba(25, 18, 10, 0.08);
+      }
+
+      body.mobile-more-open .mobile-more-backdrop {
+        display: block;
+      }
+
+      header .right {
+        display: none;
+      }
+
+      .mobile-actions-host .right {
+        position: fixed;
+        right: 8px;
+        bottom: calc(70px + env(safe-area-inset-bottom));
+        z-index: 55;
+        display: none;
+        width: min(320px, calc(100vw - 16px));
+        max-height: min(430px, calc(100dvh - 110px));
+        overflow: auto;
+        margin: 0;
+      }
+
+      body.mobile-more-open .mobile-actions-host .right {
+        display: grid;
+      }
     }
   </style>
 </head>
 
-<body>
+<body class="mobile-board-first">
   <div id="wrap">
     <header>
       <div class="left">
-        <div class="title">在线五子棋（19×19 · 棋子数 · 更强AI · 每步60秒）</div>
-        <div class="hint">人机可选执黑/白；黑181白180；每步60秒超时判负。</div>
+        <div class="title">在线五子棋（17×17 · 绿色预落子 · 每步60秒）</div>
+        <div class="hint">人机可选执黑/白；黑145白144；点击一次预览，再点同格落子。</div>
+      </div>
+      <div class="mobile-status" id="mobileStatus">
+        <span id="mobileTurn">回合：黑</span>
+        <span id="mobileTimer">剩余：60s</span>
+        <span id="mobileRoom">房间：-</span>
       </div>
 
-      <div class="right">
+      <div class="right mobile-drawer">
         <span class="pill" id="turn">回合：黑</span>
         <span class="pill" id="timer">剩余：60s</span>
 
-        <span class="pill" id="remainB">黑剩：181</span>
-        <span class="pill" id="remainW">白剩：180</span>
+        <span class="pill" id="remainB">黑剩：145</span>
+        <span class="pill" id="remainW">白剩：144</span>
         <span class="pill" id="roleBadge">身份：-</span>
         <span class="pill" id="roomCount">房间：-</span>
 
@@ -218,7 +367,7 @@
         </label>
 
         <button id="undo">悔棋</button>
-        <button id="restart">重开</button>
+        <button id="restart">申请重开</button>
         <button id="copyLink">复制房间链接</button>
         <button id="swapSide">开始前换黑白</button>
         <button id="rematch">再来一局</button>
@@ -231,19 +380,29 @@
       <canvas id="c"></canvas>
       <div id="toast"></div>
     </div>
+
+    <div id="mobileMoreBackdrop" class="mobile-more-backdrop hidden"></div>
+    <div id="mobileActionsHost" class="mobile-actions-host">
+      <div id="mobilePrimaryBar" class="mobile-primary-bar hidden">
+        <button id="mobileUndo" type="button">&#24724;&#26827;</button>
+        <button id="mobileRestart" type="button">&#37325;&#24320;</button>
+        <button id="mobileRematch" type="button">&#20877;&#26469;</button>
+        <button id="mobileMore" type="button">&#26356;&#22810;</button>
+      </div>
+    </div>
   </div>
 
   <script src="./online.js"></script>
 
   <script>
     (() => {
-      // ===== 19路棋盘 =====
-      const SIZE = 19;
+      // ===== 17路棋盘 =====
+      const SIZE = 17;
       const EMPTY = 0, BLACK = 1, WHITE = 2;
 
-      // ===== 棋子总数（常见 19 路配置：黑 181 白 180）=====
-      const MAX_BLACK = 181;
-      const MAX_WHITE = 180;
+      // ===== 棋子总数（17 路配置：黑 145 白 144）=====
+      const MAX_BLACK = 145;
+      const MAX_WHITE = 144;
 
       // ===== 计时 =====
       const MOVE_LIMIT_SEC = 60;
@@ -273,6 +432,38 @@
 
       const roleBadgeEl = document.getElementById("roleBadge");
       const roomCountEl = document.getElementById("roomCount");
+      const mobileStatusEl = document.getElementById("mobileStatus");
+      const mobileTurnEl = document.getElementById("mobileTurn");
+      const mobileTimerEl = document.getElementById("mobileTimer");
+      const mobileRoomEl = document.getElementById("mobileRoom");
+      const headerEl = document.querySelector("header");
+      const mobileActionsHost = document.getElementById("mobileActionsHost");
+      const mobilePrimaryBar = document.getElementById("mobilePrimaryBar");
+      const mobileMoreBackdrop = document.getElementById("mobileMoreBackdrop");
+      const rightEl = document.querySelector(".right");
+      const mobileUndoBtn = document.getElementById("mobileUndo");
+      const mobileRestartBtn = document.getElementById("mobileRestart");
+      const mobileRematchBtn = document.getElementById("mobileRematch");
+      const mobileMoreBtn = document.getElementById("mobileMore");
+
+      function isMobileLayout() {
+        return window.matchMedia("(max-width: 520px)").matches;
+      }
+
+      function closeMobileMore() {
+        document.body.classList.remove("mobile-more-open");
+      }
+
+      function toggleMobileMore() {
+        if (!isMobileLayout()) return;
+        document.body.classList.toggle("mobile-more-open");
+      }
+
+      function syncMobileStatus() {
+        if (mobileTurnEl) mobileTurnEl.textContent = turnEl.textContent;
+        if (mobileTimerEl) mobileTimerEl.textContent = timerEl.textContent;
+        if (mobileRoomEl) mobileRoomEl.textContent = roomCountEl.textContent;
+      }
 
 
       const net = new OnlineClient({
@@ -293,6 +484,7 @@
         },
         onPresence: (n) => {
           roomCountEl.textContent = `房间：${n}人`;
+          syncMobileStatus();
         },
         onRole: (role) => {
           roleBadgeEl.textContent =
@@ -412,6 +604,7 @@
       const ctx = canvas.getContext('2d');
 
       let board, moves, current, gameOver, cell, pad, pxRatio;
+      let previewMove = null;
       let aiThinking = false;
 
 
@@ -459,9 +652,11 @@
 
       function updateTurn(extra = "") {
         turnEl.textContent = `回合：${colorName(current)}${extra}`;
+        syncMobileStatus();
       }
       function updateTimerUI() {
         timerEl.textContent = `剩余：${timeLeft}s`;
+        syncMobileStatus();
       }
       function stopTimer() {
         if (timerId) clearInterval(timerId);
@@ -497,15 +692,16 @@
         }, 1000);
       }
 
-      function updateGameButtons() {
+            function updateGameButtons() {
   const isPvp = modeEl.value !== "ai";
   const isPlayer = (net.role === 1 || net.role === 2);
 
-  // 换黑白：PVP + 玩家 + 未开局 + 未结束
+  // 换边只能在第一手之前申请
   swapBtn.disabled = !isPvp || !isPlayer || gameOver || moves.length !== 0;
 
-  // 再来一局：PVP + 玩家 + 已结束
-  rematchBtn.disabled = !isPvp || !isPlayer || !gameOver;
+  // 重开现在随时都能申请，结束后也可以直接点
+  restartBtn.disabled = isPvp && !isPlayer;
+  rematchBtn.disabled = isPvp && !isPlayer;
 }
 
       function reset() {
@@ -526,10 +722,10 @@
 
         if (modeEl.value === "ai") {
           net.close(); // ✅ 人机：彻底断联机+停止重连
-          toast(`人机：你执${colorName(humanColor)}（黑181白180 / 每步${MOVE_LIMIT_SEC}s）`);
+          toast(`人机：你执${colorName(humanColor)}（黑145白144 / 每步${MOVE_LIMIT_SEC}s）`);
           if (current === aiColor) aiMove();
         } else {
-          toast(`双人对弈：黑先（黑181白180 / 每步${MOVE_LIMIT_SEC}s）`);
+          toast(`双人对弈：黑先（黑145白144 / 每步${MOVE_LIMIT_SEC}s）`);
           net.autoReconnect = true; // ✅ 可选：确保回到PVP会自动重连
           net.connect();
         }
@@ -541,27 +737,26 @@
 
 
       // ✅ “重开”按钮：人机=直接重开；联机=对局结束后发起“再来一局”（避免本地清空后又被服务器旧棋谱覆盖）
-      function restartOrRematch() {
+            function requestRematch() {
         if (modeEl.value === "ai") {
           reset();
           return;
         }
 
-        // 联机
-        if (!gameOver) {
-          toast("联机对局中不能重开；请等结束后点“再来一局”");
-          return;
-        }
         if (!(net.role === 1 || net.role === 2)) return toast("观战不能点");
         if (!net.send({ type: "rematch" })) return toast("未连接联机");
-        toast("已请求再来一局（双方都点才会开始）");
+        toast(gameOver ? "已申请重开一局" : "已发起重开申请，等对方同意");
       }
 
 
       function resize() {
         const w = gameEl.clientWidth;
+        const isMobile = window.matchMedia("(max-width: 520px)").matches;
         const h = gameEl.clientHeight;
-        const side = Math.min(w, h);
+        const side = Math.floor(Math.max(
+          0,
+          Math.min(w - (isMobile ? 4 : 0), h - (isMobile ? 4 : 0))
+        ));
 
         pxRatio = Math.min(window.devicePixelRatio || 1, 2);
         canvas.width = Math.floor(side * pxRatio);
@@ -569,7 +764,7 @@
         canvas.style.width = side + "px";
         canvas.style.height = side + "px";
 
-        pad = Math.floor(16 * pxRatio);
+        pad = Math.floor((isMobile ? 8 : 16) * pxRatio);
         cell = Math.floor((canvas.width - pad * 2) / (SIZE - 1));
         draw();
       }
@@ -585,10 +780,13 @@
         const boardH = cell * (SIZE - 1) + cell;
 
         // 木质棋盘背景（浅木纹）
+        ctx.fillStyle = "#f4e2bf";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
         const woodBase = ctx.createLinearGradient(0, boardY, 0, boardY + boardH);
-        woodBase.addColorStop(0, "#e6c89a");
-        woodBase.addColorStop(0.5, "#d8b07a");
-        woodBase.addColorStop(1, "#c79a63");
+        woodBase.addColorStop(0, "#edd2a2");
+        woodBase.addColorStop(0.5, "#e2bd7d");
+        woodBase.addColorStop(1, "#c89052");
         ctx.fillStyle = woodBase;
         ctx.fillRect(boardX, boardY, boardW, boardH);
 
@@ -623,9 +821,9 @@
           ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + (SIZE - 1) * cell); ctx.stroke();
         }
 
-        // 星位（19路常见：3,9,15）
-        const stars = [3, 9, 15];
-        ctx.fillStyle = "rgba(59,42,26,0.55)";
+        // 星位（17路：4,8,12）
+        const stars = [4, 8, 12];
+        ctx.fillStyle = "rgba(70, 48, 26, 0.58)";
         for (const r of stars) for (const c of stars) {
           const x = pad + c * cell, y = pad + r * cell;
           ctx.beginPath(); ctx.arc(x, y, Math.max(2, 3 * pxRatio), 0, Math.PI * 2); ctx.fill();
@@ -645,8 +843,8 @@
 
             // 渐变
             const g = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.2, x, y, radius);
-            if (v === BLACK) { g.addColorStop(0, "#334155"); g.addColorStop(1, "#0b0f1a"); }
-            else { g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#cbd5e1"); }
+            if (v === BLACK) { g.addColorStop(0, "#4a5568"); g.addColorStop(1, "#111827"); }
+            else { g.addColorStop(0, "#fffdf8"); g.addColorStop(1, "#d7c7b2"); }
 
             ctx.fillStyle = g;
             ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
@@ -658,6 +856,27 @@
               ctx.beginPath(); ctx.arc(x, y, radius * 0.35, 0, Math.PI * 2); ctx.stroke();
             }
           }
+        }
+
+        // 绿色预落子点：第一次点只预览，第二次点同格才落子
+        if (previewMove && inBounds(previewMove.r, previewMove.c) && board[previewMove.r][previewMove.c] === EMPTY && !gameOver) {
+          const x = pad + previewMove.c * cell;
+          const y = pad + previewMove.r * cell;
+          const dotRadius = Math.max(4 * pxRatio, cell * 0.18);
+          ctx.save();
+          ctx.fillStyle = "rgba(34,197,94,0.95)";
+          ctx.strokeStyle = "rgba(255,255,255,0.92)";
+          ctx.lineWidth = Math.max(2, 2 * pxRatio);
+          ctx.beginPath();
+          ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.globalAlpha = 0.22;
+          ctx.fillStyle = "#22c55e";
+          ctx.beginPath();
+          ctx.arc(x, y, dotRadius * 2.1, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
         }
       }
 
@@ -712,6 +931,7 @@
           return false;
         }
 
+        previewMove = null;
         board[r][c] = current;
         moves.push({ r, c, p: current });
 
@@ -751,12 +971,41 @@
 
 
 
+      function clearPreviewMove() {
+        previewMove = null;
+        draw();
+      }
+
+      function setPreviewMove(r, c) {
+        previewMove = { r, c };
+        draw();
+        toast("绿色预落子，再点一次确认落子");
+      }
+
+      function confirmPreviewOrMove(r, c) {
+        if (gameOver || aiThinking) return;
+        if (!inBounds(r, c) || board[r][c] !== EMPTY) {
+          previewMove = null;
+          draw();
+          return;
+        }
+        if (previewMove && previewMove.r === r && previewMove.c === c) {
+          previewMove = null;
+          place(r, c);
+          return;
+        }
+        setPreviewMove(r, c);
+      }
       function eventToCell(e) {
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) * pxRatio;
         const y = (e.clientY - rect.top) * pxRatio;
         const c = Math.round((x - pad) / cell);
         const r = Math.round((y - pad) / cell);
+        const cx = pad + c * cell;
+        const cy = pad + r * cell;
+        const maxHit = cell * 0.42;
+        if (Math.abs(x - cx) > maxHit || Math.abs(y - cy) > maxHit) return null;
         return { r, c };
       }
 
@@ -1069,17 +1318,23 @@
       canvas.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         if (gameOver) return toast("已结束，点重开");
-        const { r, c } = eventToCell(e);
-        place(r, c);
+        const hit = eventToCell(e);
+        if (!hit) return toast("点到线外了");
+        const { r, c } = hit;
+        confirmPreviewOrMove(r, c);
       }, { passive: false });
 
       // 防止部分安卓浏览器滚动干扰
       document.addEventListener("touchmove", (e) => {
         if (e.target === canvas) e.preventDefault();
       }, { passive: false });
-
       undoBtn.addEventListener('click', undo);
-restartBtn.addEventListener('click', restartOrRematch);
+      restartBtn.addEventListener('click', requestRematch);
+      mobileUndoBtn.addEventListener("click", undo);
+      mobileRestartBtn.addEventListener("click", requestRematch);
+      mobileRematchBtn.addEventListener("click", requestRematch);
+      mobileMoreBtn.addEventListener("click", toggleMobileMore);
+      mobileMoreBackdrop.addEventListener("click", closeMobileMore);
 
 // ===== 开始前换黑白 =====
 swapBtn.addEventListener("click", () => {
@@ -1098,20 +1353,7 @@ swapBtn.addEventListener("click", () => {
 
 // ===== 再来一局 =====
 rematchBtn.addEventListener("click", () => {
-  if (modeEl.value === "ai") {
-    reset(); // 人机直接重开
-    return;
-  }
-
-  if (!gameOver) return toast("对局还没结束");
-  if (!(net.role === 1 || net.role === 2)) return toast("观战不能点");
-
-  if (!net.send({ type: "rematch" })) {
-    toast("未连接联机");
-    return;
-  }
-
-  toast("已请求再来一局（双方都点才会开始）");
+  requestRematch();
 });
 
 
@@ -1128,14 +1370,38 @@ rematchBtn.addEventListener("click", () => {
       });
 
       window.addEventListener('keydown', (e) => {
-        if (e.key.toLowerCase() === 'r') restartOrRematch();
+        if (e.key.toLowerCase() === 'r') requestRematch();
         if (e.key.toLowerCase() === 'z') undo();
+        if (e.key === 'Escape') closeMobileMore();
       });
 
       // 初始化
       sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
-      const ro = new ResizeObserver(() => resize());
-      ro.observe(gameEl);
+      function applyMobileLayout() {
+        const isMobile = isMobileLayout();
+        if (!headerEl || !rightEl || !mobileActionsHost || !mobilePrimaryBar || !mobileMoreBackdrop) return;
+        if (isMobile) {
+          if (rightEl.parentElement !== mobileActionsHost) mobileActionsHost.appendChild(rightEl);
+          mobileActionsHost.classList.remove("hidden");
+          mobilePrimaryBar.classList.remove("hidden");
+          mobileMoreBackdrop.classList.remove("hidden");
+        } else {
+          if (rightEl.parentElement !== headerEl) headerEl.appendChild(rightEl);
+          mobileActionsHost.classList.add("hidden");
+          mobilePrimaryBar.classList.add("hidden");
+          mobileMoreBackdrop.classList.add("hidden");
+          closeMobileMore();
+        }
+      }
+      applyMobileLayout();
+      window.addEventListener("resize", () => {
+        applyMobileLayout();
+        resize();
+      }, { passive: true });
+      window.addEventListener("orientationchange", () => {
+        applyMobileLayout();
+        setTimeout(() => resize(), 50);
+      }, { passive: true });
       resize();
       reset();
     })();
@@ -1143,3 +1409,8 @@ rematchBtn.addEventListener("click", () => {
 </body>
 
 </html>
+
+
+
+
+

@@ -1,0 +1,3 @@
+name = "reverse-proxy"
+main = "cloudflare-reverse-proxy-worker.js"
+compatibility_date = "2026-05-24"

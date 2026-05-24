@@ -1,0 +1,19 @@
+.site-music-player {
+  position: static;
+}
+
+.site-music-player .aplayer.aplayer-fixed {
+  z-index: 70;
+}
+
+.site-music-player .aplayer.aplayer-fixed.aplayer-narrow {
+  bottom: 12px;
+  left: 12px;
+}
+
+@media (max-width: 640px) {
+  .site-music-player .aplayer.aplayer-fixed.aplayer-narrow {
+    bottom: 8px;
+    left: 8px;
+  }
+}

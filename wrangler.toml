@@ -1,0 +1,11 @@
+name = "draw-guess"
+main = "cloudflare-draw-guess-worker.js"
+compatibility_date = "2026-05-10"
+
+[[durable_objects.bindings]]
+name = "DRAW_GUESS_ROOMS"
+class_name = "DrawGuessRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["DrawGuessRoom"]

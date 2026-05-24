@@ -1,0 +1,2844 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>鍦ㄧ嚎浜斿瓙妫?Gomoku锛?9璺锋瀛愭暟路鏇村己AI路璁℃椂锛?/title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1225;
+      --panel: rgba(255, 255, 255, .08);
+      --line: rgba(255, 255, 255, .18);
+      --txt: #e5e7eb;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--txt);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+
+    #wrap {
+      min-height: 100vh;
+      min-height: 100dvh;
+      /* ? 鍏抽敭锛氫娇鐢ㄥ姩鎬佽鍙ｉ珮搴?*/
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: baseline
+    }
+
+    .title {
+      font-weight: 800;
+      letter-spacing: .3px
+    }
+
+    .hint {
+      opacity: .85;
+      font-size: 12px
+    }
+
+    .right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .pill {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap
+    }
+
+    button,
+    select {
+      background: var(--panel);
+      color: var(--txt);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    button:active {
+      transform: scale(.98)
+    }
+
+    #game {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px 12px;
+      box-sizing: border-box;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18);
+      touch-action: none;
+    }
+
+    #toast {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, .35);
+      backdrop-filter: blur(6px);
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: .18s ease;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .mobile-status {
+      display: none;
+    }
+
+    .mobile-actions-host {
+      display: none;
+    }
+
+    @media (max-width: 520px) {
+      :root {
+        color-scheme: light;
+        --bg: #f3ead8;
+        --panel: rgba(255, 255, 255, 0.82);
+        --line: rgba(111, 79, 41, 0.18);
+        --txt: #2a241c;
+      }
+
+      html,
+      body {
+        background: #f3ead8;
+        color: #2a241c;
+      }
+
+      #wrap {
+        min-height: 100dvh;
+        display: block;
+      }
+
+      header {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: calc(8px + env(safe-area-inset-top));
+        z-index: 40;
+        padding: 8px 10px;
+        gap: 6px;
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        border-radius: 16px;
+        background: rgba(255, 252, 245, 0.82);
+        backdrop-filter: blur(8px);
+        align-items: flex-start;
+        flex-direction: column;
+        box-shadow: 0 12px 26px rgba(79, 55, 28, 0.12);
+      }
+
+      .left {
+        width: 100%;
+        gap: 4px;
+        align-items: flex-start;
+      }
+
+      .title {
+        font-size: 14px;
+        line-height: 1.25;
+      }
+
+      .hint {
+        display: none;
+      }
+
+      .mobile-status {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 2px;
+        font-size: 12px;
+      }
+
+      .mobile-status span {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: rgba(255, 252, 245, 0.86);
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        color: #4a3720;
+      }
+
+      #game {
+        min-height: 100dvh;
+        padding: calc(76px + env(safe-area-inset-top)) 8px calc(88px + env(safe-area-inset-bottom));
+        justify-content: center;
+        align-items: center;
+        min-height: 100dvh;
+      }
+
+      canvas {
+        border-radius: 14px;
+        box-shadow: 0 12px 22px rgba(51, 34, 12, 0.14);
+        max-width: 100%;
+      }
+
+      #toast {
+        bottom: 14px;
+        background: rgba(255, 255, 255, 0.84);
+        color: #2a241c;
+        border-color: rgba(111, 79, 41, 0.18);
+      }
+
+      .right {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px 8px calc(14px + env(safe-area-inset-bottom));
+        border-radius: 16px;
+        background: rgba(255, 252, 245, 0.94);
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        box-shadow: 0 16px 30px rgba(79, 55, 28, 0.16);
+        backdrop-filter: blur(10px);
+        width: calc(100% - 16px);
+        margin: 0 8px 8px;
+      }
+
+      .right > * {
+        width: 100%;
+      }
+
+      .right .pill,
+      .right label,
+      .right button {
+        min-width: 0;
+        font-size: 13px;
+      }
+
+      .right .pill {
+        padding: 6px 8px;
+      }
+
+      .right label {
+        display: flex !important;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .right #sideWrap {
+        grid-column: 1 / -1;
+      }
+
+      .right #copyLink {
+        grid-column: 1 / -1;
+      }
+
+      .mobile-actions-host {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 55;
+        display: block;
+        pointer-events: none;
+      }
+
+      .mobile-primary-bar {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        z-index: 60;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        padding: 8px;
+        border-radius: 18px;
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        background: rgba(255, 252, 245, 0.96);
+        box-shadow: 0 16px 30px rgba(79, 55, 28, 0.18);
+        backdrop-filter: blur(12px);
+      }
+
+      .mobile-primary-bar button {
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 13px;
+      }
+
+      .mobile-drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 56;
+        display: none;
+        background: rgba(25, 18, 10, 0.28);
+        backdrop-filter: blur(2px);
+      }
+
+      .mobile-drawer {
+        position: fixed;
+        top: calc(72px + env(safe-area-inset-top));
+        right: 8px;
+        bottom: calc(76px + env(safe-area-inset-bottom));
+        width: min(320px, calc(100vw - 16px));
+        z-index: 57;
+        display: none;
+        pointer-events: auto;
+      }
+
+      .mobile-drawer .right {
+        width: 100%;
+        max-height: 100%;
+        margin: 0;
+        overflow: auto;
+      }
+
+      body.drawer-open .mobile-drawer-backdrop,
+      body.drawer-open .mobile-drawer {
+        display: block;
+      }
+
+      header .right {
+        display: none;
+      }
+
+      .mobile-actions-host .right {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+
+<body class="mobile-board-first">
+  <div id="wrap">
+    <header>
+      <div class="left">
+        <div class="title">鍦ㄧ嚎浜斿瓙妫嬶紙19脳19 路 妫嬪瓙鏁?路 鏇村己AI 路 姣忔60绉掞級</div>
+        <div class="hint">浜烘満鍙€夋墽榛?鐧斤紱榛?81鐧?80锛涙瘡姝?0绉掕秴鏃跺垽璐熴€?/div>
+      </div>
+      <div class="mobile-status" id="mobileStatus">
+        <span id="mobileTurn">鍥炲悎锛氶粦</span>
+        <span id="mobileTimer">鍓╀綑锛?0s</span>
+        <span id="mobileRoom">鎴块棿锛?</span>
+      </div>
+
+      <div class="right">
+        <span class="pill" id="turn">鍥炲悎锛氶粦</span>
+        <span class="pill" id="timer">鍓╀綑锛?0s</span>
+
+        <span class="pill" id="remainB">榛戝墿锛?81</span>
+        <span class="pill" id="remainW">鐧藉墿锛?80</span>
+        <span class="pill" id="roleBadge">韬唤锛?</span>
+        <span class="pill" id="roomCount">鎴块棿锛?</span>
+
+
+        <label class="pill" style="display:flex;gap:6px;align-items:center">
+          妯″紡
+          <select id="mode">
+            <option value="pvp">鍙屼汉瀵瑰紙</option>
+            <option value="ai">浜烘満瀵规垬</option>
+          </select>
+        </label>
+
+        <label class="pill" id="sideWrap" style="display:flex;gap:6px;align-items:center">
+          浣犳墽
+          <select id="side">
+            <option value="black">榛戯紙鍏堟墜锛?/option>
+            <option value="white">鐧斤紙鍚庢墜锛?/option>
+          </select>
+        </label>
+
+        <button id="undo">鎮旀</button>
+        <button id="restart">鐢宠閲嶅紑</button>
+        <button id="copyLink">澶嶅埗鎴块棿閾炬帴</button>
+        <button id="swapSide">寮€濮嬪墠鎹㈤粦鐧?/button>
+        <button id="rematch">鍐嶆潵涓€灞€</button>
+
+
+      </div>
+    </header>
+
+    <div id="game">
+      <canvas id="c"></canvas>
+      <div id="toast"></div>
+    </div>
+
+    <div id="mobilePrimaryBar" class="mobile-primary-bar hidden">
+      <button id="mobileUndo" type="button">悔棋</button>
+      <button id="mobileRestart" type="button">重开</button>
+      <button id="mobileRematch" type="button">再来</button>
+      <button id="mobileMore" type="button">更多</button>
+    </div>
+    <div id="mobileDrawerBackdrop" class="mobile-drawer-backdrop hidden"></div>
+    <div id="mobileActionsHost" class="mobile-actions-host"></div>
+  </div>
+
+  <script src="./online.js"></script>
+
+  <script>
+    (() => {
+      // ===== 19璺鐩?=====
+      const SIZE = 19;
+      const EMPTY = 0, BLACK = 1, WHITE = 2;
+
+      // ===== 妫嬪瓙鎬绘暟锛堝父瑙?19 璺厤缃細榛?181 鐧?180锛?====
+      const MAX_BLACK = 181;
+      const MAX_WHITE = 180;
+
+      // ===== 璁℃椂 =====
+      const MOVE_LIMIT_SEC = 60;
+
+      // ===== AI 寮哄害鍙傛暟锛堣秺澶ц秺寮轰絾鏇磋€楁€ц兘锛?====
+      const SEARCH_DEPTH = 3;       // 3锛氭槑鏄惧己浜庡崟姝ワ紱鎵嬫満涔熻兘璺?
+      const CAND_LIMIT = 12;      // 姣忓眰淇濈暀鍊欓€夌偣鏁伴噺锛堣秺澶ц秺寮轰絾鏇存參锛?
+      const NEAR_RANGE = 2;       // 鍙€冭檻璺濈宸叉湁妫嬪瓙 NEAR_RANGE 鑼冨洿鍐呯殑绌虹偣
+
+      const canvas = document.getElementById('c');
+      const gameEl = document.getElementById('game');
+      const turnEl = document.getElementById('turn');
+      const timerEl = document.getElementById('timer');
+      const remainBEl = document.getElementById('remainB');
+      const remainWEl = document.getElementById('remainW');
+      const toastEl = document.getElementById('toast');
+      const modeEl = document.getElementById('mode');
+      const sideEl = document.getElementById('side');
+      const sideWrap = document.getElementById('sideWrap');
+      const undoBtn = document.getElementById('undo');
+      const restartBtn = document.getElementById('restart');
+      const copyLinkBtn = document.getElementById('copyLink');
+      const swapBtn = document.getElementById('swapSide');
+      const rematchBtn = document.getElementById('rematch');
+
+
+
+      const roleBadgeEl = document.getElementById("roleBadge");
+      const roomCountEl = document.getElementById("roomCount");
+      const mobileStatusEl = document.getElementById("mobileStatus");
+      const mobileTurnEl = document.getElementById("mobileTurn");
+      const mobileTimerEl = document.getElementById("mobileTimer");
+      const mobileRoomEl = document.getElementById("mobileRoom");
+      const headerEl = document.querySelector("header");
+      const mobileActionsHost = document.getElementById("mobileActionsHost");
+      const mobilePrimaryBar = document.getElementById("mobilePrimaryBar");
+      const mobileDrawerBackdrop = document.getElementById("mobileDrawerBackdrop");
+      const rightEl = document.querySelector(".right");
+      const mobileUndoBtn = document.getElementById("mobileUndo");
+      const mobileRestartBtn = document.getElementById("mobileRestart");
+      const mobileRematchBtn = document.getElementById("mobileRematch");
+      const mobileMoreBtn = document.getElementById("mobileMore");
+      let selectedCell = null;
+      let mobileDrawerEl = null;
+
+      function isMobileLayout() {
+        return window.matchMedia("(max-width: 520px)").matches;
+      }
+
+      function closeMobileDrawer() {
+        document.body.classList.remove("drawer-open");
+      }
+
+      function toggleMobileDrawer() {
+        if (!isMobileLayout()) return;
+        document.body.classList.toggle("drawer-open");
+      }
+
+      function syncMobileStatus() {
+        if (mobileTurnEl) mobileTurnEl.textContent = turnEl.textContent;
+        if (mobileTimerEl) mobileTimerEl.textContent = timerEl.textContent;
+        if (mobileRoomEl) mobileRoomEl.textContent = roomCountEl.textContent;
+      }
+
+
+      const net = new OnlineClient({
+        // ? 寤鸿锛歸sBase 鏀寔鏁扮粍锛屽浗鍐?娴峰鍙岀嚎璺厹搴曪紙鍙寜浣犺嚜宸辩殑鍩熷悕鏇挎崲锛?
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://浣犵殑鍥藉唴绾胯矾鍩熷悕"],
+        wsBase: "wss://ws.cjx88.eu.cc",
+        wsPath: "/ws", // 浜斿瓙妫嬬敤 /ws锛堟潈濞侊級
+        tokenKeyPrefix: "gm_token", // ? 鍏抽敭锛氬埛鏂?鏂嚎閲嶈繛涔熻兘鈥滅画搴р€?
+        connectTimeoutMs: 8000,
+        onStatus: (s) => {
+          // online.js 浼氬悓鏃跺洖璋?object + string锛岃繖閲岀粺涓€鍏煎
+          const status = (typeof s === "string") ? s : (s && s.status) || "";
+          if (status === "connecting") toast("姝ｅ湪杩炴帴鑱旀満鈥?);
+          if (status === "connected") toast("鑱旀満宸茶繛鎺?);
+          if (status === "timeout") toast("鑱旀満杩炴帴瓒呮椂锛屾鍦ㄥ垏鎹㈢嚎璺?閲嶈繛鈥?);
+          if (status === "disconnected") toast("鑱旀満鏂紑锛屾鍦ㄩ噸杩炩€?);
+          if (status === "error") toast("鑱旀満閿欒");
+        },
+        onPresence: (n) => {
+          roomCountEl.textContent = `鎴块棿锛?{n}浜篳;
+          syncMobileStatus();
+        },
+        onRole: (role) => {
+          roleBadgeEl.textContent =
+            role === 1 ? "韬唤锛氶粦" : role === 2 ? "韬唤锛氱櫧" : "韬唤锛氳鎴?;
+          updateGameButtons();
+        },
+        onMessage: (msg) => {
+
+          if (msg.type === "reject") {
+            toast(msg.reason || "鎿嶄綔鏃犳晥");
+            return;
+          }
+
+          // === 浜ゆ崲榛戠櫧鍚庯細鍚庣浼氬畾鍚戝彂浣犳槸璋?===
+          if (msg.type === "role") {
+            net.role = (msg.you ?? msg.role ?? 0);
+
+            roleBadgeEl.textContent =
+              net.role === 1 ? "韬唤锛氶粦" : net.role === 2 ? "韬唤锛氱櫧" : "韬唤锛氳鎴?;
+            updateGameButtons();
+            return;
+          }
+
+          // === 鏈変汉鍙戣捣鈥滄崲榛戠櫧鈥?===
+          if (msg.type === "swap_pending") {
+            toast("瀵规柟璇锋眰鎹㈤粦鐧斤細浣犱篃鐐逛竴涓嬪嵆鍙悓鎰?);
+            return;
+          }
+
+          // === 鏈変汉鍙戣捣鈥滃啀鏉ヤ竴灞€鈥?===
+          if (msg.type === "rematch_pending") {
+            toast("瀵规柟璇锋眰鍐嶆潵涓€灞€锛氫綘涔熺偣涓€涓嬪嵆鍙紑濮?);
+            return;
+          }
+
+          // === 鏂板眬鐘舵€侊紙鍐嶆潵涓€灞€鎴愬姛鍚庡箍鎾級===
+          if (msg.type === "state") {
+            stopTimer();
+            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+            moves = [];
+            current = BLACK;
+            gameOver = false;
+            aiThinking = false;
+
+            for (const m of (msg.moves || [])) {
+              current = m.p;
+              doPlace(m.r, m.c, true); // 鍥炴斁 silent
+            }
+
+            gameOver = !!msg.gameOver;
+            current = msg.current || current;
+
+            updateTurn();
+            updateRemainUI();
+            draw();
+            startTurnTimer();
+
+            toast("鏂颁竴灞€寮€濮嬶紒");
+            updateGameButtons();
+            return;
+          }
+
+          // === 浣犲師鏉ョ殑 init锛堜繚鐣欙級===
+          if (msg.type === "init") {
+            // 閲嶇疆鐩橀潰 + 鍥炴斁鍘嗗彶锛堜笉 nextTurn锛?
+            stopTimer();
+            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+            moves = [];
+            current = BLACK;
+            gameOver = false;
+            aiThinking = false;
+
+            for (const m of (msg.moves || [])) {
+              current = m.p;
+              doPlace(m.r, m.c, true); // ? 鍥炴斁鐢?silent
+            }
+            gameOver = !!msg.gameOver; // ? 浠ユ湇鍔″櫒鐘舵€佷负鍑?
+
+            current = msg.current || current;
+            updateTurn();
+            updateRemainUI();
+            draw();
+            startTurnTimer();
+            updateGameButtons();
+            return;
+          }
+
+          // === 浣犲師鏉ョ殑 move锛堜繚鐣欙級===
+          if (msg.type === "move") {
+            current = msg.p;
+            if (!doPlace(msg.r, msg.c)) return;
+
+            if (msg.win) {
+              endGame(msg.win, `${colorName(msg.win)}鑳滐紒`);
+              return;
+            }
+
+            nextTurn();
+
+            if (msg.next) {
+              current = msg.next;
+              updateTurn();
+            }
+            return;
+          }
+        }
+
+      });
+
+      copyLinkBtn.addEventListener("click", () => {
+        net.copyLink()
+          .then(() => toast("鎴块棿閾炬帴宸插鍒?))
+          .catch(() => toast("澶嶅埗澶辫触锛岃鎵嬪姩澶嶅埗鍦板潃鏍?));
+      });
+
+
+      const ctx = canvas.getContext('2d');
+
+      let board, moves, current, gameOver, cell, pad, pxRatio;
+      let aiThinking = false;
+
+
+
+
+      // 閫夎竟锛氫汉鏈烘ā寮忎笅鏈夋晥
+      let humanColor = BLACK;
+      let aiColor = WHITE;
+
+      // 璁℃椂
+      let timeLeft = MOVE_LIMIT_SEC;
+      let timerId = null;
+
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => toastEl.classList.remove('show'), 1200);
+      }
+
+
+
+
+      function colorName(p) { return p === BLACK ? "榛? : "鐧?; }
+      function other(p) { return p === BLACK ? WHITE : BLACK; }
+      function isCoarsePointer() {
+        return window.matchMedia("(pointer: coarse)").matches;
+      }
+      function clearSelectedCell(redraw = false) {
+        selectedCell = null;
+        if (redraw) draw();
+      }
+
+      function setSideFromUI() {
+        if (sideEl.value === "white") { humanColor = WHITE; aiColor = BLACK; }
+        else { humanColor = BLACK; aiColor = WHITE; }
+      }
+
+      function placedCount(color) {
+        let n = 0;
+        for (const m of moves) if (m.p === color) n++;
+        return n;
+      }
+      function remainCount(color) {
+        const used = placedCount(color);
+        return (color === BLACK ? MAX_BLACK : MAX_WHITE) - used;
+      }
+      function updateRemainUI() {
+        remainBEl.textContent = `榛戝墿锛?{remainCount(BLACK)}`;
+        remainWEl.textContent = `鐧藉墿锛?{remainCount(WHITE)}`;
+      }
+
+      function updateTurn(extra = "") {
+        turnEl.textContent = `鍥炲悎锛?{colorName(current)}${extra}`;
+        syncMobileStatus();
+      }
+      function updateTimerUI() {
+        timerEl.textContent = `鍓╀綑锛?{timeLeft}s`;
+        syncMobileStatus();
+      }
+      function stopTimer() {
+        if (timerId) clearInterval(timerId);
+        timerId = null;
+      }
+
+      function endGame(winner, msg) {
+        gameOver = true;
+        aiThinking = false;
+        clearSelectedCell();
+        stopTimer();
+        updateTurn("锛堢粨鏉燂級");
+        toast(msg || `${colorName(winner)}鑳滐紒`);
+        updateGameButtons();
+
+      }
+
+      function startTurnTimer() {
+        stopTimer();
+        if (gameOver) return;
+
+        timeLeft = MOVE_LIMIT_SEC;
+        updateTimerUI();
+
+        timerId = setInterval(() => {
+          if (gameOver) { stopTimer(); return; }
+          timeLeft -= 1;
+          updateTimerUI();
+          if (timeLeft <= 0) {
+            stopTimer();
+            const winner = other(current);
+            endGame(winner, `${colorName(current)}瓒呮椂锛?{colorName(winner)}鑳渀);
+          }
+        }, 1000);
+      }
+
+            function updateGameButtons() {
+  const isPvp = modeEl.value !== "ai";
+  const isPlayer = (net.role === 1 || net.role === 2);
+
+  // 鎹㈣竟鍙兘鍦ㄧ涓€鎵嬩箣鍓嶇敵璇?  swapBtn.disabled = !isPvp || !isPlayer || gameOver || moves.length !== 0;
+
+  // 閲嶅紑鐜板湪闅忔椂閮借兘鐢宠锛岀粨鏉熷悗涔熷彲浠ョ洿鎺ョ偣
+  restartBtn.disabled = isPvp && !isPlayer;
+  rematchBtn.disabled = isPvp && !isPlayer;
+}
+
+      function reset() {
+        stopTimer();
+        clearSelectedCell();
+
+        setSideFromUI();
+
+        board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+        moves = [];
+        current = BLACK;       // 榛戝厛
+        gameOver = false;
+        aiThinking = false;
+
+        draw();
+        updateTurn();
+        updateRemainUI();
+        startTurnTimer();
+
+        if (modeEl.value === "ai") {
+          net.close(); // ? 浜烘満锛氬交搴曟柇鑱旀満+鍋滄閲嶈繛
+          toast(`浜烘満锛氫綘鎵?{colorName(humanColor)}锛堥粦181鐧?80 / 姣忔${MOVE_LIMIT_SEC}s锛塦);
+          if (current === aiColor) aiMove();
+        } else {
+          toast(`鍙屼汉瀵瑰紙锛氶粦鍏堬紙榛?81鐧?80 / 姣忔${MOVE_LIMIT_SEC}s锛塦);
+          net.autoReconnect = true; // ? 鍙€夛細纭繚鍥炲埌PVP浼氳嚜鍔ㄩ噸杩?
+          net.connect();
+        }
+
+ 
+        updateGameButtons();
+
+      }
+
+
+      // ? 鈥滈噸寮€鈥濇寜閽細浜烘満=鐩存帴閲嶅紑锛涜仈鏈?瀵瑰眬缁撴潫鍚庡彂璧封€滃啀鏉ヤ竴灞€鈥濓紙閬垮厤鏈湴娓呯┖鍚庡張琚湇鍔″櫒鏃ф璋辫鐩栵級
+            function requestRematch() {
+        if (modeEl.value === "ai") {
+          reset();
+          return;
+        }
+
+        if (!(net.role === 1 || net.role === 2)) return toast("瑙傛垬涓嶈兘鐐?);
+        if (!net.send({ type: "rematch" })) return toast("鏈繛鎺ヨ仈鏈?);
+        toast(gameOver ? "宸茬敵璇烽噸寮€涓€灞€" : "宸插彂璧烽噸寮€鐢宠锛岀瓑瀵规柟鍚屾剰");
+      }
+
+
+      function resize() {
+        const styles = getComputedStyle(gameEl);
+        const w = gameEl.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
+        const isMobile = isMobileLayout();
+        const h = gameEl.clientHeight - parseFloat(styles.paddingTop) - parseFloat(styles.paddingBottom);
+        const side = Math.floor(Math.max(
+          0,
+          Math.min(w - (isMobile ? 6 : 0), h - (isMobile ? 6 : 0))
+        ));
+
+        pxRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(side * pxRatio);
+        canvas.height = Math.floor(side * pxRatio);
+        canvas.style.width = side + "px";
+        canvas.style.height = side + "px";
+
+        pad = Math.floor((isMobile ? 8 : 16) * pxRatio);
+        cell = Math.floor((canvas.width - pad * 2) / (SIZE - 1));
+        draw();
+      }
+
+      function draw() {
+        if (!board) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const boardX = pad - cell * 0.5;
+        const boardY = pad - cell * 0.5;
+        const boardW = cell * (SIZE - 1) + cell;
+        const boardH = cell * (SIZE - 1) + cell;
+
+        // 鏈ㄨ川妫嬬洏鑳屾櫙锛堟祬鏈ㄧ汗锛?        ctx.fillStyle = "#f4e2bf";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const woodBase = ctx.createLinearGradient(0, boardY, 0, boardY + boardH);
+        woodBase.addColorStop(0, "#edd2a2");
+        woodBase.addColorStop(0.5, "#e2bd7d");
+        woodBase.addColorStop(1, "#c89052");
+        ctx.fillStyle = woodBase;
+        ctx.fillRect(boardX, boardY, boardW, boardH);
+
+        // 鏈ㄧ汗缁嗚妭锛堣交寰潯绾癸級
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        for (let i = 0; i < 22; i++) {
+          const y = boardY + (boardH / 22) * i + Math.sin(i * 0.9) * (2 * pxRatio);
+          ctx.strokeStyle = i % 2 === 0 ? "#b8844f" : "#e7cda9";
+          ctx.lineWidth = Math.max(1, 1 * pxRatio);
+          ctx.beginPath();
+          ctx.moveTo(boardX, y);
+          ctx.lineTo(boardX + boardW, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // 妫嬬洏澶栭儴鑳屾櫙淇濇寔娣辫壊琛墭
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.fillStyle = "#0b1225";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+
+        // 缃戞牸绾?
+        ctx.strokeStyle = "rgba(90,60,30,0.45)";
+        ctx.lineWidth = Math.max(1, Math.floor(1 * pxRatio));
+        for (let i = 0; i < SIZE; i++) {
+          const x = pad + i * cell;
+          const y = pad + i * cell;
+          ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + (SIZE - 1) * cell, y); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + (SIZE - 1) * cell); ctx.stroke();
+        }
+
+        // 鏄熶綅锛?9璺父瑙侊細3,9,15锛?        const stars = [3, 9, 15];
+        ctx.fillStyle = "rgba(70, 48, 26, 0.58)";
+        for (const r of stars) for (const c of stars) {
+          const x = pad + c * cell, y = pad + r * cell;
+          ctx.beginPath(); ctx.arc(x, y, Math.max(2, 3 * pxRatio), 0, Math.PI * 2); ctx.fill();
+        }
+
+        // 妫嬪瓙
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            const v = board[r][c];
+            if (v === EMPTY) continue;
+            const x = pad + c * cell, y = pad + r * cell;
+            const radius = cell * 0.42;
+
+            // 闃村奖
+            ctx.fillStyle = "rgba(0,0,0,0.35)";
+            ctx.beginPath(); ctx.arc(x + 2 * pxRatio, y + 2 * pxRatio, radius, 0, Math.PI * 2); ctx.fill();
+
+            // 娓愬彉
+            const g = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.2, x, y, radius);
+            if (v === BLACK) { g.addColorStop(0, "#4a5568"); g.addColorStop(1, "#111827"); }
+            else { g.addColorStop(0, "#fffdf8"); g.addColorStop(1, "#d7c7b2"); }
+
+            ctx.fillStyle = g;
+            ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+
+            // 鏈€鍚庝竴姝ユ爣璁?
+            if (moves.length && moves[moves.length - 1].r === r && moves[moves.length - 1].c === c) {
+              ctx.strokeStyle = "rgba(239,68,68,0.85)";
+              ctx.lineWidth = Math.max(2, 2 * pxRatio);
+              ctx.beginPath(); ctx.arc(x, y, radius * 0.35, 0, Math.PI * 2); ctx.stroke();
+            }
+          }
+        }
+
+        if (selectedCell && inBounds(selectedCell.r, selectedCell.c)) {
+          const x = pad + selectedCell.c * cell;
+          const y = pad + selectedCell.r * cell;
+          ctx.save();
+          ctx.strokeStyle = "rgba(220, 38, 38, 0.95)";
+          ctx.lineWidth = Math.max(2, 2 * pxRatio);
+          ctx.beginPath();
+          ctx.arc(x, y, cell * 0.48, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(220, 38, 38, 0.12)";
+          ctx.beginPath();
+          ctx.arc(x, y, cell * 0.42, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function inBounds(r, c) { return r >= 0 && r < SIZE && c >= 0 && c < SIZE; }
+
+      function checkWin(r, c, player) {
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+        for (const [dr, dc] of dirs) {
+          let cnt = 1;
+          for (let k = 1; k < 5; k++) {
+            const rr = r + dr * k, cc = c + dc * k;
+            if (!inBounds(rr, cc) || board[rr][cc] !== player) break;
+            cnt++;
+          }
+          for (let k = 1; k < 5; k++) {
+            const rr = r - dr * k, cc = c - dc * k;
+            if (!inBounds(rr, cc) || board[rr][cc] !== player) break;
+            cnt++;
+          }
+          if (cnt >= 5) return true;
+        }
+        return false;
+      }
+
+      function isHumanTurn() {
+        return modeEl.value !== "ai" || current === humanColor;
+      }
+
+      function nextTurn() {
+        current = other(current);
+        updateTurn();
+        startTurnTimer();
+
+        if (modeEl.value === "ai" && current === aiColor && !gameOver) {
+          aiMove();
+        }
+      }
+
+      function canPlace(color) {
+        return remainCount(color) > 0;
+      }
+      function doPlace(r, c, silent = false) {
+        // silent=true锛氬洖鏀惧巻鍙?鍒濆鍖栨椂涓嶅脊 toast
+        if (gameOver) return false;
+        if (!inBounds(r, c) || board[r][c] !== EMPTY) return false;
+
+        // 妫嬪瓙鐢ㄥ敖鍒よ礋
+        if (!canPlace(current)) {
+          const winner = other(current);
+          if (!silent) endGame(winner, `${colorName(current)}妫嬪瓙鐢ㄥ敖锛?{colorName(winner)}鑳渀);
+          else gameOver = true;
+          return false;
+        }
+
+        board[r][c] = current;
+        moves.push({ r, c, p: current });
+        clearSelectedCell();
+
+        updateRemainUI();
+        draw();
+
+        // 鑳滆礋鍒ゆ柇
+        if (checkWin(r, c, current)) {
+          if (!silent) endGame(current, `${colorName(current)}鑳滐紒`);
+          else gameOver = true;
+        }
+        return true;
+      }
+
+
+      function place(r, c) {
+        if (gameOver || aiThinking) return;
+        if (!inBounds(r, c) || board[r][c] !== EMPTY) return;
+
+        if (isCoarsePointer()) {
+          if (!selectedCell || selectedCell.r !== r || selectedCell.c !== c) {
+            selectedCell = { r, c };
+            draw();
+            toast("宸查€変腑锛屽啀鐐逛竴娆＄‘璁よ惤瀛?);
+            return;
+          }
+        }
+
+        clearSelectedCell();
+
+        // ===== 鑱旀満 PVP锛氬彧鍙戞秷鎭紝绛夋湇鍔″櫒骞挎挱鍥炴潵鍐嶈惤瀛?=====
+        // PVP 鑱旀満锛氬彂娑堟伅锛岀瓑鏈嶅姟鍣ㄥ箍鎾洖鏉ュ啀钀藉瓙
+        if (modeEl.value !== "ai") {
+          if (net.role === 0) return toast("浣犳槸瑙傛垬锛屼笉鑳借惤瀛?);
+          if (current !== net.role) return toast("杩樻病杞埌浣?);
+          if (!net.send({ type: "move", r, c })) return toast("鏈繛鎺ヨ仈鏈?);
+          return;
+        }
+
+
+        // 浜烘満锛氬彧鍏佽浜虹被鍦ㄨ嚜宸卞洖鍚堣惤
+        if (!isHumanTurn()) return;
+
+        if (!doPlace(r, c)) return;
+        nextTurn();
+      }
+
+
+
+
+      function eventToCell(e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * pxRatio;
+        const y = (e.clientY - rect.top) * pxRatio;
+        const c = Math.round((x - pad) / cell);
+        const r = Math.round((y - pad) / cell);
+        const cx = pad + c * cell;
+        const cy = pad + r * cell;
+        const maxHit = cell * (isCoarsePointer() ? 0.55 : 0.42);
+        if (Math.abs(x - cx) > maxHit || Math.abs(y - cy) > maxHit) return null;
+        return { r, c };
+      }
+
+      // =========================
+      // 鏇村己 AI锛氬€欓€夌偣 + 璇勪及 + Minimax(伪尾)
+      // =========================
+
+      function hasNeighbor(r, c, range = NEAR_RANGE) {
+        for (let dr = -range; dr <= range; dr++) {
+          for (let dc = -range; dc <= range; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const rr = r + dr, cc = c + dc;
+            if (inBounds(rr, cc) && board[rr][cc] !== EMPTY) return true;
+          }
+        }
+        return false;
+      }
+
+      // 璇勪及绐楀彛锛? 杩炵獥鍙ｏ級寰楀垎锛氬彧瑕佸悓绐楀唴鏈夊弻鏂规瀛愬垯鏃犳晥
+      function windowScore(count, open) {
+        // count: 璇ユ柟鍦ㄧ獥鍙?绾挎涓舰鎴愮殑杩炲娍锛堣繎浼硷級锛宱pen: 涓ょ寮€鏀?0/1/2)
+        // 鐢ㄤ簬鏁翠綋璇勪及锛氬垎鍊煎眰绾ф媺寮€锛孉I 鏇撮噸瑙嗗▉鑳?
+        if (count >= 5) return 1e9;
+        if (count === 4 && open === 2) return 500000;
+        if (count === 4 && open === 1) return 120000;
+        if (count === 3 && open === 2) return 22000;
+        if (count === 3 && open === 1) return 4500;
+        if (count === 2 && open === 2) return 1200;
+        if (count === 2 && open === 1) return 250;
+        if (count === 1 && open === 2) return 45;
+        return 8;
+      }
+
+      // 绾挎璇勪及锛氫互鈥滆繛缁+寮€鏀剧鈥濇潵鎵撳垎锛堟瘮鍗曠偣鏇寸ǔ锛?
+      function lineEvalAt(r, c, dr, dc, player) {
+        // 浠?(r,c) 鍚戜袱绔墿灞曠粺璁¤繛缁?player 涓庡紑鏀剧
+        let cnt1 = 0, cnt2 = 0, open1 = 0, open2 = 0;
+
+        for (let k = 1; k < 6; k++) {
+          const rr = r + dr * k, cc = c + dc * k;
+          if (!inBounds(rr, cc)) break;
+          if (board[rr][cc] === player) cnt1++;
+          else { if (board[rr][cc] === EMPTY) open1 = 1; break; }
+        }
+        for (let k = 1; k < 6; k++) {
+          const rr = r - dr * k, cc = c - dc * k;
+          if (!inBounds(rr, cc)) break;
+          if (board[rr][cc] === player) cnt2++;
+          else { if (board[rr][cc] === EMPTY) open2 = 1; break; }
+        }
+
+        const cnt = cnt1 + cnt2 + 1;
+        const open = open1 + open2;
+        return windowScore(cnt, open);
+      }
+
+      // 鐐规墦鍒嗭紙鐢ㄤ簬鍊欓€夌偣鎺掑簭锛夛細杩涙敾 + 闃插畧
+      function pointHeuristic(r, c, player) {
+        const opp = other(player);
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+        let s = 0;
+        for (const [dr, dc] of dirs) {
+          // 杩涙敾
+          s += lineEvalAt(r, c, dr, dc, player) * 1.0;
+          // 闃插畧锛堢暐澶т竴鐐癸紝璁?AI 鏇撮毦琚€滅鏉€鈥濓級
+          s += lineEvalAt(r, c, dr, dc, opp) * 0.95;
+        }
+        // 涓績鍋忓ソ锛堝井寮憋級
+        const center = (SIZE - 1) / 2;
+        const dist = Math.abs(r - center) + Math.abs(c - center);
+        s += Math.max(0, 9 - dist) * 2;
+        return s;
+      }
+
+      // 鐢熸垚鍊欓€夌┖鐐癸紙鍙彇闄勮繎 & 鍙栧墠 K锛?
+      function genCandidates(player) {
+        const cands = [];
+        if (moves.length === 0) {
+          const mid = Math.floor(SIZE / 2);
+          return [{ r: mid, c: mid }];
+        }
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            if (board[r][c] !== EMPTY) continue;
+            if (!hasNeighbor(r, c, NEAR_RANGE)) continue;
+            const h = pointHeuristic(r, c, player);
+            cands.push({ r, c, h });
+          }
+        }
+        cands.sort((a, b) => b.h - a.h);
+        return cands.slice(0, CAND_LIMIT);
+      }
+
+      // 鍏ㄥ眬璇勪及锛氬鎵€鏈夊凡鏈夋瀛愰檮杩戠┖鐐硅繘琛屸€滄綔鍔涘拰鈥濊瘎浼帮紙AI - 浜虹被锛?
+      function evaluate(forPlayer) {
+        const opp = other(forPlayer);
+        let score = 0;
+
+        // 鍙湪鈥滅浉鍏冲尯鍩熲€濇墦鍒嗭紙闈犺繎妫嬪瓙锛夛紝閬垮厤 19x19 鍏ㄦ壂澶參
+        const seen = new Set();
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+
+        function key(r, c) { return r + "#" + c; }
+
+        // 鏀堕泦鐩稿叧鐐癸細鎵€鏈夋瀛愬懆鍥?2 鏍煎唴鐨勭┖浣?+ 妫嬪瓙鏈韩
+        for (const m of moves) {
+          for (let dr = -2; dr <= 2; dr++) {
+            for (let dc = -2; dc <= 2; dc++) {
+              const rr = m.r + dr, cc = m.c + dc;
+              if (!inBounds(rr, cc)) continue;
+              const k = key(rr, cc);
+              if (seen.has(k)) continue;
+              seen.add(k);
+
+              if (board[rr][cc] === EMPTY) {
+                // 鍋囪杩欓噷钀藉瓙锛岃瘎浼拌繘鏀?闃插畧娼滃姏
+                const pPot = pointHeuristic(rr, cc, forPlayer);
+                const oPot = pointHeuristic(rr, cc, opp);
+                score += pPot * 0.06;
+                score -= oPot * 0.06;
+              } else {
+                // 瀵瑰凡钀藉瓙浣嶇疆锛氭寜杩炲娍缁欏皯閲忓姞鎴?
+                const owner = board[rr][cc];
+                for (const [d1, d2] of dirs) {
+                  const v = lineEvalAt(rr, cc, d1, d2, owner);
+                  if (owner === forPlayer) score += v * 0.0008;
+                  else score -= v * 0.0008;
+                }
+              }
+            }
+          }
+        }
+        return score;
+      }
+
+      function minimax(depth, alpha, beta, playerToMove, maximizingFor) {
+        // 缁堟
+        if (depth === 0 || gameOver) {
+          return evaluate(maximizingFor);
+        }
+
+        // 鑻ヨ鏂规病妫嬪彲涓嬶紝鐩存帴鍒よ礋锛堝璇勪及鏉ヨ缁欐瀬澶ц礋/姝ｏ級
+        if (!canPlace(playerToMove)) {
+          return (playerToMove === maximizingFor) ? -1e8 : 1e8;
+        }
+
+        const cands = genCandidates(playerToMove);
+        if (cands.length === 0) return evaluate(maximizingFor);
+
+        const isMax = (playerToMove === maximizingFor);
+        let best = isMax ? -Infinity : Infinity;
+
+        for (const { r, c } of cands) {
+          // 钀藉瓙
+          const prevCurrent = current;
+          current = playerToMove;
+
+          board[r][c] = playerToMove;
+          moves.push({ r, c, p: playerToMove });
+
+          // 绔嬪嵆鑳滆礋鍒ゆ柇锛氭瘮缁х画鎼滅储鏇村揩鏇村噯
+          let val;
+          if (checkWin(r, c, playerToMove)) {
+            val = (playerToMove === maximizingFor) ? 1e8 : -1e8;
+          } else {
+            val = minimax(depth - 1, alpha, beta, other(playerToMove), maximizingFor);
+          }
+
+          // 鎾ら攢
+          moves.pop();
+          board[r][c] = EMPTY;
+          current = prevCurrent;
+
+          if (isMax) {
+            if (val > best) best = val;
+            if (best > alpha) alpha = best;
+            if (beta <= alpha) break; // 尾鍓灊
+          } else {
+            if (val < best) best = val;
+            if (best < beta) beta = best;
+            if (beta <= alpha) break; // 伪鍓灊
+          }
+        }
+        return best;
+      }
+
+      function aiChooseMove() {
+        // 鍏堟壘鈥滃繀鑳滀竴姝モ€濇垨鈥滃繀闃蹭竴姝モ€濓紝鍑忓皯鎼滅储鍘嬪姏
+        const opp = other(aiColor);
+        const cands = genCandidates(aiColor);
+
+        // 1) AI 涓€姝ュ繀鑳?
+        for (const { r, c } of cands) {
+          board[r][c] = aiColor;
+          const win = checkWin(r, c, aiColor);
+          board[r][c] = EMPTY;
+          if (win) return { r, c };
+        }
+
+        // 2) 蹇呴』闃插畧瀵规墜涓嬩竴姝ュ繀鑳?
+        for (const { r, c } of genCandidates(opp)) {
+          board[r][c] = opp;
+          const win = checkWin(r, c, opp);
+          board[r][c] = EMPTY;
+          if (win) return { r, c }; // 杩欓噷 AI 涓嬭繖涓偣鍘诲牭
+        }
+
+        // 3) Minimax 鎼滅储
+        let bestMove = null;
+        let bestVal = -Infinity;
+
+        const searchCands = genCandidates(aiColor);
+        for (const { r, c } of searchCands) {
+          // 璇曡蛋
+          const prevCurrent = current;
+          current = aiColor;
+
+          board[r][c] = aiColor;
+          moves.push({ r, c, p: aiColor });
+
+          let val;
+          if (checkWin(r, c, aiColor)) val = 1e8;
+          else val = minimax(SEARCH_DEPTH - 1, -Infinity, Infinity, opp, aiColor);
+
+          // 鎾ら攢
+          moves.pop();
+          board[r][c] = EMPTY;
+          current = prevCurrent;
+
+          if (val > bestVal) {
+            bestVal = val;
+            bestMove = { r, c };
+          }
+        }
+
+        if (!bestMove) {
+          const mid = Math.floor(SIZE / 2);
+          bestMove = { r: mid, c: mid };
+        }
+        return bestMove;
+      }
+
+      function aiMove() {
+        if (gameOver) return;
+        if (!canPlace(aiColor)) {
+          endGame(humanColor, `AI锛?{colorName(aiColor)}锛夋瀛愮敤灏斤紒浣犺儨`);
+          return;
+        }
+
+        aiThinking = true;
+        updateTurn("锛圓I鎬濊€冧腑鈥︼級");
+
+        // 缁?UI 涓€鐐规椂闂村埛鏂?
+        setTimeout(() => {
+          if (gameOver) { aiThinking = false; return; }
+
+          const { r, c } = aiChooseMove();
+
+          aiThinking = false;
+          updateTurn();
+
+          // AI 钀藉瓙
+          if (!doPlace(r, c)) return;
+          nextTurn();
+        }, 80);
+      }
+
+      // 鎮旀锛?
+      // - PVP锛氭挙 1 姝?
+      // - AI锛氭挙 2 姝ワ紙灏介噺鍥炲埌浣犺蛋涔嬪墠锛?
+      function undo() {
+        if (modeEl.value !== "ai") return toast("鑱旀満妯″紡鏆備笉鏀寔鎮旀");
+
+
+        if (aiThinking) return;
+        if (moves.length === 0) return toast("杩樻病涓嬪瓙");
+
+        stopTimer();
+        if (gameOver) gameOver = false;
+
+        const popOne = () => {
+          const m = moves.pop();
+          if (!m) return false;
+          board[m.r][m.c] = EMPTY;
+          current = m.p;
+          return true;
+        };
+
+        if (modeEl.value === "ai") {
+          const a = popOne();
+          const b = popOne();
+          toast(b ? "宸叉倲妫嬶紙涓ゆ锛? : "宸叉倲妫嬶紙涓€姝ワ級");
+        } else {
+          popOne();
+          toast("宸叉倲妫?);
+        }
+        clearSelectedCell();
+
+        updateRemainUI();
+        draw();
+        updateTurn();
+        startTurnTimer();
+
+        // 鎮旀鍚庡鏋滆疆鍒?AI锛岃 AI 鎺ョ潃璧帮紙淇濇寔鑷劧瀵瑰眬锛?
+        if (modeEl.value === "ai" && current === aiColor && !gameOver) {
+          aiMove();
+        }
+      }
+
+      // 瑙﹀睆/榧犳爣钀藉瓙
+      canvas.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        if (gameOver) return toast("宸茬粨鏉燂紝鐐归噸寮€");
+        const hit = eventToCell(e);
+        if (!hit) return toast("鐐瑰埌绾垮浜?);
+        const { r, c } = hit;
+        place(r, c);
+      }, { passive: false });
+
+      // 闃叉閮ㄥ垎瀹夊崜娴忚鍣ㄦ粴鍔ㄥ共鎵?
+      document.addEventListener("touchmove", (e) => {
+        if (e.target === canvas) e.preventDefault();
+      }, { passive: false });
+
+      undoBtn.addEventListener('click', undo);
+restartBtn.addEventListener('click', requestRematch);
+
+// ===== 寮€濮嬪墠鎹㈤粦鐧?=====
+swapBtn.addEventListener("click", () => {
+  if (modeEl.value === "ai") return toast("浜烘満妯″紡涓嶇敤鎹㈣竟");
+  if (gameOver) return toast("宸茬粨鏉燂紝璇风偣鍐嶆潵涓€灞€");
+  if (moves.length !== 0) return toast("寮€灞€鍚庝笉鑳芥崲杈?);
+  if (!(net.role === 1 || net.role === 2)) return toast("瑙傛垬涓嶈兘鎹㈣竟");
+
+  if (!net.send({ type: "swap" })) {
+    toast("鏈繛鎺ヨ仈鏈?);
+    return;
+  }
+
+  toast("宸茶姹傛崲榛戠櫧锛堝弻鏂归兘鐐规墠浼氱敓鏁堬級");
+});
+
+// ===== 鍐嶆潵涓€灞€ =====
+rematchBtn.addEventListener("click", () => {
+  requestRematch();
+});
+
+
+
+
+
+      modeEl.addEventListener('change', () => {
+        sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+        reset();
+      });
+
+      sideEl.addEventListener('change', () => {
+        if (modeEl.value === "ai") reset();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'r') restartOrRematch();
+        if (e.key.toLowerCase() === 'z') undo();
+      });
+
+      // 鍒濆鍖?      sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+      function applyMobileLayout() {
+        const isMobile = isMobileLayout();
+        if (!headerEl || !rightEl || !mobileActionsHost) return;
+        if (isMobile) {
+          if (rightEl.parentElement !== mobileActionsHost) mobileActionsHost.appendChild(rightEl);
+          mobileActionsHost.classList.remove("hidden");
+        } else {
+          if (rightEl.parentElement !== headerEl) headerEl.appendChild(rightEl);
+          mobileActionsHost.classList.add("hidden");
+        }
+      }
+      applyMobileLayout();
+      window.addEventListener("resize", () => {
+        applyMobileLayout();
+        resize();
+      }, { passive: true });
+      window.addEventListener("orientationchange", () => {
+        applyMobileLayout();
+        setTimeout(() => resize(), 50);
+      }, { passive: true });
+      resize();
+      reset();
+    })();
+  </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>鍦ㄧ嚎浜斿瓙妫?Gomoku锛?9璺锋瀛愭暟路鏇村己AI路璁℃椂锛?/title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1225;
+      --panel: rgba(255, 255, 255, .08);
+      --line: rgba(255, 255, 255, .18);
+      --txt: #e5e7eb;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--txt);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+
+    #wrap {
+      min-height: 100vh;
+      min-height: 100dvh;
+      /* ? 鍏抽敭锛氫娇鐢ㄥ姩鎬佽鍙ｉ珮搴?*/
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: baseline
+    }
+
+    .title {
+      font-weight: 800;
+      letter-spacing: .3px
+    }
+
+    .hint {
+      opacity: .85;
+      font-size: 12px
+    }
+
+    .right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .pill {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap
+    }
+
+    button,
+    select {
+      background: var(--panel);
+      color: var(--txt);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    button:active {
+      transform: scale(.98)
+    }
+
+    #game {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px 12px;
+      box-sizing: border-box;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18);
+      touch-action: none;
+    }
+
+    #toast {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, .35);
+      backdrop-filter: blur(6px);
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: .18s ease;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .mobile-status {
+      display: none;
+    }
+
+    .mobile-actions-host {
+      display: none;
+    }
+
+    @media (max-width: 520px) {
+      :root {
+        color-scheme: light;
+        --bg: #f3ead8;
+        --panel: rgba(255, 255, 255, 0.82);
+        --line: rgba(111, 79, 41, 0.18);
+        --txt: #2a241c;
+      }
+
+      html,
+      body {
+        background: #f3ead8;
+        color: #2a241c;
+      }
+
+      #wrap {
+        min-height: 100dvh;
+        display: block;
+      }
+
+      header {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: calc(8px + env(safe-area-inset-top));
+        z-index: 40;
+        padding: 8px 10px;
+        gap: 6px;
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        border-radius: 16px;
+        background: rgba(255, 252, 245, 0.82);
+        backdrop-filter: blur(8px);
+        align-items: flex-start;
+        flex-direction: column;
+        box-shadow: 0 12px 26px rgba(79, 55, 28, 0.12);
+      }
+
+      .left {
+        width: 100%;
+        gap: 4px;
+        align-items: flex-start;
+      }
+
+      .title {
+        font-size: 14px;
+        line-height: 1.25;
+      }
+
+      .hint {
+        display: none;
+      }
+
+      .mobile-status {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 2px;
+        font-size: 12px;
+      }
+
+      .mobile-status span {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: rgba(255, 252, 245, 0.86);
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        color: #4a3720;
+      }
+
+      #game {
+        min-height: 100dvh;
+        padding: calc(76px + env(safe-area-inset-top)) 8px calc(88px + env(safe-area-inset-bottom));
+        justify-content: center;
+        align-items: center;
+        min-height: 100dvh;
+      }
+
+      canvas {
+        border-radius: 14px;
+        box-shadow: 0 12px 22px rgba(51, 34, 12, 0.14);
+        max-width: 100%;
+      }
+
+      #toast {
+        bottom: 14px;
+        background: rgba(255, 255, 255, 0.84);
+        color: #2a241c;
+        border-color: rgba(111, 79, 41, 0.18);
+      }
+
+      .right {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px 8px calc(14px + env(safe-area-inset-bottom));
+        border-radius: 16px;
+        background: rgba(255, 252, 245, 0.94);
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        box-shadow: 0 16px 30px rgba(79, 55, 28, 0.16);
+        backdrop-filter: blur(10px);
+        width: calc(100% - 16px);
+        margin: 0 8px 8px;
+      }
+
+      .right > * {
+        width: 100%;
+      }
+
+      .right .pill,
+      .right label,
+      .right button {
+        min-width: 0;
+        font-size: 13px;
+      }
+
+      .right .pill {
+        padding: 6px 8px;
+      }
+
+      .right label {
+        display: flex !important;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .right #sideWrap {
+        grid-column: 1 / -1;
+      }
+
+      .right #copyLink {
+        grid-column: 1 / -1;
+      }
+
+      .mobile-actions-host {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 55;
+        display: block;
+        pointer-events: none;
+      }
+
+      .mobile-primary-bar {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        z-index: 60;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        padding: 8px;
+        border-radius: 18px;
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        background: rgba(255, 252, 245, 0.96);
+        box-shadow: 0 16px 30px rgba(79, 55, 28, 0.18);
+        backdrop-filter: blur(12px);
+      }
+
+      .mobile-primary-bar button {
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 13px;
+      }
+
+      .mobile-drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 56;
+        display: none;
+        background: rgba(25, 18, 10, 0.28);
+        backdrop-filter: blur(2px);
+      }
+
+      .mobile-drawer {
+        position: fixed;
+        top: calc(72px + env(safe-area-inset-top));
+        right: 8px;
+        bottom: calc(76px + env(safe-area-inset-bottom));
+        width: min(320px, calc(100vw - 16px));
+        z-index: 57;
+        display: none;
+        pointer-events: auto;
+      }
+
+      .mobile-drawer .right {
+        width: 100%;
+        max-height: 100%;
+        margin: 0;
+        overflow: auto;
+      }
+
+      body.drawer-open .mobile-drawer-backdrop,
+      body.drawer-open .mobile-drawer {
+        display: block;
+      }
+
+      header .right {
+        display: none;
+      }
+
+      .mobile-actions-host .right {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+
+<body class="mobile-board-first">
+  <div id="wrap">
+    <header>
+      <div class="left">
+        <div class="title">鍦ㄧ嚎浜斿瓙妫嬶紙19脳19 路 妫嬪瓙鏁?路 鏇村己AI 路 姣忔60绉掞級</div>
+        <div class="hint">浜烘満鍙€夋墽榛?鐧斤紱榛?81鐧?80锛涙瘡姝?0绉掕秴鏃跺垽璐熴€?/div>
+      </div>
+      <div class="mobile-status" id="mobileStatus">
+        <span id="mobileTurn">鍥炲悎锛氶粦</span>
+        <span id="mobileTimer">鍓╀綑锛?0s</span>
+        <span id="mobileRoom">鎴块棿锛?</span>
+      </div>
+
+      <div class="right">
+        <span class="pill" id="turn">鍥炲悎锛氶粦</span>
+        <span class="pill" id="timer">鍓╀綑锛?0s</span>
+
+        <span class="pill" id="remainB">榛戝墿锛?81</span>
+        <span class="pill" id="remainW">鐧藉墿锛?80</span>
+        <span class="pill" id="roleBadge">韬唤锛?</span>
+        <span class="pill" id="roomCount">鎴块棿锛?</span>
+
+
+        <label class="pill" style="display:flex;gap:6px;align-items:center">
+          妯″紡
+          <select id="mode">
+            <option value="pvp">鍙屼汉瀵瑰紙</option>
+            <option value="ai">浜烘満瀵规垬</option>
+          </select>
+        </label>
+
+        <label class="pill" id="sideWrap" style="display:flex;gap:6px;align-items:center">
+          浣犳墽
+          <select id="side">
+            <option value="black">榛戯紙鍏堟墜锛?/option>
+            <option value="white">鐧斤紙鍚庢墜锛?/option>
+          </select>
+        </label>
+
+        <button id="undo">鎮旀</button>
+        <button id="restart">鐢宠閲嶅紑</button>
+        <button id="copyLink">澶嶅埗鎴块棿閾炬帴</button>
+        <button id="swapSide">寮€濮嬪墠鎹㈤粦鐧?/button>
+        <button id="rematch">鍐嶆潵涓€灞€</button>
+
+
+      </div>
+    </header>
+
+    <div id="game">
+      <canvas id="c"></canvas>
+      <div id="toast"></div>
+    </div>
+
+    <div id="mobilePrimaryBar" class="mobile-primary-bar hidden">
+      <button id="mobileUndo" type="button">悔棋</button>
+      <button id="mobileRestart" type="button">重开</button>
+      <button id="mobileRematch" type="button">再来</button>
+      <button id="mobileMore" type="button">更多</button>
+    </div>
+    <div id="mobileDrawerBackdrop" class="mobile-drawer-backdrop hidden"></div>
+    <div id="mobileActionsHost" class="mobile-actions-host"></div>
+  </div>
+
+  <script src="./online.js"></script>
+
+  <script>
+    (() => {
+      // ===== 19璺鐩?=====
+      const SIZE = 19;
+      const EMPTY = 0, BLACK = 1, WHITE = 2;
+
+      // ===== 妫嬪瓙鎬绘暟锛堝父瑙?19 璺厤缃細榛?181 鐧?180锛?====
+      const MAX_BLACK = 181;
+      const MAX_WHITE = 180;
+
+      // ===== 璁℃椂 =====
+      const MOVE_LIMIT_SEC = 60;
+
+      // ===== AI 寮哄害鍙傛暟锛堣秺澶ц秺寮轰絾鏇磋€楁€ц兘锛?====
+      const SEARCH_DEPTH = 3;       // 3锛氭槑鏄惧己浜庡崟姝ワ紱鎵嬫満涔熻兘璺?
+      const CAND_LIMIT = 12;      // 姣忓眰淇濈暀鍊欓€夌偣鏁伴噺锛堣秺澶ц秺寮轰絾鏇存參锛?
+      const NEAR_RANGE = 2;       // 鍙€冭檻璺濈宸叉湁妫嬪瓙 NEAR_RANGE 鑼冨洿鍐呯殑绌虹偣
+
+      const canvas = document.getElementById('c');
+      const gameEl = document.getElementById('game');
+      const turnEl = document.getElementById('turn');
+      const timerEl = document.getElementById('timer');
+      const remainBEl = document.getElementById('remainB');
+      const remainWEl = document.getElementById('remainW');
+      const toastEl = document.getElementById('toast');
+      const modeEl = document.getElementById('mode');
+      const sideEl = document.getElementById('side');
+      const sideWrap = document.getElementById('sideWrap');
+      const undoBtn = document.getElementById('undo');
+      const restartBtn = document.getElementById('restart');
+      const copyLinkBtn = document.getElementById('copyLink');
+      const swapBtn = document.getElementById('swapSide');
+      const rematchBtn = document.getElementById('rematch');
+
+
+
+      const roleBadgeEl = document.getElementById("roleBadge");
+      const roomCountEl = document.getElementById("roomCount");
+      const mobileStatusEl = document.getElementById("mobileStatus");
+      const mobileTurnEl = document.getElementById("mobileTurn");
+      const mobileTimerEl = document.getElementById("mobileTimer");
+      const mobileRoomEl = document.getElementById("mobileRoom");
+      const headerEl = document.querySelector("header");
+      const mobileActionsHost = document.getElementById("mobileActionsHost");
+      const mobilePrimaryBar = document.getElementById("mobilePrimaryBar");
+      const mobileDrawerBackdrop = document.getElementById("mobileDrawerBackdrop");
+      const rightEl = document.querySelector(".right");
+      const mobileUndoBtn = document.getElementById("mobileUndo");
+      const mobileRestartBtn = document.getElementById("mobileRestart");
+      const mobileRematchBtn = document.getElementById("mobileRematch");
+      const mobileMoreBtn = document.getElementById("mobileMore");
+      let selectedCell = null;
+      let mobileDrawerEl = null;
+
+      function isMobileLayout() {
+        return window.matchMedia("(max-width: 520px)").matches;
+      }
+
+      function closeMobileDrawer() {
+        document.body.classList.remove("drawer-open");
+      }
+
+      function toggleMobileDrawer() {
+        if (!isMobileLayout()) return;
+        document.body.classList.toggle("drawer-open");
+      }
+
+      function syncMobileStatus() {
+        if (mobileTurnEl) mobileTurnEl.textContent = turnEl.textContent;
+        if (mobileTimerEl) mobileTimerEl.textContent = timerEl.textContent;
+        if (mobileRoomEl) mobileRoomEl.textContent = roomCountEl.textContent;
+      }
+
+
+      const net = new OnlineClient({
+        // ? 寤鸿锛歸sBase 鏀寔鏁扮粍锛屽浗鍐?娴峰鍙岀嚎璺厹搴曪紙鍙寜浣犺嚜宸辩殑鍩熷悕鏇挎崲锛?
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://浣犵殑鍥藉唴绾胯矾鍩熷悕"],
+        wsBase: "wss://ws.cjx88.eu.cc",
+        wsPath: "/ws", // 浜斿瓙妫嬬敤 /ws锛堟潈濞侊級
+        tokenKeyPrefix: "gm_token", // ? 鍏抽敭锛氬埛鏂?鏂嚎閲嶈繛涔熻兘鈥滅画搴р€?
+        connectTimeoutMs: 8000,
+        onStatus: (s) => {
+          // online.js 浼氬悓鏃跺洖璋?object + string锛岃繖閲岀粺涓€鍏煎
+          const status = (typeof s === "string") ? s : (s && s.status) || "";
+          if (status === "connecting") toast("姝ｅ湪杩炴帴鑱旀満鈥?);
+          if (status === "connected") toast("鑱旀満宸茶繛鎺?);
+          if (status === "timeout") toast("鑱旀満杩炴帴瓒呮椂锛屾鍦ㄥ垏鎹㈢嚎璺?閲嶈繛鈥?);
+          if (status === "disconnected") toast("鑱旀満鏂紑锛屾鍦ㄩ噸杩炩€?);
+          if (status === "error") toast("鑱旀満閿欒");
+        },
+        onPresence: (n) => {
+          roomCountEl.textContent = `鎴块棿锛?{n}浜篳;
+          syncMobileStatus();
+        },
+        onRole: (role) => {
+          roleBadgeEl.textContent =
+            role === 1 ? "韬唤锛氶粦" : role === 2 ? "韬唤锛氱櫧" : "韬唤锛氳鎴?;
+          updateGameButtons();
+        },
+        onMessage: (msg) => {
+
+          if (msg.type === "reject") {
+            toast(msg.reason || "鎿嶄綔鏃犳晥");
+            return;
+          }
+
+          // === 浜ゆ崲榛戠櫧鍚庯細鍚庣浼氬畾鍚戝彂浣犳槸璋?===
+          if (msg.type === "role") {
+            net.role = (msg.you ?? msg.role ?? 0);
+
+            roleBadgeEl.textContent =
+              net.role === 1 ? "韬唤锛氶粦" : net.role === 2 ? "韬唤锛氱櫧" : "韬唤锛氳鎴?;
+            updateGameButtons();
+            return;
+          }
+
+          // === 鏈変汉鍙戣捣鈥滄崲榛戠櫧鈥?===
+          if (msg.type === "swap_pending") {
+            toast("瀵规柟璇锋眰鎹㈤粦鐧斤細浣犱篃鐐逛竴涓嬪嵆鍙悓鎰?);
+            return;
+          }
+
+          // === 鏈変汉鍙戣捣鈥滃啀鏉ヤ竴灞€鈥?===
+          if (msg.type === "rematch_pending") {
+            toast("瀵规柟璇锋眰鍐嶆潵涓€灞€锛氫綘涔熺偣涓€涓嬪嵆鍙紑濮?);
+            return;
+          }
+
+          // === 鏂板眬鐘舵€侊紙鍐嶆潵涓€灞€鎴愬姛鍚庡箍鎾級===
+          if (msg.type === "state") {
+            stopTimer();
+            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+            moves = [];
+            current = BLACK;
+            gameOver = false;
+            aiThinking = false;
+
+            for (const m of (msg.moves || [])) {
+              current = m.p;
+              doPlace(m.r, m.c, true); // 鍥炴斁 silent
+            }
+
+            gameOver = !!msg.gameOver;
+            current = msg.current || current;
+
+            updateTurn();
+            updateRemainUI();
+            draw();
+            startTurnTimer();
+
+            toast("鏂颁竴灞€寮€濮嬶紒");
+            updateGameButtons();
+            return;
+          }
+
+          // === 浣犲師鏉ョ殑 init锛堜繚鐣欙級===
+          if (msg.type === "init") {
+            // 閲嶇疆鐩橀潰 + 鍥炴斁鍘嗗彶锛堜笉 nextTurn锛?
+            stopTimer();
+            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+            moves = [];
+            current = BLACK;
+            gameOver = false;
+            aiThinking = false;
+
+            for (const m of (msg.moves || [])) {
+              current = m.p;
+              doPlace(m.r, m.c, true); // ? 鍥炴斁鐢?silent
+            }
+            gameOver = !!msg.gameOver; // ? 浠ユ湇鍔″櫒鐘舵€佷负鍑?
+
+            current = msg.current || current;
+            updateTurn();
+            updateRemainUI();
+            draw();
+            startTurnTimer();
+            updateGameButtons();
+            return;
+          }
+
+          // === 浣犲師鏉ョ殑 move锛堜繚鐣欙級===
+          if (msg.type === "move") {
+            current = msg.p;
+            if (!doPlace(msg.r, msg.c)) return;
+
+            if (msg.win) {
+              endGame(msg.win, `${colorName(msg.win)}鑳滐紒`);
+              return;
+            }
+
+            nextTurn();
+
+            if (msg.next) {
+              current = msg.next;
+              updateTurn();
+            }
+            return;
+          }
+        }
+
+      });
+
+      copyLinkBtn.addEventListener("click", () => {
+        net.copyLink()
+          .then(() => toast("鎴块棿閾炬帴宸插鍒?))
+          .catch(() => toast("澶嶅埗澶辫触锛岃鎵嬪姩澶嶅埗鍦板潃鏍?));
+      });
+
+
+      const ctx = canvas.getContext('2d');
+
+      let board, moves, current, gameOver, cell, pad, pxRatio;
+      let aiThinking = false;
+
+
+
+
+      // 閫夎竟锛氫汉鏈烘ā寮忎笅鏈夋晥
+      let humanColor = BLACK;
+      let aiColor = WHITE;
+
+      // 璁℃椂
+      let timeLeft = MOVE_LIMIT_SEC;
+      let timerId = null;
+
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => toastEl.classList.remove('show'), 1200);
+      }
+
+
+
+
+      function colorName(p) { return p === BLACK ? "榛? : "鐧?; }
+      function other(p) { return p === BLACK ? WHITE : BLACK; }
+      function isCoarsePointer() {
+        return window.matchMedia("(pointer: coarse)").matches;
+      }
+      function clearSelectedCell(redraw = false) {
+        selectedCell = null;
+        if (redraw) draw();
+      }
+
+      function setSideFromUI() {
+        if (sideEl.value === "white") { humanColor = WHITE; aiColor = BLACK; }
+        else { humanColor = BLACK; aiColor = WHITE; }
+      }
+
+      function placedCount(color) {
+        let n = 0;
+        for (const m of moves) if (m.p === color) n++;
+        return n;
+      }
+      function remainCount(color) {
+        const used = placedCount(color);
+        return (color === BLACK ? MAX_BLACK : MAX_WHITE) - used;
+      }
+      function updateRemainUI() {
+        remainBEl.textContent = `榛戝墿锛?{remainCount(BLACK)}`;
+        remainWEl.textContent = `鐧藉墿锛?{remainCount(WHITE)}`;
+      }
+
+      function updateTurn(extra = "") {
+        turnEl.textContent = `鍥炲悎锛?{colorName(current)}${extra}`;
+        syncMobileStatus();
+      }
+      function updateTimerUI() {
+        timerEl.textContent = `鍓╀綑锛?{timeLeft}s`;
+        syncMobileStatus();
+      }
+      function stopTimer() {
+        if (timerId) clearInterval(timerId);
+        timerId = null;
+      }
+
+      function endGame(winner, msg) {
+        gameOver = true;
+        aiThinking = false;
+        clearSelectedCell();
+        stopTimer();
+        updateTurn("锛堢粨鏉燂級");
+        toast(msg || `${colorName(winner)}鑳滐紒`);
+        updateGameButtons();
+
+      }
+
+      function startTurnTimer() {
+        stopTimer();
+        if (gameOver) return;
+
+        timeLeft = MOVE_LIMIT_SEC;
+        updateTimerUI();
+
+        timerId = setInterval(() => {
+          if (gameOver) { stopTimer(); return; }
+          timeLeft -= 1;
+          updateTimerUI();
+          if (timeLeft <= 0) {
+            stopTimer();
+            const winner = other(current);
+            endGame(winner, `${colorName(current)}瓒呮椂锛?{colorName(winner)}鑳渀);
+          }
+        }, 1000);
+      }
+
+            function updateGameButtons() {
+  const isPvp = modeEl.value !== "ai";
+  const isPlayer = (net.role === 1 || net.role === 2);
+
+  // 鎹㈣竟鍙兘鍦ㄧ涓€鎵嬩箣鍓嶇敵璇?  swapBtn.disabled = !isPvp || !isPlayer || gameOver || moves.length !== 0;
+
+  // 閲嶅紑鐜板湪闅忔椂閮借兘鐢宠锛岀粨鏉熷悗涔熷彲浠ョ洿鎺ョ偣
+  restartBtn.disabled = isPvp && !isPlayer;
+  rematchBtn.disabled = isPvp && !isPlayer;
+}
+
+      function reset() {
+        stopTimer();
+        clearSelectedCell();
+
+        setSideFromUI();
+
+        board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+        moves = [];
+        current = BLACK;       // 榛戝厛
+        gameOver = false;
+        aiThinking = false;
+
+        draw();
+        updateTurn();
+        updateRemainUI();
+        startTurnTimer();
+
+        if (modeEl.value === "ai") {
+          net.close(); // ? 浜烘満锛氬交搴曟柇鑱旀満+鍋滄閲嶈繛
+          toast(`浜烘満锛氫綘鎵?{colorName(humanColor)}锛堥粦181鐧?80 / 姣忔${MOVE_LIMIT_SEC}s锛塦);
+          if (current === aiColor) aiMove();
+        } else {
+          toast(`鍙屼汉瀵瑰紙锛氶粦鍏堬紙榛?81鐧?80 / 姣忔${MOVE_LIMIT_SEC}s锛塦);
+          net.autoReconnect = true; // ? 鍙€夛細纭繚鍥炲埌PVP浼氳嚜鍔ㄩ噸杩?
+          net.connect();
+        }
+
+ 
+        updateGameButtons();
+
+      }
+
+
+      // ? 鈥滈噸寮€鈥濇寜閽細浜烘満=鐩存帴閲嶅紑锛涜仈鏈?瀵瑰眬缁撴潫鍚庡彂璧封€滃啀鏉ヤ竴灞€鈥濓紙閬垮厤鏈湴娓呯┖鍚庡張琚湇鍔″櫒鏃ф璋辫鐩栵級
+            function requestRematch() {
+        if (modeEl.value === "ai") {
+          reset();
+          return;
+        }
+
+        if (!(net.role === 1 || net.role === 2)) return toast("瑙傛垬涓嶈兘鐐?);
+        if (!net.send({ type: "rematch" })) return toast("鏈繛鎺ヨ仈鏈?);
+        toast(gameOver ? "宸茬敵璇烽噸寮€涓€灞€" : "宸插彂璧烽噸寮€鐢宠锛岀瓑瀵规柟鍚屾剰");
+      }
+
+
+      function resize() {
+        const styles = getComputedStyle(gameEl);
+        const w = gameEl.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
+        const isMobile = isMobileLayout();
+        const h = gameEl.clientHeight - parseFloat(styles.paddingTop) - parseFloat(styles.paddingBottom);
+        const side = Math.floor(Math.max(
+          0,
+          Math.min(w - (isMobile ? 6 : 0), h - (isMobile ? 6 : 0))
+        ));
+
+        pxRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(side * pxRatio);
+        canvas.height = Math.floor(side * pxRatio);
+        canvas.style.width = side + "px";
+        canvas.style.height = side + "px";
+
+        pad = Math.floor((isMobile ? 8 : 16) * pxRatio);
+        cell = Math.floor((canvas.width - pad * 2) / (SIZE - 1));
+        draw();
+      }
+
+      function draw() {
+        if (!board) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const boardX = pad - cell * 0.5;
+        const boardY = pad - cell * 0.5;
+        const boardW = cell * (SIZE - 1) + cell;
+        const boardH = cell * (SIZE - 1) + cell;
+
+        // 鏈ㄨ川妫嬬洏鑳屾櫙锛堟祬鏈ㄧ汗锛?        ctx.fillStyle = "#f4e2bf";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const woodBase = ctx.createLinearGradient(0, boardY, 0, boardY + boardH);
+        woodBase.addColorStop(0, "#edd2a2");
+        woodBase.addColorStop(0.5, "#e2bd7d");
+        woodBase.addColorStop(1, "#c89052");
+        ctx.fillStyle = woodBase;
+        ctx.fillRect(boardX, boardY, boardW, boardH);
+
+        // 鏈ㄧ汗缁嗚妭锛堣交寰潯绾癸級
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        for (let i = 0; i < 22; i++) {
+          const y = boardY + (boardH / 22) * i + Math.sin(i * 0.9) * (2 * pxRatio);
+          ctx.strokeStyle = i % 2 === 0 ? "#b8844f" : "#e7cda9";
+          ctx.lineWidth = Math.max(1, 1 * pxRatio);
+          ctx.beginPath();
+          ctx.moveTo(boardX, y);
+          ctx.lineTo(boardX + boardW, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // 妫嬬洏澶栭儴鑳屾櫙淇濇寔娣辫壊琛墭
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.fillStyle = "#0b1225";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+
+        // 缃戞牸绾?
+        ctx.strokeStyle = "rgba(90,60,30,0.45)";
+        ctx.lineWidth = Math.max(1, Math.floor(1 * pxRatio));
+        for (let i = 0; i < SIZE; i++) {
+          const x = pad + i * cell;
+          const y = pad + i * cell;
+          ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + (SIZE - 1) * cell, y); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + (SIZE - 1) * cell); ctx.stroke();
+        }
+
+        // 鏄熶綅锛?9璺父瑙侊細3,9,15锛?        const stars = [3, 9, 15];
+        ctx.fillStyle = "rgba(70, 48, 26, 0.58)";
+        for (const r of stars) for (const c of stars) {
+          const x = pad + c * cell, y = pad + r * cell;
+          ctx.beginPath(); ctx.arc(x, y, Math.max(2, 3 * pxRatio), 0, Math.PI * 2); ctx.fill();
+        }
+
+        // 妫嬪瓙
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            const v = board[r][c];
+            if (v === EMPTY) continue;
+            const x = pad + c * cell, y = pad + r * cell;
+            const radius = cell * 0.42;
+
+            // 闃村奖
+            ctx.fillStyle = "rgba(0,0,0,0.35)";
+            ctx.beginPath(); ctx.arc(x + 2 * pxRatio, y + 2 * pxRatio, radius, 0, Math.PI * 2); ctx.fill();
+
+            // 娓愬彉
+            const g = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.2, x, y, radius);
+            if (v === BLACK) { g.addColorStop(0, "#4a5568"); g.addColorStop(1, "#111827"); }
+            else { g.addColorStop(0, "#fffdf8"); g.addColorStop(1, "#d7c7b2"); }
+
+            ctx.fillStyle = g;
+            ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+
+            // 鏈€鍚庝竴姝ユ爣璁?
+            if (moves.length && moves[moves.length - 1].r === r && moves[moves.length - 1].c === c) {
+              ctx.strokeStyle = "rgba(239,68,68,0.85)";
+              ctx.lineWidth = Math.max(2, 2 * pxRatio);
+              ctx.beginPath(); ctx.arc(x, y, radius * 0.35, 0, Math.PI * 2); ctx.stroke();
+            }
+          }
+        }
+
+        if (selectedCell && inBounds(selectedCell.r, selectedCell.c)) {
+          const x = pad + selectedCell.c * cell;
+          const y = pad + selectedCell.r * cell;
+          ctx.save();
+          ctx.strokeStyle = "rgba(220, 38, 38, 0.95)";
+          ctx.lineWidth = Math.max(2, 2 * pxRatio);
+          ctx.beginPath();
+          ctx.arc(x, y, cell * 0.48, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(220, 38, 38, 0.12)";
+          ctx.beginPath();
+          ctx.arc(x, y, cell * 0.42, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function inBounds(r, c) { return r >= 0 && r < SIZE && c >= 0 && c < SIZE; }
+
+      function checkWin(r, c, player) {
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+        for (const [dr, dc] of dirs) {
+          let cnt = 1;
+          for (let k = 1; k < 5; k++) {
+            const rr = r + dr * k, cc = c + dc * k;
+            if (!inBounds(rr, cc) || board[rr][cc] !== player) break;
+            cnt++;
+          }
+          for (let k = 1; k < 5; k++) {
+            const rr = r - dr * k, cc = c - dc * k;
+            if (!inBounds(rr, cc) || board[rr][cc] !== player) break;
+            cnt++;
+          }
+          if (cnt >= 5) return true;
+        }
+        return false;
+      }
+
+      function isHumanTurn() {
+        return modeEl.value !== "ai" || current === humanColor;
+      }
+
+      function nextTurn() {
+        current = other(current);
+        updateTurn();
+        startTurnTimer();
+
+        if (modeEl.value === "ai" && current === aiColor && !gameOver) {
+          aiMove();
+        }
+      }
+
+      function canPlace(color) {
+        return remainCount(color) > 0;
+      }
+      function doPlace(r, c, silent = false) {
+        // silent=true锛氬洖鏀惧巻鍙?鍒濆鍖栨椂涓嶅脊 toast
+        if (gameOver) return false;
+        if (!inBounds(r, c) || board[r][c] !== EMPTY) return false;
+
+        // 妫嬪瓙鐢ㄥ敖鍒よ礋
+        if (!canPlace(current)) {
+          const winner = other(current);
+          if (!silent) endGame(winner, `${colorName(current)}妫嬪瓙鐢ㄥ敖锛?{colorName(winner)}鑳渀);
+          else gameOver = true;
+          return false;
+        }
+
+        board[r][c] = current;
+        moves.push({ r, c, p: current });
+        clearSelectedCell();
+
+        updateRemainUI();
+        draw();
+
+        // 鑳滆礋鍒ゆ柇
+        if (checkWin(r, c, current)) {
+          if (!silent) endGame(current, `${colorName(current)}鑳滐紒`);
+          else gameOver = true;
+        }
+        return true;
+      }
+
+
+      function place(r, c) {
+        if (gameOver || aiThinking) return;
+        if (!inBounds(r, c) || board[r][c] !== EMPTY) return;
+
+        if (isCoarsePointer()) {
+          if (!selectedCell || selectedCell.r !== r || selectedCell.c !== c) {
+            selectedCell = { r, c };
+            draw();
+            toast("宸查€変腑锛屽啀鐐逛竴娆＄‘璁よ惤瀛?);
+            return;
+          }
+        }
+
+        clearSelectedCell();
+
+        // ===== 鑱旀満 PVP锛氬彧鍙戞秷鎭紝绛夋湇鍔″櫒骞挎挱鍥炴潵鍐嶈惤瀛?=====
+        // PVP 鑱旀満锛氬彂娑堟伅锛岀瓑鏈嶅姟鍣ㄥ箍鎾洖鏉ュ啀钀藉瓙
+        if (modeEl.value !== "ai") {
+          if (net.role === 0) return toast("浣犳槸瑙傛垬锛屼笉鑳借惤瀛?);
+          if (current !== net.role) return toast("杩樻病杞埌浣?);
+          if (!net.send({ type: "move", r, c })) return toast("鏈繛鎺ヨ仈鏈?);
+          return;
+        }
+
+
+        // 浜烘満锛氬彧鍏佽浜虹被鍦ㄨ嚜宸卞洖鍚堣惤
+        if (!isHumanTurn()) return;
+
+        if (!doPlace(r, c)) return;
+        nextTurn();
+      }
+
+
+
+
+      function eventToCell(e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * pxRatio;
+        const y = (e.clientY - rect.top) * pxRatio;
+        const c = Math.round((x - pad) / cell);
+        const r = Math.round((y - pad) / cell);
+        const cx = pad + c * cell;
+        const cy = pad + r * cell;
+        const maxHit = cell * (isCoarsePointer() ? 0.55 : 0.42);
+        if (Math.abs(x - cx) > maxHit || Math.abs(y - cy) > maxHit) return null;
+        return { r, c };
+      }
+
+      // =========================
+      // 鏇村己 AI锛氬€欓€夌偣 + 璇勪及 + Minimax(伪尾)
+      // =========================
+
+      function hasNeighbor(r, c, range = NEAR_RANGE) {
+        for (let dr = -range; dr <= range; dr++) {
+          for (let dc = -range; dc <= range; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const rr = r + dr, cc = c + dc;
+            if (inBounds(rr, cc) && board[rr][cc] !== EMPTY) return true;
+          }
+        }
+        return false;
+      }
+
+      // 璇勪及绐楀彛锛? 杩炵獥鍙ｏ級寰楀垎锛氬彧瑕佸悓绐楀唴鏈夊弻鏂规瀛愬垯鏃犳晥
+      function windowScore(count, open) {
+        // count: 璇ユ柟鍦ㄧ獥鍙?绾挎涓舰鎴愮殑杩炲娍锛堣繎浼硷級锛宱pen: 涓ょ寮€鏀?0/1/2)
+        // 鐢ㄤ簬鏁翠綋璇勪及锛氬垎鍊煎眰绾ф媺寮€锛孉I 鏇撮噸瑙嗗▉鑳?
+        if (count >= 5) return 1e9;
+        if (count === 4 && open === 2) return 500000;
+        if (count === 4 && open === 1) return 120000;
+        if (count === 3 && open === 2) return 22000;
+        if (count === 3 && open === 1) return 4500;
+        if (count === 2 && open === 2) return 1200;
+        if (count === 2 && open === 1) return 250;
+        if (count === 1 && open === 2) return 45;
+        return 8;
+      }
+
+      // 绾挎璇勪及锛氫互鈥滆繛缁+寮€鏀剧鈥濇潵鎵撳垎锛堟瘮鍗曠偣鏇寸ǔ锛?
+      function lineEvalAt(r, c, dr, dc, player) {
+        // 浠?(r,c) 鍚戜袱绔墿灞曠粺璁¤繛缁?player 涓庡紑鏀剧
+        let cnt1 = 0, cnt2 = 0, open1 = 0, open2 = 0;
+
+        for (let k = 1; k < 6; k++) {
+          const rr = r + dr * k, cc = c + dc * k;
+          if (!inBounds(rr, cc)) break;
+          if (board[rr][cc] === player) cnt1++;
+          else { if (board[rr][cc] === EMPTY) open1 = 1; break; }
+        }
+        for (let k = 1; k < 6; k++) {
+          const rr = r - dr * k, cc = c - dc * k;
+          if (!inBounds(rr, cc)) break;
+          if (board[rr][cc] === player) cnt2++;
+          else { if (board[rr][cc] === EMPTY) open2 = 1; break; }
+        }
+
+        const cnt = cnt1 + cnt2 + 1;
+        const open = open1 + open2;
+        return windowScore(cnt, open);
+      }
+
+      // 鐐规墦鍒嗭紙鐢ㄤ簬鍊欓€夌偣鎺掑簭锛夛細杩涙敾 + 闃插畧
+      function pointHeuristic(r, c, player) {
+        const opp = other(player);
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+        let s = 0;
+        for (const [dr, dc] of dirs) {
+          // 杩涙敾
+          s += lineEvalAt(r, c, dr, dc, player) * 1.0;
+          // 闃插畧锛堢暐澶т竴鐐癸紝璁?AI 鏇撮毦琚€滅鏉€鈥濓級
+          s += lineEvalAt(r, c, dr, dc, opp) * 0.95;
+        }
+        // 涓績鍋忓ソ锛堝井寮憋級
+        const center = (SIZE - 1) / 2;
+        const dist = Math.abs(r - center) + Math.abs(c - center);
+        s += Math.max(0, 9 - dist) * 2;
+        return s;
+      }
+
+      // 鐢熸垚鍊欓€夌┖鐐癸紙鍙彇闄勮繎 & 鍙栧墠 K锛?
+      function genCandidates(player) {
+        const cands = [];
+        if (moves.length === 0) {
+          const mid = Math.floor(SIZE / 2);
+          return [{ r: mid, c: mid }];
+        }
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            if (board[r][c] !== EMPTY) continue;
+            if (!hasNeighbor(r, c, NEAR_RANGE)) continue;
+            const h = pointHeuristic(r, c, player);
+            cands.push({ r, c, h });
+          }
+        }
+        cands.sort((a, b) => b.h - a.h);
+        return cands.slice(0, CAND_LIMIT);
+      }
+
+      // 鍏ㄥ眬璇勪及锛氬鎵€鏈夊凡鏈夋瀛愰檮杩戠┖鐐硅繘琛屸€滄綔鍔涘拰鈥濊瘎浼帮紙AI - 浜虹被锛?
+      function evaluate(forPlayer) {
+        const opp = other(forPlayer);
+        let score = 0;
+
+        // 鍙湪鈥滅浉鍏冲尯鍩熲€濇墦鍒嗭紙闈犺繎妫嬪瓙锛夛紝閬垮厤 19x19 鍏ㄦ壂澶參
+        const seen = new Set();
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+
+        function key(r, c) { return r + "#" + c; }
+
+        // 鏀堕泦鐩稿叧鐐癸細鎵€鏈夋瀛愬懆鍥?2 鏍煎唴鐨勭┖浣?+ 妫嬪瓙鏈韩
+        for (const m of moves) {
+          for (let dr = -2; dr <= 2; dr++) {
+            for (let dc = -2; dc <= 2; dc++) {
+              const rr = m.r + dr, cc = m.c + dc;
+              if (!inBounds(rr, cc)) continue;
+              const k = key(rr, cc);
+              if (seen.has(k)) continue;
+              seen.add(k);
+
+              if (board[rr][cc] === EMPTY) {
+                // 鍋囪杩欓噷钀藉瓙锛岃瘎浼拌繘鏀?闃插畧娼滃姏
+                const pPot = pointHeuristic(rr, cc, forPlayer);
+                const oPot = pointHeuristic(rr, cc, opp);
+                score += pPot * 0.06;
+                score -= oPot * 0.06;
+              } else {
+                // 瀵瑰凡钀藉瓙浣嶇疆锛氭寜杩炲娍缁欏皯閲忓姞鎴?
+                const owner = board[rr][cc];
+                for (const [d1, d2] of dirs) {
+                  const v = lineEvalAt(rr, cc, d1, d2, owner);
+                  if (owner === forPlayer) score += v * 0.0008;
+                  else score -= v * 0.0008;
+                }
+              }
+            }
+          }
+        }
+        return score;
+      }
+
+      function minimax(depth, alpha, beta, playerToMove, maximizingFor) {
+        // 缁堟
+        if (depth === 0 || gameOver) {
+          return evaluate(maximizingFor);
+        }
+
+        // 鑻ヨ鏂规病妫嬪彲涓嬶紝鐩存帴鍒よ礋锛堝璇勪及鏉ヨ缁欐瀬澶ц礋/姝ｏ級
+        if (!canPlace(playerToMove)) {
+          return (playerToMove === maximizingFor) ? -1e8 : 1e8;
+        }
+
+        const cands = genCandidates(playerToMove);
+        if (cands.length === 0) return evaluate(maximizingFor);
+
+        const isMax = (playerToMove === maximizingFor);
+        let best = isMax ? -Infinity : Infinity;
+
+        for (const { r, c } of cands) {
+          // 钀藉瓙
+          const prevCurrent = current;
+          current = playerToMove;
+
+          board[r][c] = playerToMove;
+          moves.push({ r, c, p: playerToMove });
+
+          // 绔嬪嵆鑳滆礋鍒ゆ柇锛氭瘮缁х画鎼滅储鏇村揩鏇村噯
+          let val;
+          if (checkWin(r, c, playerToMove)) {
+            val = (playerToMove === maximizingFor) ? 1e8 : -1e8;
+          } else {
+            val = minimax(depth - 1, alpha, beta, other(playerToMove), maximizingFor);
+          }
+
+          // 鎾ら攢
+          moves.pop();
+          board[r][c] = EMPTY;
+          current = prevCurrent;
+
+          if (isMax) {
+            if (val > best) best = val;
+            if (best > alpha) alpha = best;
+            if (beta <= alpha) break; // 尾鍓灊
+          } else {
+            if (val < best) best = val;
+            if (best < beta) beta = best;
+            if (beta <= alpha) break; // 伪鍓灊
+          }
+        }
+        return best;
+      }
+
+      function aiChooseMove() {
+        // 鍏堟壘鈥滃繀鑳滀竴姝モ€濇垨鈥滃繀闃蹭竴姝モ€濓紝鍑忓皯鎼滅储鍘嬪姏
+        const opp = other(aiColor);
+        const cands = genCandidates(aiColor);
+
+        // 1) AI 涓€姝ュ繀鑳?
+        for (const { r, c } of cands) {
+          board[r][c] = aiColor;
+          const win = checkWin(r, c, aiColor);
+          board[r][c] = EMPTY;
+          if (win) return { r, c };
+        }
+
+        // 2) 蹇呴』闃插畧瀵规墜涓嬩竴姝ュ繀鑳?
+        for (const { r, c } of genCandidates(opp)) {
+          board[r][c] = opp;
+          const win = checkWin(r, c, opp);
+          board[r][c] = EMPTY;
+          if (win) return { r, c }; // 杩欓噷 AI 涓嬭繖涓偣鍘诲牭
+        }
+
+        // 3) Minimax 鎼滅储
+        let bestMove = null;
+        let bestVal = -Infinity;
+
+        const searchCands = genCandidates(aiColor);
+        for (const { r, c } of searchCands) {
+          // 璇曡蛋
+          const prevCurrent = current;
+          current = aiColor;
+
+          board[r][c] = aiColor;
+          moves.push({ r, c, p: aiColor });
+
+          let val;
+          if (checkWin(r, c, aiColor)) val = 1e8;
+          else val = minimax(SEARCH_DEPTH - 1, -Infinity, Infinity, opp, aiColor);
+
+          // 鎾ら攢
+          moves.pop();
+          board[r][c] = EMPTY;
+          current = prevCurrent;
+
+          if (val > bestVal) {
+            bestVal = val;
+            bestMove = { r, c };
+          }
+        }
+
+        if (!bestMove) {
+          const mid = Math.floor(SIZE / 2);
+          bestMove = { r: mid, c: mid };
+        }
+        return bestMove;
+      }
+
+      function aiMove() {
+        if (gameOver) return;
+        if (!canPlace(aiColor)) {
+          endGame(humanColor, `AI锛?{colorName(aiColor)}锛夋瀛愮敤灏斤紒浣犺儨`);
+          return;
+        }
+
+        aiThinking = true;
+        updateTurn("锛圓I鎬濊€冧腑鈥︼級");
+
+        // 缁?UI 涓€鐐规椂闂村埛鏂?
+        setTimeout(() => {
+          if (gameOver) { aiThinking = false; return; }
+
+          const { r, c } = aiChooseMove();
+
+          aiThinking = false;
+          updateTurn();
+
+          // AI 钀藉瓙
+          if (!doPlace(r, c)) return;
+          nextTurn();
+        }, 80);
+      }
+
+      // 鎮旀锛?
+      // - PVP锛氭挙 1 姝?
+      // - AI锛氭挙 2 姝ワ紙灏介噺鍥炲埌浣犺蛋涔嬪墠锛?
+      function undo() {
+        if (modeEl.value !== "ai") return toast("鑱旀満妯″紡鏆備笉鏀寔鎮旀");
+
+
+        if (aiThinking) return;
+        if (moves.length === 0) return toast("杩樻病涓嬪瓙");
+
+        stopTimer();
+        if (gameOver) gameOver = false;
+
+        const popOne = () => {
+          const m = moves.pop();
+          if (!m) return false;
+          board[m.r][m.c] = EMPTY;
+          current = m.p;
+          return true;
+        };
+
+        if (modeEl.value === "ai") {
+          const a = popOne();
+          const b = popOne();
+          toast(b ? "宸叉倲妫嬶紙涓ゆ锛? : "宸叉倲妫嬶紙涓€姝ワ級");
+        } else {
+          popOne();
+          toast("宸叉倲妫?);
+        }
+        clearSelectedCell();
+
+        updateRemainUI();
+        draw();
+        updateTurn();
+        startTurnTimer();
+
+        // 鎮旀鍚庡鏋滆疆鍒?AI锛岃 AI 鎺ョ潃璧帮紙淇濇寔鑷劧瀵瑰眬锛?
+        if (modeEl.value === "ai" && current === aiColor && !gameOver) {
+          aiMove();
+        }
+      }
+
+      // 瑙﹀睆/榧犳爣钀藉瓙
+      canvas.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        if (gameOver) return toast("宸茬粨鏉燂紝鐐归噸寮€");
+        const hit = eventToCell(e);
+        if (!hit) return toast("鐐瑰埌绾垮浜?);
+        const { r, c } = hit;
+        place(r, c);
+      }, { passive: false });
+
+      // 闃叉閮ㄥ垎瀹夊崜娴忚鍣ㄦ粴鍔ㄥ共鎵?
+      document.addEventListener("touchmove", (e) => {
+        if (e.target === canvas) e.preventDefault();
+      }, { passive: false });
+
+      undoBtn.addEventListener('click', undo);
+restartBtn.addEventListener('click', requestRematch);
+
+// ===== 寮€濮嬪墠鎹㈤粦鐧?=====
+swapBtn.addEventListener("click", () => {
+  if (modeEl.value === "ai") return toast("浜烘満妯″紡涓嶇敤鎹㈣竟");
+  if (gameOver) return toast("宸茬粨鏉燂紝璇风偣鍐嶆潵涓€灞€");
+  if (moves.length !== 0) return toast("寮€灞€鍚庝笉鑳芥崲杈?);
+  if (!(net.role === 1 || net.role === 2)) return toast("瑙傛垬涓嶈兘鎹㈣竟");
+
+  if (!net.send({ type: "swap" })) {
+    toast("鏈繛鎺ヨ仈鏈?);
+    return;
+  }
+
+  toast("宸茶姹傛崲榛戠櫧锛堝弻鏂归兘鐐规墠浼氱敓鏁堬級");
+});
+
+// ===== 鍐嶆潵涓€灞€ =====
+rematchBtn.addEventListener("click", () => {
+  requestRematch();
+});
+
+
+
+
+
+      modeEl.addEventListener('change', () => {
+        sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+        reset();
+      });
+
+      sideEl.addEventListener('change', () => {
+        if (modeEl.value === "ai") reset();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'r') restartOrRematch();
+        if (e.key.toLowerCase() === 'z') undo();
+      });
+
+      // 鍒濆鍖?      sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+      function applyMobileLayout() {
+        const isMobile = isMobileLayout();
+        if (!headerEl || !rightEl || !mobileActionsHost) return;
+        if (isMobile) {
+          if (rightEl.parentElement !== mobileActionsHost) mobileActionsHost.appendChild(rightEl);
+          mobileActionsHost.classList.remove("hidden");
+        } else {
+          if (rightEl.parentElement !== headerEl) headerEl.appendChild(rightEl);
+          mobileActionsHost.classList.add("hidden");
+        }
+      }
+      applyMobileLayout();
+      window.addEventListener("resize", () => {
+        applyMobileLayout();
+        resize();
+      }, { passive: true });
+      window.addEventListener("orientationchange", () => {
+        applyMobileLayout();
+        setTimeout(() => resize(), 50);
+      }, { passive: true });
+      resize();
+      reset();
+    })();
+  </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+

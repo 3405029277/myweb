@@ -1,4 +1,4 @@
-var supabase = (function (e) {
+﻿var supabase = (function (e) {
   function t(e, t) { var n = {}; for (var r in e) Object.prototype.hasOwnProperty.call(e, r) && t.indexOf(r) < 0 && (n[r] = e[r]); if (e != null && typeof Object.getOwnPropertySymbols == `function`) for (var i = 0, r = Object.getOwnPropertySymbols(e); i < r.length; i++)t.indexOf(r[i]) < 0 && Object.prototype.propertyIsEnumerable.call(e, r[i]) && (n[r[i]] = e[r[i]]); return n } function n(e, t, n, r) { function i(e) { return e instanceof n ? e : new n(function (t) { t(e) }) } return new (n ||= Promise)(function (n, a) { function o(e) { try { c(r.next(e)) } catch (e) { a(e) } } function s(e) { try { c(r.throw(e)) } catch (e) { a(e) } } function c(e) { e.done ? n(e.value) : i(e.value).then(o, s) } c((r = r.apply(e, t || [])).next()) }) } let r = e => e ? (...t) => e(...t) : (...e) => fetch(...e); var i = class extends Error { constructor(e, t = `FunctionsError`, n) { super(e), this.name = t, this.context = n } }, a = class extends i { constructor(e) { super(`Failed to send a request to the Edge Function`, `FunctionsFetchError`, e) } }, o = class extends i { constructor(e) { super(`Relay Error invoking the Edge Function`, `FunctionsRelayError`, e) } }, s = class extends i { constructor(e) { super(`Edge Function returned a non-2xx status code`, `FunctionsHttpError`, e) } }, c; (function (e) { e.Any = `any`, e.ApNortheast1 = `ap-northeast-1`, e.ApNortheast2 = `ap-northeast-2`, e.ApSouth1 = `ap-south-1`, e.ApSoutheast1 = `ap-southeast-1`, e.ApSoutheast2 = `ap-southeast-2`, e.CaCentral1 = `ca-central-1`, e.EuCentral1 = `eu-central-1`, e.EuWest1 = `eu-west-1`, e.EuWest2 = `eu-west-2`, e.EuWest3 = `eu-west-3`, e.SaEast1 = `sa-east-1`, e.UsEast1 = `us-east-1`, e.UsWest1 = `us-west-1`, e.UsWest2 = `us-west-2` })(c ||= {}); var l = class { constructor(e, { headers: t = {}, customFetch: n, region: i = c.Any } = {}) { this.url = e, this.headers = t, this.region = i, this.fetch = r(n) } setAuth(e) { this.headers.Authorization = `Bearer ${e}` } invoke(e) { return n(this, arguments, void 0, function* (e, t = {}) { let n, r; try { let { headers: i, method: c, body: l, signal: u, timeout: d } = t, f = {}, { region: p } = t; p ||= this.region; let m = new URL(`${this.url}/${e}`); p && p !== `any` && (f[`x-region`] = p, m.searchParams.set(`forceFunctionRegion`, p)); let h; l && (i && !Object.prototype.hasOwnProperty.call(i, `Content-Type`) || !i) ? typeof Blob < `u` && l instanceof Blob || l instanceof ArrayBuffer ? (f[`Content-Type`] = `application/octet-stream`, h = l) : typeof l == `string` ? (f[`Content-Type`] = `text/plain`, h = l) : typeof FormData < `u` && l instanceof FormData ? h = l : (f[`Content-Type`] = `application/json`, h = JSON.stringify(l)) : h = l && typeof l != `string` && !(typeof Blob < `u` && l instanceof Blob) && !(l instanceof ArrayBuffer) && !(typeof FormData < `u` && l instanceof FormData) ? JSON.stringify(l) : l; let g = u; d && (r = new AbortController, n = setTimeout(() => r.abort(), d), u ? (g = r.signal, u.addEventListener(`abort`, () => r.abort())) : g = r.signal); let _ = yield this.fetch(m.toString(), { method: c || `POST`, headers: Object.assign(Object.assign(Object.assign({}, f), this.headers), i), body: h, signal: g }).catch(e => { throw new a(e) }), ee = _.headers.get(`x-relay-error`); if (ee && ee === `true`) throw new o(_); if (!_.ok) throw new s(_); let v = (_.headers.get(`Content-Type`) ?? `text/plain`).split(`;`)[0].trim(), te; return te = v === `application/json` ? yield _.json() : v === `application/octet-stream` || v === `application/pdf` ? yield _.blob() : v === `text/event-stream` ? _ : v === `multipart/form-data` ? yield _.formData() : yield _.text(), { data: te, error: null, response: _ } } catch (e) { return { data: null, error: e, response: e instanceof s || e instanceof o ? e.context : void 0 } } finally { n && clearTimeout(n) } }) } }, u = class extends Error { constructor(e) { super(e.message), this.name = `PostgrestError`, this.details = e.details, this.hint = e.hint, this.code = e.code } }, d = class { constructor(e) { this.shouldThrowOnError = !1, this.method = e.method, this.url = e.url, this.headers = new Headers(e.headers), this.schema = e.schema, this.body = e.body, this.shouldThrowOnError = e.shouldThrowOnError ?? !1, this.signal = e.signal, this.isMaybeSingle = e.isMaybeSingle ?? !1, this.urlLengthLimit = e.urlLengthLimit ?? 8e3, e.fetch ? this.fetch = e.fetch : this.fetch = fetch } throwOnError() { return this.shouldThrowOnError = !0, this } setHeader(e, t) { return this.headers = new Headers(this.headers), this.headers.set(e, t), this } then(e, t) { var n = this; this.schema === void 0 || ([`GET`, `HEAD`].includes(this.method) ? this.headers.set(`Accept-Profile`, this.schema) : this.headers.set(`Content-Profile`, this.schema)), this.method !== `GET` && this.method !== `HEAD` && this.headers.set(`Content-Type`, `application/json`); let r = this.fetch, i = r(this.url.toString(), { method: this.method, headers: this.headers, body: JSON.stringify(this.body), signal: this.signal }).then(async e => { let t = null, r = null, i = null, a = e.status, o = e.statusText; if (e.ok) { if (n.method !== `HEAD`) { let t = await e.text(); t === `` || (r = n.headers.get(`Accept`) === `text/csv` || n.headers.get(`Accept`) && n.headers.get(`Accept`)?.includes(`application/vnd.pgrst.plan+text`) ? t : JSON.parse(t)) } let s = n.headers.get(`Prefer`)?.match(/count=(exact|planned|estimated)/), c = e.headers.get(`content-range`)?.split(`/`); s && c && c.length > 1 && (i = parseInt(c[1])), n.isMaybeSingle && n.method === `GET` && Array.isArray(r) && (r.length > 1 ? (t = { code: `PGRST116`, details: `Results contain ${r.length} rows, application/vnd.pgrst.object+json requires 1 row`, hint: null, message: `JSON object requested, multiple (or no) rows returned` }, r = null, i = null, a = 406, o = `Not Acceptable`) : r = r.length === 1 ? r[0] : null) } else { var s; let i = await e.text(); try { t = JSON.parse(i), Array.isArray(t) && e.status === 404 && (r = [], t = null, a = 200, o = `OK`) } catch { e.status === 404 && i === `` ? (a = 204, o = `No Content`) : t = { message: i } } if (t && n.isMaybeSingle && !(t == null || (s = t.details) == null) && s.includes(`0 rows`) && (t = null, a = 200, o = `OK`), t && n.shouldThrowOnError) throw new u(t) } return { error: t, data: r, count: i, status: a, statusText: o } }); return this.shouldThrowOnError || (i = i.catch(e => { let t = ``, n = ``, r = ``, i = e?.cause; if (i) { let n = i?.message ?? ``, r = i?.code ?? ``; t = `${e?.name ?? `FetchError`}: ${e?.message}`, t += `\n\nCaused by: ${i?.name ?? `Error`}: ${n}`, r && (t += ` (${r})`), i?.stack && (t += `\n${i.stack}`) } else t = e?.stack ?? ``; let a = this.url.toString().length; return e?.name === `AbortError` || e?.code === `ABORT_ERR` ? (r = ``, n = `Request was aborted (timeout or manual cancellation)`, a > this.urlLengthLimit && (n += `. Note: Your request URL is ${a} characters, which may exceed server limits. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [many IDs])), consider using an RPC function to pass values server-side.`)) : (i?.name === `HeadersOverflowError` || i?.code === `UND_ERR_HEADERS_OVERFLOW`) && (r = ``, n = `HTTP headers exceeded server limits (typically 16KB)`, a > this.urlLengthLimit && (n += `. Your request URL is ${a} characters. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [200+ IDs])), consider using an RPC function instead.`)), { error: { message: `${e?.name ?? `FetchError`}: ${e?.message}`, details: t, hint: n, code: r }, data: null, count: null, status: 0, statusText: `` } })), i.then(e, t) } returns() { return this } overrideTypes() { return this } }, f = class extends d { select(e) { let t = !1, n = (e ?? `*`).split(``).map(e => /\s/.test(e) && !t ? `` : (e === `"` && (t = !t), e)).join(``); return this.url.searchParams.set(`select`, n), this.headers.append(`Prefer`, `return=representation`), this } order(e, { ascending: t = !0, nullsFirst: n, foreignTable: r, referencedTable: i = r } = {}) { let a = i ? `${i}.order` : `order`, o = this.url.searchParams.get(a); return this.url.searchParams.set(a, `${o ? `${o},` : ``}${e}.${t ? `asc` : `desc`}${n === void 0 ? `` : n ? `.nullsfirst` : `.nullslast`}`), this } limit(e, { foreignTable: t, referencedTable: n = t } = {}) { let r = n === void 0 ? `limit` : `${n}.limit`; return this.url.searchParams.set(r, `${e}`), this } range(e, t, { foreignTable: n, referencedTable: r = n } = {}) { let i = r === void 0 ? `offset` : `${r}.offset`, a = r === void 0 ? `limit` : `${r}.limit`; return this.url.searchParams.set(i, `${e}`), this.url.searchParams.set(a, `${t - e + 1}`), this } abortSignal(e) { return this.signal = e, this } single() { return this.headers.set(`Accept`, `application/vnd.pgrst.object+json`), this } maybeSingle() { return this.method === `GET` ? this.headers.set(`Accept`, `application/json`) : this.headers.set(`Accept`, `application/vnd.pgrst.object+json`), this.isMaybeSingle = !0, this } csv() { return this.headers.set(`Accept`, `text/csv`), this } geojson() { return this.headers.set(`Accept`, `application/geo+json`), this } explain({ analyze: e = !1, verbose: t = !1, settings: n = !1, buffers: r = !1, wal: i = !1, format: a = `text` } = {}) { let o = [e ? `analyze` : null, t ? `verbose` : null, n ? `settings` : null, r ? `buffers` : null, i ? `wal` : null].filter(Boolean).join(`|`), s = this.headers.get(`Accept`) ?? `application/json`; return this.headers.set(`Accept`, `application/vnd.pgrst.plan+${a}; for="${s}"; options=${o};`), this } rollback() { return this.headers.append(`Prefer`, `tx=rollback`), this } returns() { return this } maxAffected(e) { return this.headers.append(`Prefer`, `handling=strict`), this.headers.append(`Prefer`, `max-affected=${e}`), this } }; let p = RegExp(`[,()]`); var m = class extends f { eq(e, t) { return this.url.searchParams.append(e, `eq.${t}`), this } neq(e, t) { return this.url.searchParams.append(e, `neq.${t}`), this } gt(e, t) { return this.url.searchParams.append(e, `gt.${t}`), this } gte(e, t) { return this.url.searchParams.append(e, `gte.${t}`), this } lt(e, t) { return this.url.searchParams.append(e, `lt.${t}`), this } lte(e, t) { return this.url.searchParams.append(e, `lte.${t}`), this } like(e, t) { return this.url.searchParams.append(e, `like.${t}`), this } likeAllOf(e, t) { return this.url.searchParams.append(e, `like(all).{${t.join(`,`)}}`), this } likeAnyOf(e, t) { return this.url.searchParams.append(e, `like(any).{${t.join(`,`)}}`), this } ilike(e, t) { return this.url.searchParams.append(e, `ilike.${t}`), this } ilikeAllOf(e, t) { return this.url.searchParams.append(e, `ilike(all).{${t.join(`,`)}}`), this } ilikeAnyOf(e, t) { return this.url.searchParams.append(e, `ilike(any).{${t.join(`,`)}}`), this } regexMatch(e, t) { return this.url.searchParams.append(e, `match.${t}`), this } regexIMatch(e, t) { return this.url.searchParams.append(e, `imatch.${t}`), this } is(e, t) { return this.url.searchParams.append(e, `is.${t}`), this } isDistinct(e, t) { return this.url.searchParams.append(e, `isdistinct.${t}`), this } in(e, t) { let n = Array.from(new Set(t)).map(e => typeof e == `string` && p.test(e) ? `"${e}"` : `${e}`).join(`,`); return this.url.searchParams.append(e, `in.(${n})`), this } notIn(e, t) { let n = Array.from(new Set(t)).map(e => typeof e == `string` && p.test(e) ? `"${e}"` : `${e}`).join(`,`); return this.url.searchParams.append(e, `not.in.(${n})`), this } contains(e, t) { return typeof t == `string` ? this.url.searchParams.append(e, `cs.${t}`) : Array.isArray(t) ? this.url.searchParams.append(e, `cs.{${t.join(`,`)}}`) : this.url.searchParams.append(e, `cs.${JSON.stringify(t)}`), this } containedBy(e, t) { return typeof t == `string` ? this.url.searchParams.append(e, `cd.${t}`) : Array.isArray(t) ? this.url.searchParams.append(e, `cd.{${t.join(`,`)}}`) : this.url.searchParams.append(e, `cd.${JSON.stringify(t)}`), this } rangeGt(e, t) { return this.url.searchParams.append(e, `sr.${t}`), this } rangeGte(e, t) { return this.url.searchParams.append(e, `nxl.${t}`), this } rangeLt(e, t) { return this.url.searchParams.append(e, `sl.${t}`), this } rangeLte(e, t) { return this.url.searchParams.append(e, `nxr.${t}`), this } rangeAdjacent(e, t) { return this.url.searchParams.append(e, `adj.${t}`), this } overlaps(e, t) { return typeof t == `string` ? this.url.searchParams.append(e, `ov.${t}`) : this.url.searchParams.append(e, `ov.{${t.join(`,`)}}`), this } textSearch(e, t, { config: n, type: r } = {}) { let i = ``; r === `plain` ? i = `pl` : r === `phrase` ? i = `ph` : r === `websearch` && (i = `w`); let a = n === void 0 ? `` : `(${n})`; return this.url.searchParams.append(e, `${i}fts${a}.${t}`), this } match(e) { return Object.entries(e).forEach(([e, t]) => { this.url.searchParams.append(e, `eq.${t}`) }), this } not(e, t, n) { return this.url.searchParams.append(e, `not.${t}.${n}`), this } or(e, { foreignTable: t, referencedTable: n = t } = {}) { let r = n ? `${n}.or` : `or`; return this.url.searchParams.append(r, `(${e})`), this } filter(e, t, n) { return this.url.searchParams.append(e, `${t}.${n}`), this } }, h = class { constructor(e, { headers: t = {}, schema: n, fetch: r, urlLengthLimit: i = 8e3 }) { this.url = e, this.headers = new Headers(t), this.schema = n, this.fetch = r, this.urlLengthLimit = i } cloneRequestState() { return { url: new URL(this.url.toString()), headers: new Headers(this.headers) } } select(e, t) { let { head: n = !1, count: r } = t ?? {}, i = n ? `HEAD` : `GET`, a = !1, o = (e ?? `*`).split(``).map(e => /\s/.test(e) && !a ? `` : (e === `"` && (a = !a), e)).join(``), { url: s, headers: c } = this.cloneRequestState(); return s.searchParams.set(`select`, o), r && c.append(`Prefer`, `count=${r}`), new m({ method: i, url: s, headers: c, schema: this.schema, fetch: this.fetch, urlLengthLimit: this.urlLengthLimit }) } insert(e, { count: t, defaultToNull: n = !0 } = {}) { let { url: r, headers: i } = this.cloneRequestState(); if (t && i.append(`Prefer`, `count=${t}`), n || i.append(`Prefer`, `missing=default`), Array.isArray(e)) { let t = e.reduce((e, t) => e.concat(Object.keys(t)), []); if (t.length > 0) { let e = [...new Set(t)].map(e => `"${e}"`); r.searchParams.set(`columns`, e.join(`,`)) } } return new m({ method: `POST`, url: r, headers: i, schema: this.schema, body: e, fetch: this.fetch ?? fetch, urlLengthLimit: this.urlLengthLimit }) } upsert(e, { onConflict: t, ignoreDuplicates: n = !1, count: r, defaultToNull: i = !0 } = {}) { let { url: a, headers: o } = this.cloneRequestState(); if (o.append(`Prefer`, `resolution=${n ? `ignore` : `merge`}-duplicates`), t !== void 0 && a.searchParams.set(`on_conflict`, t), r && o.append(`Prefer`, `count=${r}`), i || o.append(`Prefer`, `missing=default`), Array.isArray(e)) { let t = e.reduce((e, t) => e.concat(Object.keys(t)), []); if (t.length > 0) { let e = [...new Set(t)].map(e => `"${e}"`); a.searchParams.set(`columns`, e.join(`,`)) } } return new m({ method: `POST`, url: a, headers: o, schema: this.schema, body: e, fetch: this.fetch ?? fetch, urlLengthLimit: this.urlLengthLimit }) } update(e, { count: t } = {}) { let { url: n, headers: r } = this.cloneRequestState(); return t && r.append(`Prefer`, `count=${t}`), new m({ method: `PATCH`, url: n, headers: r, schema: this.schema, body: e, fetch: this.fetch ?? fetch, urlLengthLimit: this.urlLengthLimit }) } delete({ count: e } = {}) { let { url: t, headers: n } = this.cloneRequestState(); return e && n.append(`Prefer`, `count=${e}`), new m({ method: `DELETE`, url: t, headers: n, schema: this.schema, fetch: this.fetch ?? fetch, urlLengthLimit: this.urlLengthLimit }) } }; function g(e) { "@babel/helpers - typeof"; return g = typeof Symbol == `function` && typeof Symbol.iterator == `symbol` ? function (e) { return typeof e } : function (e) { return e && typeof Symbol == `function` && e.constructor === Symbol && e !== Symbol.prototype ? `symbol` : typeof e }, g(e) } function _(e, t) { if (g(e) != `object` || !e) return e; var n = e[Symbol.toPrimitive]; if (n !== void 0) { var r = n.call(e, t || `default`); if (g(r) != `object`) return r; throw TypeError(`@@toPrimitive must return a primitive value.`) } return (t === `string` ? String : Number)(e) } function ee(e) { var t = _(e, `string`); return g(t) == `symbol` ? t : t + `` } function v(e, t, n) { return (t = ee(t)) in e ? Object.defineProperty(e, t, { value: n, enumerable: !0, configurable: !0, writable: !0 }) : e[t] = n, e } function te(e, t) { var n = Object.keys(e); if (Object.getOwnPropertySymbols) { var r = Object.getOwnPropertySymbols(e); t && (r = r.filter(function (t) { return Object.getOwnPropertyDescriptor(e, t).enumerable })), n.push.apply(n, r) } return n } function ne(e) { for (var t = 1; t < arguments.length; t++) { var n = arguments[t] == null ? {} : arguments[t]; t % 2 ? te(Object(n), !0).forEach(function (t) { v(e, t, n[t]) }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(n)) : te(Object(n)).forEach(function (t) { Object.defineProperty(e, t, Object.getOwnPropertyDescriptor(n, t)) }) } return e } var re = class e { constructor(e, { headers: t = {}, schema: n, fetch: r, timeout: i, urlLengthLimit: a = 8e3 } = {}) { this.url = e, this.headers = new Headers(t), this.schemaName = n, this.urlLengthLimit = a; let o = r ?? globalThis.fetch; i !== void 0 && i > 0 ? this.fetch = (e, t) => { let n = new AbortController, r = setTimeout(() => n.abort(), i), a = t?.signal; if (a) { if (a.aborted) return clearTimeout(r), o(e, t); let i = () => { clearTimeout(r), n.abort() }; return a.addEventListener(`abort`, i, { once: !0 }), o(e, ne(ne({}, t), {}, { signal: n.signal })).finally(() => { clearTimeout(r), a.removeEventListener(`abort`, i) }) } return o(e, ne(ne({}, t), {}, { signal: n.signal })).finally(() => clearTimeout(r)) } : this.fetch = o } from(e) { if (!e || typeof e != `string` || e.trim() === ``) throw Error(`Invalid relation name: relation must be a non-empty string.`); return new h(new URL(`${this.url}/${e}`), { headers: new Headers(this.headers), schema: this.schemaName, fetch: this.fetch, urlLengthLimit: this.urlLengthLimit }) } schema(t) { return new e(this.url, { headers: this.headers, schema: t, fetch: this.fetch, urlLengthLimit: this.urlLengthLimit }) } rpc(e, t = {}, { head: n = !1, get: r = !1, count: i } = {}) { let a, o = new URL(`${this.url}/rpc/${e}`), s, c = e => typeof e == `object` && !!e && (!Array.isArray(e) || e.some(c)), l = n && Object.values(t).some(c); l ? (a = `POST`, s = t) : n || r ? (a = n ? `HEAD` : `GET`, Object.entries(t).filter(([e, t]) => t !== void 0).map(([e, t]) => [e, Array.isArray(t) ? `{${t.join(`,`)}}` : `${t}`]).forEach(([e, t]) => { o.searchParams.append(e, t) })) : (a = `POST`, s = t); let u = new Headers(this.headers); return l ? u.set(`Prefer`, i ? `count=${i},return=minimal` : `return=minimal`) : i && u.set(`Prefer`, `count=${i}`), new m({ method: a, url: o, headers: u, schema: this.schemaName, body: s, fetch: this.fetch ?? fetch, urlLengthLimit: this.urlLengthLimit }) } }, ie = class {
     constructor() { } static detectEnvironment() {
       if (typeof WebSocket < `u`) return { type: `native`, constructor: WebSocket }; if (typeof globalThis < `u` && globalThis.WebSocket !== void 0) return { type: `native`, constructor: globalThis.WebSocket }; if (typeof global < `u` && global.WebSocket !== void 0) return { type: `native`, constructor: global.WebSocket }; if (typeof globalThis < `u` && globalThis.WebSocketPair !== void 0 && globalThis.WebSocket === void 0) return { type: `cloudflare`, error: `Cloudflare Workers detected. WebSocket clients are not supported in Cloudflare Workers.`, workaround: `Use Cloudflare Workers WebSocket API for server-side WebSocket handling, or deploy to a different runtime.` }; if (typeof globalThis < `u` && globalThis.EdgeRuntime || typeof navigator < `u` && navigator.userAgent?.includes(`Vercel-Edge`)) return { type: `unsupported`, error: `Edge runtime detected (Vercel Edge/Netlify Edge). WebSockets are not supported in edge functions.`, workaround: `Use serverless functions or a different deployment target for WebSocket functionality.` }; let e = globalThis.process; if (e) {
@@ -60,6 +60,8 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
 /* ==== APP CODE (bundled) ==== */
 
 ; (() => {
+  window.__COMMENTS_BUILD__ = "collapsed-replies-v11";
+  console.info("comments build:", window.__COMMENTS_BUILD__);
   // Cloudflare Rocket Loader compatibility (safe even if Rocket Loader is off)
   try { window.__cfRLUnblockHandlers = true; } catch (e) { }
 
@@ -74,7 +76,47 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
   // ---- DOM helpers ----
   const $ = (id) => document.getElementById(id);
 
-  // 你页面里需要这些 id（如果不一致，请改 HTML 的 id 或改这里）
+  function ensureGlobalAuthUI() {
+    const navActions = document.querySelector(".nav-actions");
+    if (navActions && !$("globalAuthOpen")) {
+      const button = document.createElement("button");
+      button.className = "button global-auth-button";
+      button.id = "globalAuthOpen";
+      button.type = "button";
+      button.innerHTML = "<span id='globalAuthLabel'>登录 / 注册</span>";
+      navActions.insertBefore(button, navActions.firstChild);
+    }
+
+    if (!$("authEmail")) {
+      const modal = document.createElement("div");
+      modal.className = "auth-modal";
+      modal.id = "authModal";
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
+      modal.innerHTML = "<div class='auth-modal-backdrop' data-auth-close></div>" +
+        "<section class='auth-modal-card' role='dialog' aria-modal='true' aria-label='登录注册'>" +
+        "<button class='auth-modal-close' type='button' data-auth-close>×</button>" +
+        "<p class='eyebrow'>Account</p><h3>登录 / 注册</h3>" +
+        "<p id='authStatus' class='auth-state warn'>未登录</p>" +
+        "<p id='authTip' class='auth-tip'>登录后可以留言和回复。</p>" +
+        "<div class='form-grid'>" +
+        "<input id='authEmail' type='email' autocomplete='email' placeholder='邮箱'>" +
+        "<input id='authPassword' type='password' autocomplete='current-password' placeholder='密码'>" +
+        "<input id='authUsername' autocomplete='username' placeholder='用户名（注册时填写）'>" +
+        "</div>" +
+        "<div class='hero-actions auth-modal-actions'>" +
+        "<button class='button primary' id='btnLogin' type='button'>登录</button>" +
+        "<button class='button' id='btnSignup' type='button'>注册</button>" +
+        "<button class='button' id='btnResetPwd' type='button'>忘记密码</button>" +
+        "<button class='button' id='btnLogout' type='button' disabled>退出登录</button>" +
+        "<button class='button danger' id='btnDeleteAccount' type='button' disabled>注销账号</button>" +
+        "</div></section>";
+      document.body.appendChild(modal);
+    }
+  }
+
+  ensureGlobalAuthUI();
+
   const authStatus = $("authStatus");
   const authTip = $("authTip");
   const authEmail = $("authEmail");
@@ -85,6 +127,9 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
   const btnResetPwd = $("btnResetPwd");
   const btnLogout = $("btnLogout");
   const btnDeleteAccount = $("btnDeleteAccount");
+  const globalAuthOpen = $("globalAuthOpen");
+  const globalAuthLabel = $("globalAuthLabel");
+  const authModal = $("authModal");
 
   const pageKeyEl = $("pageKey");
   const commentCount = $("commentCount");
@@ -127,6 +172,80 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
     return Array.from(new Set((arr || []).filter(Boolean)));
   }
 
+  function openAuthModal() {
+    if (!authModal) return;
+    authModal.classList.add("open");
+    authModal.style.display = "grid";
+    authModal.setAttribute("aria-hidden", "false");
+    if (authEmail) setTimeout(() => authEmail.focus(), 40);
+  }
+
+  function closeAuthModal() {
+    if (!authModal) return;
+    authModal.classList.remove("open");
+    authModal.style.display = "none";
+    authModal.setAttribute("aria-hidden", "true");
+  }
+
+  function getDisplayName(user) {
+    if (!user) return "";
+    const metaName = user.user_metadata && user.user_metadata.username ? user.user_metadata.username : "";
+    if (metaName && !isLikelyUuid(metaName)) return metaName;
+    return currentUsername || user.email || shortId(user.id);
+  }
+
+  let replyingTo = null;
+  function clearReplyTarget() {
+    replyingTo = null;
+    const replyBox = $("replyTarget");
+    if (replyBox) replyBox.innerHTML = "";
+    if (btnPost) btnPost.textContent = "发表评论";
+    if (commentInput) {
+      commentInput.placeholder = "写点什么吧……";
+      delete commentInput.dataset.replyId;
+      delete commentInput.dataset.replyName;
+    }
+  }
+
+  function getReplyPrefix(comment) {
+    if (!comment || !comment._displayName) return "";
+    return "回复 @" + comment._displayName + "：";
+  }
+
+  function stripReplyPrefix(content) {
+    return String(content || "").replace(/^回复\s+@[^：:]{1,40}[：:]\s*/, "");
+  }
+
+  function getVisibleReplyName(comment) {
+    if (comment && comment.parent_id) {
+      return comment.reply_to_username || "";
+    }
+    const match = String(comment && comment.content ? comment.content : "").match(/^回复\s+@([^：:]{1,40})[：:]/);
+    return match ? match[1] : "";
+  }
+
+  function setReplyTarget(comment) {
+    if (!currentUser) {
+      openAuthModal();
+      alert("请先登录后再回复");
+      return;
+    }
+    replyingTo = comment && comment.id ? comment : null;
+    const replyBox = $("replyTarget");
+    if (replyBox && replyingTo) {
+      const name = replyingTo._displayName || "匿名";
+      replyBox.innerHTML = "<strong>正在回复 @" + escapeHtml(name) + "</strong><span>发送后会显示为该评论的回复</span><button type='button' data-cancel-reply>取消</button>";
+    }
+    if (btnPost) btnPost.textContent = "回复评论";
+    if (commentInput) {
+      commentInput.disabled = false;
+      commentInput.dataset.replyId = String(replyingTo.id);
+      commentInput.dataset.replyName = name;
+      commentInput.placeholder = "回复 @" + name + "……";
+      commentInput.focus();
+    }
+  }
+
   // ---- Robust UI state ----
   let currentUser = null;
   let currentUsername = "";
@@ -138,11 +257,14 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       authStatus.textContent = "未登录";
       authStatus.classList.remove("ok");
       authStatus.classList.add("warn");
+      if (globalAuthLabel) globalAuthLabel.textContent = "登录 / 注册";
+      if (globalAuthOpen) globalAuthOpen.classList.remove("is-logged-in");
       if (btnLogout) btnLogout.disabled = true;
       if (btnDeleteAccount) btnDeleteAccount.disabled = true;
       if (btnPost) btnPost.disabled = true;
       if (commentInput) commentInput.disabled = true;
       if (authUsername) authUsername.value = "";
+      clearReplyTarget();
       currentUsername = "";
       setCommentTip("未登录时无法发表评论。");
       if (reason) setTip(reason);
@@ -152,6 +274,8 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
     currentUsername = uname && !isLikelyUuid(uname) ? uname : "";
     const displayName = currentUsername || user.email || shortId(user.id);
     authStatus.textContent = "已登录：" + displayName;
+    if (globalAuthLabel) globalAuthLabel.textContent = displayName;
+    if (globalAuthOpen) globalAuthOpen.classList.add("is-logged-in");
     authStatus.classList.remove("warn");
     authStatus.classList.add("ok");
     if (btnLogout) btnLogout.disabled = false;
@@ -285,6 +409,20 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
         return null;
       }
       setAuthUI(session.user, "已登录（session OK）");
+      try {
+        const { data: profileList, error: profileError } = await withTimeout(
+          supabaseClient.from("profiles").select("username").eq("id", session.user.id).limit(1),
+          12000,
+          "refresh profile"
+        );
+        if (!profileError && Array.isArray(profileList) && profileList[0] && profileList[0].username && !isLikelyUuid(profileList[0].username)) {
+          currentUsername = profileList[0].username;
+          if (authUsername) authUsername.value = currentUsername;
+          setAuthUI(session.user, "已登录");
+        }
+      } catch (profileCatch) {
+        console.warn("refresh profile error:", profileCatch);
+      }
       return session.user;
     } catch (e) {
       console.error("refreshAuth error:", e);
@@ -456,28 +594,107 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
   }
 
   // ---- Comments ----
+  function openInlineReplyForm(comment) {
+    if (!currentUser) {
+      openAuthModal();
+      alert("请先登录后再回复");
+      return;
+    }
+    if (!comment || !comment.id) return;
+    document.querySelectorAll(".inline-reply-box").forEach((el) => el.remove());
+    const host = document.querySelector("[data-comment-id='" + comment.id + "'] .comment-main");
+    if (!host) return;
+    const name = comment._displayName || "匿名";
+    const box = document.createElement("div");
+    box.className = "inline-reply-box";
+    box.innerHTML = "<div class='inline-reply-title'>回复 @" + escapeHtml(name) + "</div>" +
+      "<textarea class='inline-reply-input' rows='3' placeholder='写下你的回复……'></textarea>" +
+      "<div class='inline-reply-actions'><button class='button primary' type='button' data-send-inline-reply>发送回复</button><button class='button' type='button' data-cancel-inline-reply>取消</button></div>";
+    host.appendChild(box);
+    const input = box.querySelector(".inline-reply-input");
+    const send = box.querySelector("[data-send-inline-reply]");
+    const cancel = box.querySelector("[data-cancel-inline-reply]");
+    if (input) input.focus();
+    if (cancel) cancel.addEventListener("click", () => box.remove());
+    if (send) send.addEventListener("click", async () => {
+      const value = input ? input.value.trim() : "";
+      if (!value) {
+        alert("请输入回复内容");
+        return;
+      }
+      send.disabled = true;
+      await sendComment(value, comment, send);
+    });
+  }
+
+  async function sendComment(content, activeReply, triggerButton) {
+    if (!currentUser) { alert("请先登录"); return; }
+    const inputName = authUsername ? authUsername.value.trim() : "";
+    const uname = currentUsername || inputName || (currentUser && currentUser.user_metadata ? currentUser.user_metadata.username : "") || "";
+    if (uname && !isLikelyUuid(uname)) currentUsername = uname;
+    const finalContent = activeReply ? getReplyPrefix(activeReply) + content : content;
+    const payload = { page: pageKey, content: finalContent, user_id: currentUser.id, username: uname };
+    if (activeReply && activeReply.id) {
+      payload.parent_id = Number(activeReply.id);
+      payload.reply_to_username = activeReply._displayName || "匿名";
+    }
+    try {
+      const { data, error, status } = await withTimeout(
+        supabaseClient.from("comments").insert(payload).select("id").single(),
+        15000,
+        activeReply ? "insert reply" : "insert comment"
+      );
+      console.log("insert comment:", { status, data, error, payload });
+      if (error) throw error;
+      if (commentInput && !activeReply) commentInput.value = "";
+      clearReplyTarget();
+      setTip(activeReply ? "回复成功" : "发送成功");
+      await loadComments();
+    } catch (e) {
+      console.error("postComment error:", e);
+      alert("发送失败：" + (e && e.message ? e.message : String(e)));
+      setTip("发送失败：" + (e && e.message ? e.message : String(e)));
+      if (triggerButton) triggerButton.disabled = false;
+      throw e;
+    }
+  }
   async function loadComments() {
     if (!commentList) return;
     commentList.innerHTML = "<p class='desc'>加载中…</p>";
     try {
-      const { data, error, status } = await withTimeout(
+      let selectColumns = "id, created_at, content, user_id, username, parent_id, reply_to_username";
+      let result = await withTimeout(
         supabaseClient
           .from("comments")
-          .select("id, created_at, content, user_id, username")
+          .select(selectColumns)
           .eq("page", pageKey)
           .order("created_at", { ascending: false })
-          .limit(50),
+          .limit(80),
         15000,
-        "select comments"
+        "select comments with parent_id"
       );
-      console.log("loadComments:", { status, count: data ? data.length : 0, error });
 
+      if (result.error && /parent_id|reply_to_username|schema cache|column/i.test(result.error.message || "")) {
+        result = await withTimeout(
+          supabaseClient
+            .from("comments")
+            .select("id, created_at, content, user_id, username")
+            .eq("page", pageKey)
+            .order("created_at", { ascending: false })
+            .limit(50),
+          15000,
+          "select comments fallback"
+        );
+      }
+
+      const { data, error, status } = result;
+      console.log("loadComments:", { status, count: data ? data.length : 0, error });
       if (error) throw error;
 
       const list = Array.isArray(data) ? data : [];
-      if (commentCount) commentCount.textContent = (list.length + " 条");
+      if (commentCount) commentCount.textContent = list.length + " 条";
       if (list.length === 0) {
-        commentList.innerHTML = "<p class='desc'>还没有评论，来抢沙发～</p>";
+        commentList.innerHTML = "<p class='empty-state'>还没有评论，来抢沙发。</p>";
         return;
       }
 
@@ -513,26 +730,79 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
         }
       }
 
-      commentList.innerHTML = list.map((c) => {
-        const isMe = currentUser && currentUser.id === c.user_id;
-        const rawName = c.username || profileMap[c.user_id] || "";
-        const safeName = rawName && !isLikelyUuid(rawName) ? escapeHtml(rawName) : "";
-        const who = isMe ? "我" : (safeName || "匿名");
-        const time = new Date(c.created_at).toLocaleString();
-        const content = escapeHtml(c.content);
-        const delBtn = isMe ? "<button class='btn' type='button' data-del='" + c.id + "' style='padding:6px 10px'>删除</button>" : "";
-        return (
-          "<div class='card' style='padding:14px; margin-top:10px'>" +
-          "<div class='row' style='justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap'>" +
-          "<div class='meta'><span class='tag'>" + who + "</span><span class='desc' style='margin-left:8px'>" + escapeHtml(time) + "</span></div>" +
-          delBtn +
-          "</div>" +
-          "<div style='margin-top:10px; white-space:pre-wrap; line-height:1.6'>" + content + "</div>" +
-          "</div>"
-        );
-      }).join("");
+      const byId = {};
+      const replyBuckets = {};
+      const roots = [];
+      list.forEach((comment) => {
+        const rawName = comment.username || profileMap[comment.user_id] || "";
+        comment._displayName = rawName && !isLikelyUuid(rawName) ? rawName : "匿名";
+        byId[String(comment.id)] = comment;
+      });
 
-      // bind delete
+      function getRootComment(comment) {
+        let cursor = comment;
+        const visited = new Set();
+        while (cursor && cursor.parent_id && byId[String(cursor.parent_id)] && !visited.has(String(cursor.id))) {
+          visited.add(String(cursor.id));
+          cursor = byId[String(cursor.parent_id)];
+        }
+        return cursor || comment;
+      }
+
+      list.forEach((comment) => {
+        if (comment.parent_id) {
+          const root = getRootComment(comment);
+          const key = String(root.id);
+          if (!replyBuckets[key]) replyBuckets[key] = [];
+          replyBuckets[key].push(comment);
+        } else {
+          roots.push(comment);
+        }
+      });
+
+      function renderReply(c) {
+        const isMe = currentUser && currentUser.id === c.user_id;
+        const who = isMe ? "我" : c._displayName;
+        const time = new Date(c.created_at).toLocaleString();
+        const content = escapeHtml(stripReplyPrefix(c.content));
+        const initial = escapeHtml((who || "?").slice(0, 1).toUpperCase());
+        const visibleReplyName = getVisibleReplyName(c);
+        const replyNote = visibleReplyName ? "<div class='comment-reply-note'>回复 @" + escapeHtml(visibleReplyName) + "</div>" : "";
+        const delBtn = isMe ? "<button class='comment-action' type='button' data-del='" + c.id + "'>删除</button>" : "";
+        const replyBtn = "<button class='comment-action' type='button' data-reply='" + c.id + "'>回复</button>";
+        return "<article class='comment-reply-item' data-comment-id='" + c.id + "'>" +
+          "<div class='comment-avatar comment-avatar-small'>" + initial + "</div>" +
+          "<div class='comment-main'>" +
+          "<div class='comment-head'><strong>" + escapeHtml(who) + "</strong><span>" + escapeHtml(time) + "</span></div>" +
+          replyNote +
+          "<div class='comment-body'>" + content + "</div>" +
+          "<div class='comment-actions'>" + replyBtn + delBtn + "</div>" +
+          "</div></article>";
+      }
+
+      function renderComment(c) {
+        const isMe = currentUser && currentUser.id === c.user_id;
+        const who = isMe ? "我" : c._displayName;
+        const time = new Date(c.created_at).toLocaleString();
+        const content = escapeHtml(stripReplyPrefix(c.content));
+        const initial = escapeHtml((who || "?").slice(0, 1).toUpperCase());
+        const replies = replyBuckets[String(c.id)] || [];
+        const delBtn = isMe ? "<button class='comment-action' type='button' data-del='" + c.id + "'>删除</button>" : "";
+        const replyBtn = "<button class='comment-action' type='button' data-reply='" + c.id + "'>回复</button>";
+        const replyToggle = replies.length ? "<button class='comment-reply-toggle' type='button' data-toggle-replies='" + c.id + "'>" + replies.length + " 个回复 ▾</button>" : "";
+        const replyPanel = replies.length ? "<div class='comment-reply-panel' id='replies-" + c.id + "' hidden>" + replies.slice().reverse().map(renderReply).join("") + "</div>" : "";
+        return "<article class='comment-thread' data-comment-id='" + c.id + "'>" +
+          "<div class='comment-avatar'>" + initial + "</div>" +
+          "<div class='comment-main'>" +
+          "<div class='comment-head'><strong>" + escapeHtml(who) + "</strong><span>" + escapeHtml(time) + "</span></div>" +
+          "<div class='comment-body'>" + content + "</div>" +
+          "<div class='comment-actions'>" + replyBtn + delBtn + "</div>" +
+          replyToggle + replyPanel +
+          "</div></article>";
+      }
+
+      window.__LATEST_COMMENTS__ = list;
+      commentList.innerHTML = "<div class='comment-list-modern'>" + roots.map((c) => renderComment(c)).join("") + "</div>";
       commentList.querySelectorAll("[data-del]").forEach((btn) => {
         btn.addEventListener("click", async () => {
           if (!currentUser) return alert("请先登录");
@@ -540,8 +810,7 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
           if (!confirm("确定删除这条评论吗？")) return;
           try {
             const { error } = await withTimeout(
-              supabaseClient.from("comments").delete().eq("id", id).select("id")
-              ,
+              supabaseClient.from("comments").delete().eq("id", id).select("id"),
               15000,
               "delete comment"
             );
@@ -560,7 +829,6 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       commentList.innerHTML = "<p class='desc'>加载失败：" + escapeHtml(e && e.message ? e.message : String(e)) + "</p>";
     }
   }
-
   async function postComment() {
     if (!currentUser) { alert("请先登录"); return; }
     if (!commentInput) return;
@@ -569,33 +837,12 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
 
     if (btnPost) btnPost.disabled = true;
     setTip("已登录，可以发表评论。正在发送…");
-
     try {
-      const inputName = authUsername ? authUsername.value.trim() : "";
-      const uname = currentUsername || inputName || (currentUser && currentUser.user_metadata ? currentUser.user_metadata.username : "") || "";
-      if (uname && !isLikelyUuid(uname)) currentUsername = uname;
-      const payload = { page: pageKey, content, user_id: currentUser.id, username: uname };
-      const { data, error, status } = await withTimeout(
-        supabaseClient.from("comments").insert(payload).select("id").single(),
-        15000,
-        "insert comment"
-      );
-      console.log("insert comment:", { status, data, error });
-
-      if (error) throw error;
-
-      commentInput.value = "";
-      setTip("发送成功");
-      await loadComments();
-    } catch (e) {
-      console.error("postComment error:", e);
-      alert("发送失败：" + (e && e.message ? e.message : String(e)));
-      setTip("发送失败：" + (e && e.message ? e.message : String(e)));
+      await sendComment(content, null, btnPost);
     } finally {
       if (btnPost) btnPost.disabled = false;
     }
   }
-
   async function requestDeleteAccount() {
     if (!currentUser) { alert("请先登录"); return; }
     if (!confirm("确定要注销账号吗？此操作不可恢复。")) return;
@@ -645,6 +892,46 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
   if (btnLogout) btnLogout.addEventListener("click", logout);
   if (btnDeleteAccount) btnDeleteAccount.addEventListener("click", requestDeleteAccount);
   if (btnPost) btnPost.addEventListener("click", postComment);
+  if (commentList) {
+    commentList.addEventListener("click", (event) => {
+      const replyButton = event.target && event.target.closest ? event.target.closest("[data-reply]") : null;
+      if (replyButton) {
+        event.preventDefault();
+        const id = replyButton.getAttribute("data-reply");
+        const list = Array.isArray(window.__LATEST_COMMENTS__) ? window.__LATEST_COMMENTS__ : [];
+        const target = list.find((item) => String(item.id) === String(id));
+        console.info("reply click", { id, target });
+        if (!target) { alert("没有找到要回复的评论，请刷新页面后重试"); return; }
+        openInlineReplyForm(target);
+        return;
+      }
+      const toggleButton = event.target && event.target.closest ? event.target.closest("[data-toggle-replies]") : null;
+      if (toggleButton) {
+        event.preventDefault();
+        const id = toggleButton.getAttribute("data-toggle-replies");
+        const panel = document.getElementById("replies-" + id);
+        if (!panel) return;
+        const willOpen = panel.hasAttribute("hidden");
+        panel.toggleAttribute("hidden", !willOpen);
+        toggleButton.textContent = toggleButton.textContent.replace(willOpen ? "▾" : "▴", willOpen ? "▴" : "▾");
+      }
+    });
+  }  if (globalAuthOpen) globalAuthOpen.addEventListener("click", () => {
+    if (currentUser) {
+      const name = getDisplayName(currentUser);
+      if (confirm("当前已登录：" + name + "。是否退出登录？")) logout();
+      return;
+    }
+    openAuthModal();
+  });
+  if (authModal) {
+    authModal.addEventListener("click", (event) => {
+      if (event.target && event.target.matches("[data-auth-close]")) closeAuthModal();
+    });
+  }
+  document.addEventListener("click", (event) => {
+    if (event.target && event.target.matches("[data-cancel-reply]")) clearReplyTarget();
+  });
 
   // Init
   if (isRecoveryUrl()) {

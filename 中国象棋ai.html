@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -284,9 +284,112 @@
       backdrop-filter: blur(6px);
     }
     .toast-msg.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+    @media (max-width: 520px){
+      body{
+        justify-content:flex-start;
+        background:#f1e4cf;
+        color:#2a2118;
+      }
+
+      .game-area{
+        width:100%;
+        height:100dvh;
+        max-height:none;
+        padding:calc(64px + env(safe-area-inset-top)) 10px calc(76px + env(safe-area-inset-bottom));
+        box-sizing:border-box;
+        display:flex;
+        justify-content:center;
+      }
+
+      .header{
+        position:fixed;
+        left:10px;
+        right:10px;
+        top:calc(8px + env(safe-area-inset-top));
+        z-index:140;
+        height:auto;
+        font-size:clamp(12px,3.8vmin,16px);
+        color:#2a2118;
+        text-shadow:none;
+        padding:8px 10px;
+        flex-wrap:wrap;
+        border:1px solid rgba(111,79,41,.16);
+        border-radius:16px;
+        background:rgba(255,252,245,.84);
+        box-shadow:0 12px 26px rgba(79,55,28,.12);
+        backdrop-filter:blur(8px);
+      }
+
+      .header .right{
+        flex-direction:row;
+        flex-wrap:wrap;
+        justify-content:flex-end;
+      }
+
+      .pill{
+        padding:4px 8px;
+        font-size:.82em;
+        color:#4a3720;
+        background:rgba(255,255,255,.72);
+        border-color:rgba(111,79,41,.18);
+      }
+
+      .timer-box{
+        padding:4px 10px;
+        font-size:1em;
+      }
+
+      .board-wrapper{
+        align-self:center;
+        justify-self:center;
+        width:min(94vw, 460px);
+      }
+
+      .controls{
+        position:fixed;
+        left:10px;
+        right:10px;
+        bottom:calc(8px + env(safe-area-inset-bottom));
+        z-index:130;
+        height:auto;
+        padding:10px;
+        gap:8px;
+        flex-wrap:wrap;
+        justify-content:center;
+        border:1px solid rgba(111,79,41,.16);
+        border-radius:16px;
+        background:rgba(255,252,245,.92);
+        box-shadow:0 16px 30px rgba(79,55,28,.16);
+        backdrop-filter:blur(10px);
+      }
+
+      .btn{
+        padding:8px 12px;
+        font-size:.84rem;
+        border-radius:8px;
+      }
+
+      .btn.small{
+        padding:6px 10px;
+        font-size:.78rem;
+      }
+
+      .role-btn{
+        width:100%;
+      }
+
+      .modal{
+        padding:16px;
+      }
+
+      .hint{
+        font-size:.85rem;
+      }
+    }
   </style>
 </head>
-<body>
+<body class="mobile-board-first">
 
   <div class="game-area">
     <div class="header">
@@ -345,6 +448,7 @@
     <div class="controls">
       <button id="undoBtn" class="btn" onclick="game.undo()">悔棋</button>
       <button class="btn primary" onclick="showSettings()">新局</button>
+      <button id="requestRematchBtn" class="btn">申请重开</button>
     </div>
   </div>
 
@@ -674,6 +778,7 @@
     const netStatusEl = document.getElementById("netStatus");
     const copyLinkBtn = document.getElementById("copyLinkBtn");
     const undoBtn = document.getElementById("undoBtn");
+    const requestRematchBtn = document.getElementById("requestRematchBtn");
 
     const onlineEndBox = document.getElementById("onlineEndBox");
     const offlineEndBox = document.getElementById("offlineEndBox");
@@ -698,12 +803,14 @@
       const headerH = headerEl ? headerEl.offsetHeight : 0;
       const controlsH = controlsEl ? controlsEl.offsetHeight : 0;
       const padding = 12;
+      const isMobile = window.matchMedia("(max-width: 520px)").matches;
+      const scale = isMobile ? 0.96 : 0.92;
 
-      const availH = Math.max(200, gaH - headerH - controlsH - padding);
+      const availH = Math.max(200, gaH - (isMobile ? 0 : headerH + controlsH) - padding);
       const availW = Math.max(200, gaW);
 
       // 9/10 的棋盘比例：w <= availW 且 h=w*10/9 <= availH  => w <= availH*9/10
-      const w = Math.floor(Math.min(availW, availH * 9 / 10));
+      const w = Math.floor(Math.min(availW, availH * 9 / 10) * scale);
       const h = Math.floor(w * 10 / 9);
 
       boardRefEl.style.width = w + "px";
@@ -1029,14 +1136,11 @@
       }
     }
 
-    function updateVoteHint(votes){
-      if (!votes) return;
-      const r = votes.rematch || {};
-      const s = votes.swap || {};
-      const r1 = r[1] ? "✅" : "…";
-      const r2 = r[2] ? "✅" : "…";
-      const s1 = s[1] ? "✅" : "…";
-      const s2 = s[2] ? "✅" : "…";
+        function updateVoteHint(votes){
+      const r1 = votes?.rematch?.[1] ? "√" : "-";
+      const r2 = votes?.rematch?.[2] ? "√" : "-";
+      const s1 = votes?.swap?.[1] ? "√" : "-";
+      const s2 = votes?.swap?.[2] ? "√" : "-";
       voteHintEl.textContent = `再来一局：红${r1} 黑${r2} ｜ 换边：红${s1} 黑${s2}`;
     }
 
@@ -1400,12 +1504,23 @@
       startAIGame(newSide);
     });
 
-    onlineRematchBtn.addEventListener("click", () => {
+    function requestOnlineRematch() {
       if (!onlineMode || !net) return;
-      if (!engine.gameOver) return toast("对局还没结束");
       if (engine.mySide === 0) return toast("观战不能发起");
       if (!net.send({ type:"xq_rematch" })) return toast("未连接联机");
-      toast("已请求：再来一局（等待对方）");
+      toast(engine.gameOver ? "已申请重开一局" : "已发起重开申请，等对方同意");
+    }
+
+    onlineRematchBtn.addEventListener("click", () => {
+      requestOnlineRematch();
+    });
+
+    requestRematchBtn.addEventListener("click", () => {
+      if (onlineMode) {
+        requestOnlineRematch();
+        return;
+      }
+      showSettings();
     });
 
     onlineSwapBtn.addEventListener("click", () => {
@@ -1449,3 +1564,5 @@
   </script>
 </body>
 </html>
+
+
