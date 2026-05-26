@@ -2,9 +2,10 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="留言板">
-  <meta name="theme-color" content="#f4f6fa">
+  <meta name="theme-color" content="#f4f6fa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1d1520" media="(prefers-color-scheme: dark)">
   <title>留言板 | cjx 知微录</title>
   <link rel="icon" href="assets/favicon.png">
   <script>
@@ -15,9 +16,12 @@
       } catch (error) {}
     })();
   </script>
-  <link rel="stylesheet" href="assets/site.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;700;900&display=swap">
+  <link rel="stylesheet" href="assets/site.css?v=20260525-1">
   <link rel="stylesheet" href="assets/vendor/aplayer/APlayer.min.css">
-  <link rel="stylesheet" href="assets/music-player.css?v=7">
+  <link rel="stylesheet" href="assets/music-player.css?v=22">
 </head>
 <body data-page="comments">
   <div class="scroll-progress" id="scrollProgress"></div>
@@ -49,7 +53,7 @@
       </div>
     </header>
 
-    <main class="shell-inner page-grid">
+    <main id="siteRoute" class="shell-inner page-grid">
       <aside class="left-rail">
         <section class="panel profile-card">
           <div class="profile-avatar-wrap">
@@ -74,22 +78,13 @@
             <div class="comment-compose-head">
               <div>
                 <h3>评论区</h3>
-                <p id="authStatus" class="auth-state warn">未登录</p>
-                <p id="authTip" class="auth-tip">点击右上角登录 / 注册后即可评论。</p>
+                <p id="commentAuthStatus" class="auth-state warn">未登录</p>
+                <p id="commentAuthTip" class="auth-tip">点击登录 / 注册后即可评论。</p>
               </div>
               <span id="commentCount" class="comment-count">0 条</span>
             </div>
-            <div class="auth-inline-fields" aria-label="账号快捷登录">
-              <input id="authEmail" type="email" autocomplete="email" placeholder="邮箱">
-              <input id="authPassword" type="password" autocomplete="current-password" placeholder="密码">
-              <input id="authUsername" autocomplete="username" placeholder="用户名（注册时填写）">
-            </div>
-            <div class="hero-actions auth-inline-actions">
-              <button class="button primary" id="btnLogin" type="button">登录</button>
-              <button class="button" id="btnSignup" type="button">注册</button>
-              <button class="button" id="btnResetPwd" type="button">忘记密码</button>
-              <button class="button" id="btnLogout" type="button" disabled>退出登录</button>
-              <button class="button danger" id="btnDeleteAccount" type="button" disabled>注销账号</button>
+            <div class="hero-actions auth-cta-row" data-auth-cta>
+              <button class="button primary" type="button" data-open-auth>登录 / 注册</button>
             </div>
             <p class="comment-page-key">当前页面 key：<code id="pageKey"></code></p>
             <div id="replyTarget" class="reply-target"></div>
@@ -129,8 +124,10 @@
   </div>
 
   <script src="assets/vendor/aplayer/APlayer.min.js"></script>
-  <script src="assets/music-player.js?v=7"></script>
+  <script src="assets/vendor/meting/Meting.min.js"></script>
+  <script src="assets/music-config.js?v=3"></script>
+  <script src="assets/music-player.js?v=29"></script>
   <script src="assets/site.js?v=20260506-8"></script>
-  <script defer src="supabase_all_in_one.jwt.js?v=11"></script>
+  <script defer src="supabase_all_in_one.jwt.js?v=12"></script>
 </body>
 </html>

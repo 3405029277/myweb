@@ -8,7 +8,8 @@
     "start": "node server.js",
     "test": "node scripts/site-integrity.test.mjs && node scripts/import-select.test.mjs && node scripts/game-mobile-layout.test.mjs && node scripts/draw-guess.test.mjs",
     "new:post": "node scripts/new-post.mjs",
-    "import:posts": "node scripts/import-posts.mjs"
+    "import:posts": "node scripts/import-posts.mjs",
+    "deploy:music-worker": "wrangler deploy -c wrangler-music.toml"
   },
   "dependencies": {
     "express": "^4.19.2",

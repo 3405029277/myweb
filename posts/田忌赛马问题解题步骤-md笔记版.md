@@ -69,7 +69,7 @@ gameUrl:
 
 # 双指针
 
-![image-20251229110332930](C:\Users\cjx\AppData\Roaming\Typora\typora-user-images\image-20251229110332930.png)
+![image-20251229110332930](assets/image-20251229110332930.png)
 
 # kmp
 

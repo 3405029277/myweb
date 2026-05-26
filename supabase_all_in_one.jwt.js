@@ -87,7 +87,7 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       navActions.insertBefore(button, navActions.firstChild);
     }
 
-    if (!$("authEmail")) {
+    if (!$("authModal")) {
       const modal = document.createElement("div");
       modal.className = "auth-modal";
       modal.id = "authModal";
@@ -96,20 +96,34 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       modal.innerHTML = "<div class='auth-modal-backdrop' data-auth-close></div>" +
         "<section class='auth-modal-card' role='dialog' aria-modal='true' aria-label='登录注册'>" +
         "<button class='auth-modal-close' type='button' data-auth-close>×</button>" +
-        "<p class='eyebrow'>Account</p><h3>登录 / 注册</h3>" +
+        "<div class='auth-modal-head'><p class='eyebrow'>Account</p><h3 id='authModalTitle'>登录 / 注册</h3>" +
         "<p id='authStatus' class='auth-state warn'>未登录</p>" +
-        "<p id='authTip' class='auth-tip'>登录后可以留言和回复。</p>" +
+        "<p id='authTip' class='auth-tip'>登录后可以留言和回复。</p></div>" +
+        "<div class='auth-tabs' role='tablist' data-auth-tabs>" +
+        "<button type='button' role='tab' class='auth-tab is-active' data-tab='login' aria-selected='true'>登录</button>" +
+        "<button type='button' role='tab' class='auth-tab' data-tab='signup' aria-selected='false'>注册</button>" +
+        "</div>" +
+        "<div class='auth-panel' data-panel='login'>" +
         "<div class='form-grid'>" +
         "<input id='authEmail' type='email' autocomplete='email' placeholder='邮箱'>" +
         "<input id='authPassword' type='password' autocomplete='current-password' placeholder='密码'>" +
-        "<input id='authUsername' autocomplete='username' placeholder='用户名（注册时填写）'>" +
         "</div>" +
-        "<div class='hero-actions auth-modal-actions'>" +
-        "<button class='button primary' id='btnLogin' type='button'>登录</button>" +
-        "<button class='button' id='btnSignup' type='button'>注册</button>" +
-        "<button class='button' id='btnResetPwd' type='button'>忘记密码</button>" +
-        "<button class='button' id='btnLogout' type='button' disabled>退出登录</button>" +
-        "<button class='button danger' id='btnDeleteAccount' type='button' disabled>注销账号</button>" +
+        "<p class='auth-error' id='authErrorLogin' hidden></p>" +
+        "<div class='auth-modal-actions'><button class='button primary' id='btnLogin' type='button'>登录</button>" +
+        "<button class='button-link' id='btnResetPwd' type='button'>忘记密码？</button></div>" +
+        "</div>" +
+        "<div class='auth-panel' data-panel='signup' hidden>" +
+        "<div class='form-grid'>" +
+        "<input id='authEmailSignup' type='email' autocomplete='email' placeholder='邮箱'>" +
+        "<input id='authPasswordSignup' type='password' autocomplete='new-password' placeholder='密码（至少 6 位）'>" +
+        "<input id='authUsername' autocomplete='username' placeholder='用户名'>" +
+        "</div>" +
+        "<p class='auth-error' id='authErrorSignup' hidden></p>" +
+        "<div class='auth-modal-actions'><button class='button primary' id='btnSignup' type='button'>注册</button></div>" +
+        "</div>" +
+        "<div class='auth-account' data-panel='account' hidden>" +
+        "<div class='auth-modal-actions'><button class='button' id='btnLogout' type='button' disabled>退出登录</button>" +
+        "<button class='button danger' id='btnDeleteAccount' type='button' disabled>注销账号</button></div>" +
         "</div></section>";
       document.body.appendChild(modal);
     }
@@ -130,28 +144,86 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
   const globalAuthOpen = $("globalAuthOpen");
   const globalAuthLabel = $("globalAuthLabel");
   const authModal = $("authModal");
-
-  const pageKeyEl = $("pageKey");
-  const commentCount = $("commentCount");
-  const commentList = $("commentList");
-  const commentInput = $("commentInput");
-  const commentTip = $("commentTip");
-  const btnPost = $("btnPost");
+  let commentAuthStatus = null;
+  let commentAuthTip = null;
+  let authCta = null;
+  let pageKeyEl = null;
+  let commentCount = null;
+  let commentList = null;
+  let commentInput = null;
+  let commentTip = null;
+  let btnPost = null;
+  let pageKey = "/";
+  let commentsAbort = null;
 
   function normalizePageKey(p) {
     p = p || "/";
-    // 根路径和 index.html 统一成同一个 key
     if (p === "/" || p === "/index.html") return "/";
-    // 去掉末尾多余 /
     return p.replace(/\/+$/, "");
   }
 
-  const pageKey = normalizePageKey((location && location.pathname) ? location.pathname : "/");
-  if (pageKeyEl) pageKeyEl.textContent = pageKey;
+  function getCurrentPageKey() {
+    const path = normalizePageKey((location && location.pathname) ? location.pathname : "/");
+    if (/\/post\.html$/.test(path)) {
+      const slug = new URLSearchParams(location.search || "").get("slug");
+      return slug ? path + "?slug=" + slug : path;
+    }
+    return path;
+  }
 
+  function bindCommentDom() {
+    commentAuthStatus = $("commentAuthStatus");
+    commentAuthTip = $("commentAuthTip");
+    authCta = document.querySelector("[data-auth-cta]");
+    pageKeyEl = $("pageKey");
+    commentCount = $("commentCount");
+    commentList = $("commentList");
+    commentInput = $("commentInput");
+    commentTip = $("commentTip");
+    btnPost = $("btnPost");
+    pageKey = getCurrentPageKey();
+    if (pageKeyEl) pageKeyEl.textContent = pageKey;
+  }
+
+  bindCommentDom();
 
   const setTip = (msg) => { if (authTip) authTip.textContent = msg || ""; };
   const setCommentTip = (msg) => { if (commentTip) commentTip.textContent = msg || ""; };
+
+  function setAuthView(state) {
+    if (!authModal) return;
+    const view = state || "login";
+    authModal.querySelectorAll("[data-panel]").forEach((panel) => {
+      const active = panel.getAttribute("data-panel") === view;
+      panel.hidden = !active;
+      panel.style.display = active ? "" : "none";
+    });
+    const tabs = authModal.querySelector("[data-auth-tabs]");
+    if (tabs) tabs.hidden = view === "account";
+    authModal.querySelectorAll(".auth-tab").forEach((tab) => {
+      const active = tab.getAttribute("data-tab") === view;
+      tab.classList.toggle("is-active", active);
+      tab.setAttribute("aria-selected", String(active));
+    });
+    const title = $("authModalTitle");
+    if (title) title.textContent = view === "account" ? "账号" : "登录 / 注册";
+    const focusTarget = view === "signup" ? $("authEmailSignup") : authEmail;
+    if (authModal.classList.contains("open") && focusTarget) setTimeout(() => focusTarget.focus(), 40);
+  }
+
+  function syncSignupInputs() {
+    const email = $("authEmailSignup");
+    const password = $("authPasswordSignup");
+    if (email && authEmail) authEmail.value = email.value.trim();
+    if (password && authPassword) authPassword.value = password.value;
+  }
+
+  function showAuthError(panel, msg) {
+    const el = $(panel === "signup" ? "authErrorSignup" : "authErrorLogin");
+    if (!el) return;
+    el.textContent = msg || "";
+    el.hidden = !msg;
+  }
 
   function escapeHtml(str) {
     return String(str)
@@ -177,7 +249,7 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
     authModal.classList.add("open");
     authModal.style.display = "grid";
     authModal.setAttribute("aria-hidden", "false");
-    if (authEmail) setTimeout(() => authEmail.focus(), 40);
+    setAuthView(currentUser ? "account" : "login");
   }
 
   function closeAuthModal() {
@@ -257,6 +329,13 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       authStatus.textContent = "未登录";
       authStatus.classList.remove("ok");
       authStatus.classList.add("warn");
+      if (commentAuthStatus) {
+        commentAuthStatus.textContent = "未登录";
+        commentAuthStatus.classList.remove("ok");
+        commentAuthStatus.classList.add("warn");
+      }
+      if (commentAuthTip) commentAuthTip.textContent = "点击登录 / 注册后即可评论。";
+      if (authCta) authCta.hidden = false;
       if (globalAuthLabel) globalAuthLabel.textContent = "登录 / 注册";
       if (globalAuthOpen) globalAuthOpen.classList.remove("is-logged-in");
       if (btnLogout) btnLogout.disabled = true;
@@ -267,6 +346,7 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       clearReplyTarget();
       currentUsername = "";
       setCommentTip("未登录时无法发表评论。");
+      setAuthView("login");
       if (reason) setTip(reason);
       return;
     }
@@ -274,6 +354,13 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
     currentUsername = uname && !isLikelyUuid(uname) ? uname : "";
     const displayName = currentUsername || user.email || shortId(user.id);
     authStatus.textContent = "已登录：" + displayName;
+    if (commentAuthStatus) {
+      commentAuthStatus.textContent = "已登录：" + displayName;
+      commentAuthStatus.classList.remove("warn");
+      commentAuthStatus.classList.add("ok");
+    }
+    if (commentAuthTip) commentAuthTip.textContent = "可以发表评论和回复。";
+    if (authCta) authCta.hidden = true;
     if (globalAuthLabel) globalAuthLabel.textContent = displayName;
     if (globalAuthOpen) globalAuthOpen.classList.add("is-logged-in");
     authStatus.classList.remove("warn");
@@ -284,6 +371,7 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
     if (commentInput) commentInput.disabled = false;
     if (authUsername && currentUsername) authUsername.value = currentUsername;
     setCommentTip("已登录，可以发表评论。");
+    setAuthView("account");
     if (reason) setTip(reason);
   }
   // ---- Safety timeout wrapper ----
@@ -447,13 +535,15 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
   });
 
   async function signup() {
+    syncSignupInputs();
+    showAuthError("signup", "");
     const email = authEmail ? authEmail.value.trim() : "";
     const password = authPassword ? authPassword.value : "";
     const username = authUsername ? authUsername.value.trim() : "";
-    if (!email || !password) { alert("请填写邮箱和密码"); return; }
-    if (password.length < 6) { alert("密码至少 6 位"); return; }
-    if (!username) { alert("请填写用户名"); return; }
-    if (username.length > 30) { alert("用户名不要超过 30 个字符"); return; }
+    if (!email || !password) { showAuthError("signup", "请填写邮箱和密码"); alert("请填写邮箱和密码"); return; }
+    if (password.length < 6) { showAuthError("signup", "密码至少 6 位"); alert("密码至少 6 位"); return; }
+    if (!username) { showAuthError("signup", "请填写用户名"); alert("请填写用户名"); return; }
+    if (username.length > 30) { showAuthError("signup", "用户名不要超过 30 个字符"); alert("用户名不要超过 30 个字符"); return; }
     setTip("注册中…");
     try {
       const { data, error } = await withTimeout(
@@ -472,17 +562,22 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       if (error) throw error;
 
       setTip("注册成功：请去邮箱确认后再登录");
+      showAuthError("signup", "");
+      setAuthView("login");
       alert("注册成功：请去邮箱确认后再登录");
     } catch (e) {
+      const msg = e && e.message ? e.message : String(e);
       console.error("signup error:", e);
-      setTip("注册失败：" + (e && e.message ? e.message : String(e)));
-      alert(e && e.message ? e.message : String(e));
+      setTip("注册失败：" + msg);
+      showAuthError("signup", msg);
+      alert(msg);
     }
   }
 
   async function resetPassword() {
+    showAuthError("login", "");
     const email = authEmail ? authEmail.value.trim() : "";
-    if (!email) { alert("请先输入邮箱"); return; }
+    if (!email) { showAuthError("login", "请先输入邮箱"); alert("请先输入邮箱"); return; }
     setTip("发送重置邮件中…");
     try {
       const { data, error } = await withTimeout(
@@ -495,18 +590,22 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       console.log("resetPassword result:", { data, error });
       if (error) throw error;
       setTip("重置邮件已发送，请查收邮箱");
+      showAuthError("login", "重置邮件已发送，请查收邮箱");
       alert("重置邮件已发送，请查收邮箱");
     } catch (e) {
+      const msg = e && e.message ? e.message : String(e);
       console.error("resetPassword error:", e);
-      setTip("重置失败：" + (e && e.message ? e.message : String(e)));
-      alert(e && e.message ? e.message : String(e));
+      setTip("重置失败：" + msg);
+      showAuthError("login", msg);
+      alert(msg);
     }
   }
 
   async function login() {
+    showAuthError("login", "");
     const email = authEmail ? authEmail.value.trim() : "";
     const password = authPassword ? authPassword.value : "";
-    if (!email || !password) { alert("请填写邮箱和密码"); return; }
+    if (!email || !password) { showAuthError("login", "请填写邮箱和密码"); alert("请填写邮箱和密码"); return; }
 
     setTip("登录中…");
     try {
@@ -567,11 +666,14 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
           console.warn("get profile error:", e);
         }
       }
+      showAuthError("login", "");
       await loadComments(); // 登录后刷新评论
     } catch (e) {
+      const msg = e && e.message ? e.message : String(e);
       console.error("login error:", e);
-      setTip("登录失败：" + (e && e.message ? e.message : String(e)));
-      alert(e && e.message ? e.message : String(e));
+      setTip("登录失败：" + msg);
+      showAuthError("login", msg);
+      alert(msg);
     }
   }
 
@@ -843,6 +945,49 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       if (btnPost) btnPost.disabled = false;
     }
   }
+
+  function handleCommentListClick(event) {
+    const replyButton = event.target && event.target.closest ? event.target.closest("[data-reply]") : null;
+    if (replyButton) {
+      event.preventDefault();
+      const id = replyButton.getAttribute("data-reply");
+      const list = Array.isArray(window.__LATEST_COMMENTS__) ? window.__LATEST_COMMENTS__ : [];
+      const target = list.find((item) => String(item.id) === String(id));
+      console.info("reply click", { id, target });
+      if (!target) { alert("没有找到要回复的评论，请刷新页面后重试"); return; }
+      openInlineReplyForm(target);
+      return;
+    }
+    const toggleButton = event.target && event.target.closest ? event.target.closest("[data-toggle-replies]") : null;
+    if (toggleButton) {
+      event.preventDefault();
+      const id = toggleButton.getAttribute("data-toggle-replies");
+      const panel = document.getElementById("replies-" + id);
+      if (!panel) return;
+      const willOpen = panel.hasAttribute("hidden");
+      panel.toggleAttribute("hidden", !willOpen);
+      toggleButton.textContent = toggleButton.textContent.replace(willOpen ? "▾" : "▴", willOpen ? "▴" : "▾");
+    }
+  }
+
+  function mountComments() {
+    if (commentsAbort) commentsAbort.abort();
+    commentsAbort = new AbortController();
+    bindCommentDom();
+    clearReplyTarget();
+    setAuthUI(currentUser);
+    if (!commentList) return;
+    if (btnPost) btnPost.addEventListener("click", postComment, { signal: commentsAbort.signal });
+    commentList.addEventListener("click", handleCommentListClick, { signal: commentsAbort.signal });
+    loadComments().catch((e) => console.warn("mountComments loadComments:", e));
+  }
+
+  window.SiteComments = {
+    mountComments: mountComments,
+    loadComments: loadComments,
+    refreshAuth: refreshAuth
+  };
+
   async function requestDeleteAccount() {
     if (!currentUser) { alert("请先登录"); return; }
     if (!confirm("确定要注销账号吗？此操作不可恢复。")) return;
@@ -891,46 +1036,20 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
   if (btnResetPwd) btnResetPwd.addEventListener("click", resetPassword);
   if (btnLogout) btnLogout.addEventListener("click", logout);
   if (btnDeleteAccount) btnDeleteAccount.addEventListener("click", requestDeleteAccount);
-  if (btnPost) btnPost.addEventListener("click", postComment);
-  if (commentList) {
-    commentList.addEventListener("click", (event) => {
-      const replyButton = event.target && event.target.closest ? event.target.closest("[data-reply]") : null;
-      if (replyButton) {
-        event.preventDefault();
-        const id = replyButton.getAttribute("data-reply");
-        const list = Array.isArray(window.__LATEST_COMMENTS__) ? window.__LATEST_COMMENTS__ : [];
-        const target = list.find((item) => String(item.id) === String(id));
-        console.info("reply click", { id, target });
-        if (!target) { alert("没有找到要回复的评论，请刷新页面后重试"); return; }
-        openInlineReplyForm(target);
-        return;
-      }
-      const toggleButton = event.target && event.target.closest ? event.target.closest("[data-toggle-replies]") : null;
-      if (toggleButton) {
-        event.preventDefault();
-        const id = toggleButton.getAttribute("data-toggle-replies");
-        const panel = document.getElementById("replies-" + id);
-        if (!panel) return;
-        const willOpen = panel.hasAttribute("hidden");
-        panel.toggleAttribute("hidden", !willOpen);
-        toggleButton.textContent = toggleButton.textContent.replace(willOpen ? "▾" : "▴", willOpen ? "▴" : "▾");
-      }
-    });
-  }  if (globalAuthOpen) globalAuthOpen.addEventListener("click", () => {
-    if (currentUser) {
-      const name = getDisplayName(currentUser);
-      if (confirm("当前已登录：" + name + "。是否退出登录？")) logout();
-      return;
-    }
-    openAuthModal();
-  });
+  if (globalAuthOpen) globalAuthOpen.addEventListener("click", openAuthModal);
   if (authModal) {
     authModal.addEventListener("click", (event) => {
-      if (event.target && event.target.matches("[data-auth-close]")) closeAuthModal();
+      if (event.target && event.target.matches("[data-auth-close]")) {
+        closeAuthModal();
+        return;
+      }
+      const tab = event.target && event.target.closest ? event.target.closest(".auth-tab") : null;
+      if (tab) setAuthView(tab.getAttribute("data-tab"));
     });
   }
   document.addEventListener("click", (event) => {
     if (event.target && event.target.matches("[data-cancel-reply]")) clearReplyTarget();
+    if (event.target && event.target.closest && event.target.closest("[data-open-auth]")) openAuthModal();
   });
 
   // Init
@@ -939,5 +1058,5 @@ Resources:`; for (let t of c) { if (!t || typeof t != `string`) throw Error(`@su
       .then(({ data }) => { if (data && data.session) handlePasswordRecovery(data.session); })
       .catch((e) => console.warn("recovery getSession error:", e));
   }
-  refreshAuth().then(loadComments).catch((e) => console.warn(e));
+  refreshAuth().then(mountComments).catch((e) => console.warn(e));
 })();

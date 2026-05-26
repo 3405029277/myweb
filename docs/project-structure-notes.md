@@ -1,364 +1,325 @@
-﻿# 项目结构备忘录
+# 项目结构备忘录
 
-这个文档是给现在的我和以后的我看的，重点记录这个网站当前的页面结构、代码入口、接口和部署关系。
+这个文档记录当前站点的真实结构、部署关系和最容易忘的维护点。
 
-## 1. 项目是什么
+## 1. 项目定位
 
-这是一个以 `Node + Express + 静态页面` 为主的网站项目，主站名字是 **cjx 知微录**。
+这是一个个人博客和项目展示站点，主站名称是 **cjx 知微录**。
 
-当前主要内容分成四类：
+当前能力：
 
-- 首页展示
-- Markdown 文章系统
-- 留言/账号系统
-- 几个独立小游戏页面
+- 首页展示、文章列表、项目入口。
+- Markdown 文章系统。
+- Supabase 登录、注册、留言和回复评论。
+- APlayer 音乐播放器，支持 Karpov 音乐源、MetingJS fallback、本地 fallback。
+- Cloudflare Worker 音乐代理。
+- Cloudflare R2 播放过的音频缓存。
+- 五子棋、中国象棋、你画我猜等独立页面。
 
-项目根目录：`C:/Users/cjx/Documents/Playground/myweb`
+项目目录：
 
-## 2. 运行方式
-
-核心启动文件：`C:/Users/cjx/Documents/Playground/myweb/server.js`
-
-`package.json` 里的主要脚本：
-
-```json
-{
-  "start": "node server.js",
-  "test": "node scripts/site-integrity.test.mjs && node scripts/import-select.test.mjs && node scripts/game-mobile-layout.test.mjs && node scripts/draw-guess.test.mjs",
-  "new:post": "node scripts/new-post.mjs",
-  "import:posts": "node scripts/import-posts.mjs"
-}
+```text
+C:/Users/cjx/Documents/Playground/myweb
 ```
 
-启动逻辑：
+## 2. 本地运行
 
-- `npm install`
-- `npm start`
+服务入口：
 
-服务监听端口：
-
-- 默认端口：`12622`
-- 如果平台提供环境变量，则优先使用 `process.env.PORT`
-
-对应代码：
-
-```js
-const port = process.env.PORT ? Number(process.env.PORT) : 12622;
-app.listen(port, "0.0.0.0", () => {
-  console.log("Server listening on port", port);
-});
+```text
+server.js
 ```
 
-## 3. 后端结构
+常用命令：
 
-后端很轻，主要负责两件事：
-
-- 托管整个站点的静态文件
-- 提供文章列表和文章详情接口
-
-### 3.1 静态资源托管
-
-```js
-app.use(express.static(__dirname));
+```bash
+npm install
+npm start
+npm test
+npm run new:post -- "文章标题"
+npm run import:posts
+npm run deploy:music-worker
 ```
 
-这意味着 `myweb` 目录下的 html、css、js、图片等文件都可以直接访问。
+默认端口：
 
-### 3.2 文章接口
+```text
+12811
+```
 
-接口有两个：
+如果部署平台提供 `PORT` 环境变量，则使用平台端口。
 
-- `GET /api/posts`
-- `GET /api/posts/:slug`
+## 3. 主站页面
 
-文章来源目录：`C:/Users/cjx/Documents/Playground/myweb/posts`
+核心页面：
+
+```text
+index.html      首页
+post.html       文章详情页
+comments.html   留言页
+```
+
+三页共用：
+
+```text
+assets/site.css
+assets/site.js
+assets/music-player.css
+assets/music-player.js
+supabase_all_in_one.jwt.js
+```
+
+三个页面都有稳定 SPA 容器：
+
+```html
+<main id="siteRoute" class="shell-inner page-grid">
+```
+
+`assets/site.js` 使用 History API 在首页、文章页和留言页之间做 SPA 导航，避免音乐播放器在切换页面时重载。游戏页面不走 SPA 路由。
+
+## 4. 后端 Express
+
+`server.js` 负责：
+
+- 静态文件托管：`app.use(express.static(__dirname))`
+- Markdown 文章接口
+- 本地 Karpov 音乐代理兜底
+- 健康检查
+
+接口：
+
+```text
+GET /api/posts
+GET /api/posts/:slug
+GET /api/music/playlist
+GET /api/music/url
+GET /api/music/audio
+GET /api/music/lyric
+GET /health
+```
+
+本地服务器没有 R2，因此 `/api/music/audio` 在本地/服务器侧只是兜底重定向；正式域名下的 R2 音频缓存主要由 Cloudflare Worker 处理。
+
+## 5. 文章系统
+
+文章目录：
+
+```text
+posts/
+```
 
 文章格式：Markdown + front matter。
 
-后端用到的库：
+后端解析：
 
-- `gray-matter`：解析 front matter
-- `marked`：把 Markdown 转成 HTML
+- `gray-matter` 解析 front matter。
+- `marked` 转 HTML。
 
-### 3.3 健康检查
+前端兜底：
 
-健康检查接口：
+- 文章接口不可用时，`assets/site.js` 会尝试读取 `posts/<slug>.md`。
 
-- `GET /health`
+注意：Typora 导入图片时，不要保留 `C:\Users\...` 或 `file:///...` 本地路径。图片应复制到 `assets/` 等公开目录，再用相对路径引用。
 
-返回：`ok`
+## 6. Supabase 评论/账号
 
-这个接口适合用来测试服务是否正常启动。
+核心文件：
 
-## 4. 前端页面结构
+```text
+supabase_all_in_one.jwt.js
+```
 
-当前主站核心是 3 个页面：
+能力：
 
-- `index.html`：首页
-- `post.html`：文章详情页
-- `comments.html`：留言页
+- 全局登录/注册 UI。
+- 评论发布。
+- 回复评论。
+- 评论列表渲染。
+- SPA 页面切换后的 comments remount。
 
-它们共用一套样式和一套主逻辑脚本：
+维护点：
 
-- 样式：`C:/Users/cjx/Documents/Playground/myweb/assets/site.css`
-- 主脚本：`C:/Users/cjx/Documents/Playground/myweb/assets/site.js`
-- 音乐播放器样式：`C:/Users/cjx/Documents/Playground/myweb/assets/music-player.css`
-- 音乐播放器脚本：`C:/Users/cjx/Documents/Playground/myweb/assets/music-player.js`
-- 评论/账号逻辑：`C:/Users/cjx/Documents/Playground/myweb/supabase_all_in_one.jwt.js`
+- 前端 anon key 可以公开。
+- 权限控制要靠 Supabase 后台 RLS。
+- 评论相关 DOM id 不要随意改，完整性测试会检查关键 API。
 
-### 4.1 首页 `index.html`
+## 7. 音乐播放器
 
-首页是三栏结构：
+前端文件：
 
-- 左栏：个人信息、页面导航、文章分类
-- 中栏：一言、展示图、项目区、文章区
-- 右栏：热门文章、博客信息、热门标签
+```text
+assets/music-config.js
+assets/music-player.js
+assets/music-player.css
+assets/vendor/aplayer/APlayer.min.css
+assets/vendor/aplayer/APlayer.min.js
+assets/vendor/meting/Meting.min.js
+```
 
-顶部导航包含：
+初始化顺序：
 
-- 首页
-- 文章
-- 项目
-- 归档
-- 留言
+1. Karpov 源。
+2. MetingJS fallback。
+3. 本地 `assets/music/background.wav` fallback。
 
-首页中部主要模块：
+前端配置文件 `assets/music-config.js` 只放公开配置，不放 API key、cookie 或 Bearer token。
 
-1. `quote-card`
-   - 显示一段固定文案
+播放器特点：
 
-2. `xiaowu-showcase`
-   - 首页展示图
-   - 带轻微视差效果
+- APlayer native fixed + mini。
+- 桌面可拖动，位置保存在 `localStorage.siteMusicPosition`。
+- 播放意图保存在 `localStorage.siteMusicWanted`。
+- 音量保存在 `localStorage.siteMusicVolume`。
+- Karpov 歌单 metadata 全量加载，音频和歌词按当前歌曲 lazy-load。
 
-3. `projects`
-   - 项目区
-   - 当前入口包括：
-     - `五子棋.html`
-     - `中国象棋ai.html`
-     - `你画我猜.html`
-     - 对应项目笔记文章
+## 8. Cloudflare 音乐 Worker
 
-4. `posts`
-   - 文章列表区
-   - 支持文章列表加载、分类/标签信息展示
+Worker 文件：
 
-首页还有一个首屏加载动画：
+```text
+cloudflare-music-worker.js
+```
 
-- 头像环形进度
-- 随机诗句轮播
-- 百分比进度文本
+部署配置：
 
-对应逻辑在 `site.js` 的 `setupPageLoader()`。
+```text
+wrangler-music.toml
+```
 
-### 4.2 文章页 `post.html`
+支持路由：
 
-文章页延续三栏布局：
+```text
+/api/music/playlist
+/api/music/url
+/api/music/audio
+/api/music/lyric
+/music/playlist
+/music/url
+/music/audio
+/music/lyric
+```
 
-- 左栏：站点简介和返回入口
-- 中栏：文章正文
-- 右栏：目录和快捷入口
+环境变量 / Secret：
 
-主要功能：
+```text
+KARPOV_GATEWAY_API_KEY
+KARPOV_GATEWAY_COOKIE
+KARPOV_GATEWAY_BASE_URL
+KARPOV_MUSIC_PROVIDER
+KARPOV_MUSIC_PLAYLIST_ID
+KARPOV_MUSIC_QUALITY
+```
 
-- 根据 URL 上的 `slug` 加载文章
-- 显示分类、标题、日期、标签
-- 生成目录
-- 支持复制文章链接
-- 渲染 Markdown 正文
-- 渲染数学文本样式
-- 高亮 C++ 代码块
+R2 bucket binding：
 
-文章加载优先方式：
+```text
+MUSIC_BUCKET
+```
 
-1. 请求 `/api/posts/:slug`
-2. 如果接口不可用，再尝试前端兜底读取文章信息
+缓存策略：
 
-### 4.3 留言页 `comments.html`
+```text
+歌单 metadata       1 小时
+歌词 LRC           30 天
+歌曲 URL 查询结果   短缓存，按上游 expiresInSeconds 收缩
+音频内容 R2 缓存    Worker 通过 /api/music/audio 返回
+```
 
-留言页也是统一三栏结构，但中间主区换成评论交互。
+R2 音频对象路径：
 
-主要功能：
+```text
+audio/<provider>/<song-id>/<quality>
+```
 
-- 登录
-- 注册
-- 忘记密码
-- 退出登录
-- 注销账号
-- 发表评论
-- 回复评论
+R2 音频缓存限制：
 
-页面元素包括：
+```text
+900MB
+```
 
-- 邮箱输入框
-- 密码输入框
-- 用户名输入框
-- 登录/注册/找回密码按钮
-- 评论输入框
-- 评论列表区域
+超限策略：
 
-账号与评论逻辑主要依赖：
+- 写入新音频前统计 `audio/` 总大小。
+- 如果总大小加新文件超过 900MB，按上传时间删除最旧的一半对象。
+- 再写入新音频。
 
-- `supabase_all_in_one.jwt.js`
+这样做是为了减少频繁小规模清理带来的 R2 A 类操作。
 
-## 5. 公共前端行为
+## 9. Cloudflare 其它 Worker
 
-`assets/site.js` 负责大多数公共行为：
+项目里还有：
 
-- 主题切换（亮色 / 暗色）
-- 顶部导航移动端展开
-- 顶部滚动进度条
-- 首页文章加载
-- 文章详情加载
-- Markdown 渲染补充处理
-- 数学文本替换渲染
-- C++ 代码高亮
-- 首页展示图视差效果
-- 首屏加载动画
+```text
+cloudflare-draw-guess-worker.js
+cloudflare-reverse-proxy-worker.js
+wrangler.toml
+wrangler-proxy.toml
+```
 
-### 5.1 主题系统
+用途：
 
-主题状态保存在浏览器：
+- `draw-guess` Worker：你画我猜联机相关，包含 Durable Object。
+- `reverse-proxy` Worker：反代/回源辅助。
 
-- `localStorage.theme`
+## 10. 部署清单
 
-支持：
+主站服务器上传：
 
-- `light`
-- `dark`
+```text
+server.js
+index.html
+post.html
+comments.html
+assets/
+posts/
+supabase_all_in_one.jwt.js
+package.json
+package-lock.json
+scripts/
+```
 
-### 5.2 文章数据兜底
+音乐 Worker 单独部署：
 
-首页里有一个 `window.__SITE_POSTS__`，作为接口失败时的兜底数据。
+```text
+cloudflare-music-worker.js
+wrangler-music.toml
+```
 
-目前至少内置了两篇：
+不要上传/提交：
 
-- `gomoku-product-notes`
-- `xiangqi-ui-notes`
+```text
+.env
+.env.*
+node_modules/
+```
 
-## 6. 独立页面 / 小游戏
+## 11. 检查命令
 
-当前项目里有几个独立页面，不走文章系统主流程，但属于网站内容的一部分：
+```bash
+node --check server.js
+node --check assets/music-player.js
+node --check cloudflare-music-worker.js
+node --check scripts/site-integrity.test.mjs
+npm test
+```
 
-- `C:/Users/cjx/Documents/Playground/myweb/五子棋.html`
-- `C:/Users/cjx/Documents/Playground/myweb/中国象棋ai.html`
-- `C:/Users/cjx/Documents/Playground/myweb/你画我猜.html`
+`npm test` 会检查：
 
-相关脚本：
+- 站点完整性。
+- 音乐播放器与 Worker/R2 关键行为。
+- Markdown 导入选择。
+- 游戏移动端布局。
+- 你画我猜脚本。
 
-- `C:/Users/cjx/Documents/Playground/myweb/draw-guess.js`
-- `C:/Users/cjx/Documents/Playground/myweb/online.js`
+## 12. 排查顺序
 
-另外还有备份文件夹：
+遇到问题时先分层：
 
-- `backup-before-*`
-
-这些目录是你之前改 UI 或玩法时留下的快照，后面如果要清理，先确认没有仍在参考的版本。
-
-## 7. Cloudflare 相关文件
-
-项目里有两个 Cloudflare Worker 相关文件：
-
-- `C:/Users/cjx/Documents/Playground/myweb/cloudflare-draw-guess-worker.js`
-- `C:/Users/cjx/Documents/Playground/myweb/cloudflare-reverse-proxy-worker.js`
-
-对应配置文件：
-
-- `C:/Users/cjx/Documents/Playground/myweb/wrangler.toml`
-- `C:/Users/cjx/Documents/Playground/myweb/wrangler-proxy.toml`
-
-当前用途大致分两类：
-
-1. `draw-guess` Worker
-   - 用于你画我猜联机相关能力
-   - 配了 Durable Object：`DrawGuessRoom`
-
-2. `reverse-proxy` Worker
-   - 用于 Cloudflare 反代/回源链路
-   - 最近这次问题就是这里相关的“端口回源规则”还指向旧端口
-
-## 8. 当前部署关系备忘
-
-这是这次最该记住的一段。
-
-### 8.1 真实网站服务
-
-你当前网站程序本身能访问，实际可用地址是：
-
-- `http://93.115.101.176:12811/`
-
-这说明：
-
-- Node 服务是活的
-- 程序本身没挂
-- 公网高位端口能通
-
-### 8.2 域名访问失败的真正原因
-
-不是代码问题，也不是 `npm install` 问题。
-
-这次故障的真实原因是：
-
-- **端口回源规则还指向之前的旧端口**
-
-所以域名请求虽然进了 Cloudflare/代理层，但最后被转发到了错误端口，导致打不开。
-
-### 8.3 端口回源规则是干什么的
-
-它的作用就是：
-
-- 用户访问域名
-- 前面的代理层再把请求转到你真正运行应用的端口
-
-也就是把类似这种访问：
-
-- `https://你的域名`
-
-转给真正应用：
-
-- `http://93.115.101.176:12811`
-
-或者：
-
-- `http://127.0.0.1:12811`
-
-### 8.4 以后迁机时最容易忘的点
-
-如果以后再换机器、换端口、换面板，优先检查这几项：
-
-1. Node 实际监听端口变没变
-2. 面板里域名绑定的目标端口对不对
-3. Cloudflare 或代理层的回源规则对不对
-4. 旧的端口转发/反代规则有没有残留
-
-## 9. 内容文件分布
-
-你以后最常改的地方，大概率是这些：
-
-- 首页：`C:/Users/cjx/Documents/Playground/myweb/index.html`
-- 文章页：`C:/Users/cjx/Documents/Playground/myweb/post.html`
-- 留言页：`C:/Users/cjx/Documents/Playground/myweb/comments.html`
-- 公共样式：`C:/Users/cjx/Documents/Playground/myweb/assets/site.css`
-- 公共交互：`C:/Users/cjx/Documents/Playground/myweb/assets/site.js`
-- 文章目录：`C:/Users/cjx/Documents/Playground/myweb/posts`
-- 服务入口：`C:/Users/cjx/Documents/Playground/myweb/server.js`
-
-## 10. 我给自己的一句话总结
-
-这个项目不是传统前后端分离系统，更接近：
-
-- 一个 Express 托管的静态站
-- 外加 Markdown 文章 API
-- 外加 Supabase 留言/账号能力
-- 外加几个独立游戏页面
-- 外加 Cloudflare 代理/Worker 辅助能力
-
-以后排查时，先分清问题在哪一层：
-
-- 页面文件层
-- 前端脚本层
-- Node 接口层
-- Supabase 层
-- Cloudflare / 回源 / 域名层
-
-这样就不容易又绕回“是不是 Node 没装好”这种假问题里。
+1. 浏览器缓存版本号是否更新。
+2. HTML 是否加载了最新 CSS/JS。
+3. `assets/site.js` 或 `assets/music-player.js` 是否报错。
+4. `server.js` 本地接口是否正常。
+5. Cloudflare Worker 路由是否命中。
+6. Worker 环境变量和 R2 binding 是否正确。
+7. Supabase RLS/表结构是否允许当前操作。
+8. 服务器端口和 Cloudflare 回源规则是否匹配。

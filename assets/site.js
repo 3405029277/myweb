@@ -1,10 +1,15 @@
 (function () {
+  if (window.__SITE_APP_READY__) return;
+  window.__SITE_APP_READY__ = true;
+
   var root = document.documentElement;
-  var page = document.body.dataset.page;
   var header = document.getElementById('siteHeader');
   var themeToggle = document.getElementById('themeToggle');
   var menuToggle = document.getElementById('menuToggle');
   var scrollProgress = document.getElementById('scrollProgress');
+  var routeCleanup = [];
+  var navSeq = 0;
+  var initialPage = getRoutePage(new URL(window.location.href));
 
   function getTheme() {
     var saved = localStorage.getItem('theme');
@@ -317,14 +322,7 @@
   }
 
   function getCoverLine(post, index) {
-    var lines = [
-      '字里春风',
-      '山海有信',
-      '知行小记',
-      '风物可期',
-      '缓缓归真',
-      '明月照章'
-    ];
+    var lines = ['字里春风', '山海有信', '知行小记', '风物可期', '缓缓归真', '明月照章'];
     var seed = String((post && post.slug) || index || 0).split('').reduce(function (acc, ch) { return acc + ch.charCodeAt(0); }, 0);
     return lines[seed % lines.length];
   }
@@ -346,6 +344,16 @@
     }).join('');
   }
 
+  function addRouteCleanup(fn) {
+    routeCleanup.push(fn);
+  }
+
+  function cleanupRoute() {
+    routeCleanup.splice(0).forEach(function (fn) {
+      try { fn(); } catch (e) {}
+    });
+  }
+
   function setupHomeFilters(posts) {
     var el = document.getElementById('postFilters');
     if (!el) return;
@@ -360,10 +368,19 @@
       el.querySelectorAll('.filter-button').forEach(function (b) { b.classList.toggle('active', b.dataset.filter === v); });
       renderMagazineList(filtered);
     }
-    el.addEventListener('click', function (e) { var b = e.target.closest('.filter-button'); if (b) apply(b.dataset.filter); });
-    document.addEventListener('click', function (e) {
-      var l1 = e.target.closest('[data-filter-tag]'); if (l1) { e.preventDefault(); apply('all'); }
-      var l2 = e.target.closest('[data-filter-category]'); if (l2) { e.preventDefault(); apply(l2.dataset.filterCategory); }
+    function onFilterClick(e) {
+      var b = e.target.closest('.filter-button');
+      if (b) apply(b.dataset.filter);
+    }
+    function onDocClick(e) {
+      var l1 = e.target.closest('[data-filter-tag]'); if (l1) { e.preventDefault(); apply('all'); scrollToHash('#posts'); }
+      var l2 = e.target.closest('[data-filter-category]'); if (l2) { e.preventDefault(); apply(l2.dataset.filterCategory); scrollToHash('#posts'); }
+    }
+    el.addEventListener('click', onFilterClick);
+    document.addEventListener('click', onDocClick);
+    addRouteCleanup(function () {
+      el.removeEventListener('click', onFilterClick);
+      document.removeEventListener('click', onDocClick);
     });
     renderMagazineList(posts);
   }
@@ -389,6 +406,7 @@
       });
     }
     window.addEventListener('scroll', highlightToc, { passive: true });
+    addRouteCleanup(function () { window.removeEventListener('scroll', highlightToc); });
     highlightToc();
   }
 
@@ -411,7 +429,7 @@
     }
   }
 
-  async function loadArticle() {
+  async function loadArticle(seq) {
     var contentEl = document.getElementById('articleContent');
     if (!contentEl) return;
     var params = new URLSearchParams(window.location.search);
@@ -424,20 +442,26 @@
       } catch (apiError) {
         article = await fetchLocalPost(slug);
       }
+      if (seq && seq !== navSeq) return;
       document.title = article.title + ' | cjx 知微录';
-      document.getElementById('articleTitle').textContent = article.title;
-      document.getElementById('articleCategory').textContent = article.category || 'Article';
+      var title = document.getElementById('articleTitle');
+      var category = document.getElementById('articleCategory');
+      var meta = document.getElementById('articleMeta');
+      if (title) title.textContent = article.title;
+      if (category) category.textContent = article.category || 'Article';
       var metaParts = [];
       if (article.date) metaParts.push('<span>' + safeHtml(formatDateLong(article.date)) + '</span>');
       if (Array.isArray(article.tags) && article.tags.length) metaParts.push('<span>' + safeHtml(article.tags.join(' / ')) + '</span>');
-      document.getElementById('articleMeta').innerHTML = metaParts.join('<span>·</span>');
+      if (meta) meta.innerHTML = metaParts.join('<span>·</span>');
       contentEl.innerHTML = article.html;
       contentEl.innerHTML = renderMathText(contentEl.innerHTML);
       highlightCodeBlocks(contentEl);
       buildToc(contentEl, document.getElementById('articleToc'));
     } catch (error) {
-      document.getElementById('articleTitle').textContent = '文章加载失败';
-      document.getElementById('articleCategory').textContent = 'Error';
+      var errTitle = document.getElementById('articleTitle');
+      var errCategory = document.getElementById('articleCategory');
+      if (errTitle) errTitle.textContent = '文章加载失败';
+      if (errCategory) errCategory.textContent = 'Error';
       contentEl.innerHTML = '<p class="empty-state">文章加载失败</p>';
     }
   }
@@ -476,6 +500,7 @@
         }});
       }, { threshold: 0.15 });
       observer.observe(el);
+      addRouteCleanup(function () { observer.disconnect(); });
     });
   }
 
@@ -495,10 +520,16 @@
       card.style.setProperty('--move-y', moveY.toFixed(2) + 'px');
     }
 
-    card.addEventListener('pointermove', updateFromEvent);
-    card.addEventListener('pointerleave', function () {
+    function resetMove() {
       card.style.setProperty('--move-x', '0px');
       card.style.setProperty('--move-y', '0px');
+    }
+
+    card.addEventListener('pointermove', updateFromEvent);
+    card.addEventListener('pointerleave', resetMove);
+    addRouteCleanup(function () {
+      card.removeEventListener('pointermove', updateFromEvent);
+      card.removeEventListener('pointerleave', resetMove);
     });
   }
 
@@ -508,14 +539,7 @@
     var ring = document.getElementById('loaderRing');
     var poem = document.getElementById('loaderPoem');
     var progressText = document.getElementById('loaderProgressText');
-    var poems = [
-      '两情若是久长时，又岂在朝朝暮暮。',
-      '愿得一心人，白头不相离。',
-      '身无彩凤双飞翼，心有灵犀一点通。',
-      '衣带渐宽终不悔，为伊消得人憔悴。',
-      '在天愿作比翼鸟，在地愿为连理枝。',
-      '玲珑骰子安红豆，入骨相思知不知。'
-    ];
+    var poems = ['两情若是久长时，又岂在朝朝暮暮。', '愿得一心人，白头不相离。', '身无彩凤双飞翼，心有灵犀一点通。', '衣带渐宽终不悔，为伊消得人憔悴。', '在天愿作比翼鸟，在地愿为连理枝。', '玲珑骰子安红豆，入骨相思知不知。'];
     var startIndex = Math.floor(Math.random() * poems.length);
     var progress = 0;
     var poemTimer = null;
@@ -540,12 +564,7 @@
 
     switchPoem(startIndex);
     setProgress(0);
-
-    poemTimer = window.setInterval(function () {
-      startIndex += 1;
-      switchPoem(startIndex);
-    }, 1800);
-
+    poemTimer = window.setInterval(function () { startIndex += 1; switchPoem(startIndex); }, 1800);
     var startTime = Date.now();
     var progressTimer = window.setInterval(function () {
       if (progress >= 88) return;
@@ -570,6 +589,129 @@
     });
   }
 
+  function getRoutePage(url) {
+    var pathname = normalizePath(url.pathname);
+    if (pathname === '/' || pathname === '/index.html' || /\/index\.html$/i.test(pathname)) return 'home';
+    if (pathname === '/post.html' || /\/post\.html$/i.test(pathname)) return 'post';
+    if (pathname === '/comments.html' || /\/comments\.html$/i.test(pathname)) return 'comments';
+    return '';
+  }
+
+  function normalizePath(pathname) {
+    return ('/' + String(pathname || '/').replace(/^\/+/, '')).replace(/\/+/g, '/');
+  }
+
+  function shouldInterceptLink(event, anchor) {
+    if (!anchor || event.defaultPrevented) return false;
+    if (event.button != null && event.button !== 0) return false;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+    if (anchor.target && anchor.target !== '_self') return false;
+    if (anchor.hasAttribute('download')) return false;
+    var rawHref = anchor.getAttribute('href') || '';
+    if (!rawHref || /^(mailto:|tel:|javascript:)/i.test(rawHref)) return false;
+    var url = new URL(anchor.href, window.location.href);
+    if (url.origin !== window.location.origin) return false;
+    var path = normalizePath(url.pathname);
+    if (/\/(五子棋|中国象棋ai|你画我猜)\.html$/i.test(path)) return false;
+    if (rawHref.charAt(0) === '#') {
+      if (rawHref.length < 2) return false;
+      return getRoutePage(new URL(window.location.href)) === 'home' && !!document.getElementById(decodeURIComponent(rawHref.slice(1)));
+    }
+    return !!getRoutePage(url);
+  }
+
+  async function navigate(href, options) {
+    options = options || {};
+    var targetUrl = new URL(href, window.location.href);
+    var page = getRoutePage(targetUrl);
+    if (!page) {
+      window.location.href = targetUrl.href;
+      return;
+    }
+
+    var currentUrl = new URL(window.location.href);
+    if (sameRouteExceptHash(currentUrl, targetUrl)) {
+      if (!options.fromPopstate && targetUrl.href !== currentUrl.href) history.pushState({ siteRoute: true, url: targetUrl.href }, '', targetUrl.href);
+      closeMobileMenu();
+      scrollAfterNavigation(targetUrl);
+      return;
+    }
+
+    var seq = ++navSeq;
+    try {
+      var response = await fetch(targetUrl.href, { headers: { 'X-Requested-With': 'site-spa' } });
+      if (!response.ok) throw new Error('Route request failed');
+      var html = await response.text();
+      if (seq !== navSeq) return;
+      var nextDoc = new DOMParser().parseFromString(html, 'text/html');
+      renderRoute(nextDoc, targetUrl);
+      if (!options.fromPopstate) {
+        if (options.replace) history.replaceState({ siteRoute: true, url: targetUrl.href }, '', targetUrl.href);
+        else history.pushState({ siteRoute: true, url: targetUrl.href }, '', targetUrl.href);
+      }
+      initRoute(page, seq);
+      scrollAfterNavigation(targetUrl);
+    } catch (error) {
+      window.location.href = targetUrl.href;
+    }
+  }
+
+  function sameRouteExceptHash(a, b) {
+    return normalizePath(a.pathname) === normalizePath(b.pathname) && a.search === b.search;
+  }
+
+  function renderRoute(nextDoc, targetUrl) {
+    cleanupRoute();
+    var currentRoute = document.getElementById('siteRoute') || document.querySelector('main.shell-inner.page-grid');
+    var nextRoute = nextDoc.getElementById('siteRoute') || nextDoc.querySelector('main.shell-inner.page-grid');
+    if (!currentRoute || !nextRoute) throw new Error('Route container missing');
+    currentRoute.replaceWith(document.importNode(nextRoute, true));
+    document.body.dataset.page = getRoutePage(targetUrl);
+    document.title = nextDoc.title || document.title;
+    closeMobileMenu();
+    updateScrollProgress();
+  }
+
+  function initRoute(page, seq) {
+    var loadPromise = Promise.resolve();
+    if (page === 'home') {
+      loadPromise = loadHome();
+      setupXiaowuParallax();
+    } else if (page === 'post') {
+      loadPromise = loadArticle(seq);
+      setupCopyLink();
+    } else if (page === 'comments' && window.SiteComments && typeof window.SiteComments.mountComments === 'function') {
+      window.SiteComments.mountComments();
+    }
+    if (window.requestAnimationFrame) {
+      window.requestAnimationFrame(function () { setupStaggerReveal(); });
+    }
+    return loadPromise;
+  }
+
+  function scrollAfterNavigation(url) {
+    window.requestAnimationFrame(function () {
+      if (url.hash) scrollToHash(url.hash);
+      else window.scrollTo({ top: 0, behavior: 'auto' });
+      updateScrollProgress();
+    });
+  }
+
+  function scrollToHash(hash) {
+    if (!hash) return;
+    var id = decodeURIComponent(hash.slice(1));
+    var target = document.getElementById(id);
+    if (!target) return;
+    var headerH = header ? header.offsetHeight : 0;
+    var top = target.getBoundingClientRect().top + window.scrollY - headerH - 12;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }
+
+  function closeMobileMenu() {
+    if (header) header.classList.remove('open');
+    if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
+  }
+
   applyTheme(getTheme());
 
   if (themeToggle) {
@@ -591,22 +733,28 @@
   }, { passive: true });
 
   document.addEventListener('click', function (event) {
+    var anchor = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+    if (anchor && shouldInterceptLink(event, anchor)) {
+      event.preventDefault();
+      navigate(anchor.href);
+      return;
+    }
     if (!header || !header.classList.contains('open')) return;
     if (header.contains(event.target)) return;
-    header.classList.remove('open');
-    if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
+    closeMobileMenu();
   });
 
-  var homeLoadPromise = Promise.resolve();
-  if (page === 'home') {
-    homeLoadPromise = loadHome();
-    setupPageLoader(homeLoadPromise);
-  }
-  if (page === 'post') { loadArticle(); setupCopyLink(); }
+  window.addEventListener('popstate', function () {
+    navigate(window.location.href, { fromPopstate: true, replace: true });
+  });
 
-  if (window.requestAnimationFrame) {
-    window.requestAnimationFrame(function () { setupStaggerReveal(); });
-  }
+  history.replaceState({ siteRoute: true, url: window.location.href }, '', window.location.href);
 
-  setupXiaowuParallax();
+  var homeLoadPromise = initRoute(initialPage, ++navSeq);
+  if (initialPage === 'home') setupPageLoader(homeLoadPromise);
+
+  window.SiteApp = {
+    navigate: navigate,
+    initRoute: initRoute
+  };
 })();

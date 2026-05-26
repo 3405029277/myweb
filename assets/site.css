@@ -1,6 +1,4 @@
-﻿@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;700;900&display=swap");
-
-:root {
+﻿:root {
   color-scheme: light;
   --bg: #fdf7fa;
   --surface: #fffefe;
@@ -71,6 +69,12 @@ body {
   background: var(--bg);
   line-height: 1.72;
   letter-spacing: 0;
+  font-size: 16px;
+}
+
+input,
+select,
+textarea {
   font-size: 16px;
 }
 
@@ -1357,5 +1361,111 @@ button {
   .prose pre code {
     font-size: 13px;
     line-height: 1.4;
+  }
+}
+
+.auth-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  cursor: pointer;
+}
+
+.auth-tab.is-active {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.auth-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-account .auth-modal-actions {
+  margin-top: 8px;
+}
+
+.auth-error {
+  min-height: 18px;
+  margin: 0;
+  color: #b94058;
+  font-size: 13px;
+}
+
+.button-link {
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.auth-cta-row {
+  margin-top: 10px;
+}
+
+@media (max-width: 480px) {
+  .shell-inner {
+    width: min(calc(100% - 16px), var(--container));
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hero-actions .button {
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .auth-modal-actions {
+    flex-direction: column;
+  }
+
+  .auth-modal-actions .button {
+    width: 100%;
+  }
+
+  .auth-modal-card {
+    padding: 16px;
+  }
+
+  .brand-copy span {
+    display: none;
+  }
+
+  .cover-mark {
+    font-size: 26px;
+  }
+
+  .comment-compose-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

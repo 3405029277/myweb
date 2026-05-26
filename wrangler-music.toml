@@ -1,0 +1,9 @@
+name = "site-music-proxy"
+main = "cloudflare-music-worker.js"
+compatibility_date = "2026-05-25"
+
+[vars]
+KARPOV_GATEWAY_BASE_URL = "https://ldc.karpov.cn"
+KARPOV_MUSIC_PROVIDER = "netease"
+KARPOV_MUSIC_PLAYLIST_ID = "2668671168"
+KARPOV_MUSIC_QUALITY = "MP3_320"
