@@ -1712,7 +1712,8 @@ body > #backToTopBtn {
   .site-nav { display: none; }
   .mobile-only { display: inline-flex; }
 
-  .profile-avatar-wrap {
+  a.profile-avatar-wrap,
+  .author-card .profile-avatar-wrap {
     width: 6rem;
     max-width: 6rem;
   }
