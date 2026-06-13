@@ -11,6 +11,9 @@ npm test               # run all four test suites (see below)
 npm run new:post -- "标题"   # scaffold a new posts/*.md article
 npm run import:posts         # import existing markdown into posts/
 npm run deploy:music-worker  # wrangler deploy -c wrangler-music.toml
+
+# ⚠️ 每次改动前必须备份
+./backup-before-change.sh "改动描述"  # 创建 git stash + 物理备份
 ```
 
 `npm test` chains four files and stops at the first failure:
@@ -50,3 +53,38 @@ The test also pins specific player behaviors (no autoplay, native mini mode, laz
 - ESM throughout (`"type": "module"`). `.env` is loaded by a hand-rolled `loadEnvFile` in `server.js`, not dotenv.
 - Imported Typora images must not keep `C:\Users\...` or `file:///` paths — copy to `assets/` and use relative paths (`import-posts.mjs` handles this).
 - `backup-before-*` directories are throwaway snapshots; ignore them.
+
+## Backup Workflow
+
+**⚠️ MANDATORY: Backup before every change**
+
+```bash
+# 1. 改动前备份
+./backup-before-change.sh "你要做的改动描述"
+
+# 2. 进行修改...
+
+# 3. 改完测试
+npm test
+
+# 4. 测试通过后提交
+git add -A
+git commit -m "改动描述"
+
+# 5. 提交后可删除对应备份
+rm -rf backups/backup-YYYYMMDD-HHMMSS/
+```
+
+**恢复方法：**
+```bash
+# 查看所有备份
+git stash list
+
+# 恢复最新备份
+git stash apply stash@{0}
+
+# 或从物理备份恢复
+cp -r backups/backup-20260612-143025/* .
+```
+
+详见 `backups/README.md`
