@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="文章详情">
+  <meta name="theme-color" content="#0b0d14">
+  <title>文章详情 | cjx 知微录</title>
+  <link rel="icon" href="assets/favicon.png">
+  <script>(function(){try{document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark';document.documentElement.dataset.wallpaperMode=localStorage.getItem('wallpaperMode')||'banner';document.documentElement.dataset.listLayout=localStorage.getItem('postListLayout')||'list';document.documentElement.style.setProperty('--hue',localStorage.getItem('hue')||'275')}catch(e){}})();</script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;700;900&display=swap">
+  <link rel="stylesheet" href="assets/site.css?v=20260610-mizuki">
+  <link rel="stylesheet" href="assets/vendor/aplayer/APlayer.min.css">
+  <link rel="stylesheet" href="assets/music-player.css?v=22">
+</head>
+<body data-page="post">
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <div class="site-shell">
+    <header class="site-header" id="siteHeader">
+      <div class="nav-row shell-inner">
+        <a class="brand" href="index.html"><img class="brand-logo" src="assets/logo.png" alt="logo"><strong>cjx 知微录</strong></a>
+        <nav class="site-nav" id="siteNav"><a href="index.html">主页</a><a href="archive.html">归档</a><a href="index.html#projects">项目</a><a href="links.html">链接</a><a href="comments.html">留言</a><a href="about.html">关于</a></nav>
+        <div class="nav-actions"><button class="icon-button" data-open-search type="button" aria-label="Search">⌕</button><button class="icon-button" data-open-settings type="button" aria-label="Display Settings">◐</button><button class="icon-button" id="themeToggle" type="button" aria-label="Light/Dark Mode"><svg id="iconSun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/></svg><svg id="iconMoon" viewBox="0 0 24 24" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button><button class="icon-button mobile-only" id="menuToggle" type="button" aria-label="Menu">☰</button></div>
+      </div>
+    </header>
+    <section class="article-cover" id="articleCover"><div><p id="articleCategory">Loading</p><h1 id="articleTitle">正在加载文章…</h1><div class="article-meta" id="articleMeta"></div></div></section>
+    <div class="search-panel site-modal" id="searchPanel" hidden><div class="modal-backdrop"></div><section class="modal-card"><button class="modal-close" data-close-search type="button">×</button><h2>搜索文章</h2><input id="searchInput" type="search" placeholder="输入关键词"><div class="search-results" id="searchResults"></div></section></div>
+    <div class="display-panel site-modal" id="displaySettings" hidden><div class="modal-backdrop"></div><section class="modal-card"><button class="modal-close" data-close-settings type="button">×</button><h2>显示设置</h2><label>主题色相 <input id="hueRange" type="range" min="0" max="360" value="275"></label><div class="setting-grid"><button data-wallpaper="banner" type="button">横幅模式</button><button data-wallpaper="full" type="button">全屏模式</button><button data-wallpaper="hidden" type="button">隐藏壁纸</button><button data-layout="list" type="button">列表</button><button data-layout="grid" type="button">网格</button></div></section></div>
+    <main id="siteRoute" class="shell-inner page-grid">
+      <aside class="left-rail">
+        <section class="panel author-card"><div class="profile-avatar-wrap"><img class="sidebar-avatar" src="assets/avatar.jpg" alt="头像"></div><h2>阅读中</h2><p>愿每次记录都让下一次思考更清晰。</p></section>
+        <section class="panel"><h3>快捷入口</h3><div class="quick-grid"><a href="index.html">首页</a><a href="archive.html">归档</a><a href="comments.html">留言</a><a href="links.html">友链</a></div></section>
+      </aside>
+      <section class="main-column">
+        <article class="article-card">
+          <div class="article-topline"><a class="back-link" href="archive.html">← 返回归档</a><button class="button" type="button" data-open-search>搜索</button></div>
+          <section class="mobile-toc-panel"><h3>阅读地图</h3><nav id="articleTocMobile"></nav></section>
+          <div class="prose" id="articleContent"></div>
+        </article>
+      </section>
+      <aside class="right-rail">
+        <section class="panel toc-card"><h3>目录</h3><nav id="articleToc"></nav></section>
+        <section class="panel"><h3>最近文章</h3><div class="list-rows" id="latestList"></div></section>
+      </aside>
+    </main>
+    <footer class="site-footer"><p>© 2026 cjx 知微录</p></footer>
+  </div>
+  <div class="floating-control">
+    <button class="floating-btn" id="floating-toc-btn" type="button" aria-label="Table of Contents">☷</button>
+    <button class="floating-btn hide" id="backToTopBtn" data-back-top type="button" aria-label="Back to Top">↑</button>
+  </div>
+  <aside class="floating-toc-panel" id="floatingTocPanel" hidden><h3>目录</h3><nav id="articleTocFloating"></nav></aside>
+  <script src="assets/posts-manifest.js?v=20260610-mizuki"></script>
+  <script src="assets/vendor/aplayer/APlayer.min.js"></script>
+  <script src="assets/vendor/meting/Meting.min.js"></script>
+  <script src="assets/music-config.js?v=3"></script>
+  <script src="assets/music-player.js?v=29"></script>
+  <script src="assets/site.js?v=20260610-mizuki"></script>
+  <script defer src="supabase_all_in_one.jwt.js?v=12"></script>
+</body>
+</html>

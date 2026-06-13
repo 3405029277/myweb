@@ -1,10 +1,10 @@
-ï»¿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>åœ¨çº¿äº”å­æ£‹ Gomokuï¼ˆ17è·¯Â·é¢„è½å­Â·æ›´å¼ºAIÂ·è®¡æ—¶ï¼‰</title>
+  <title>ÔÚÏßÎå×ÓÆå Gomoku£¨17Â·¡¤Ô¤Âä×Ó¡¤¸üÇ¿AI¡¤¼ÆÊ±£©</title>
   <style>
     :root {
       color-scheme: dark;
@@ -26,7 +26,7 @@
     #wrap {
       min-height: 100vh;
       min-height: 100dvh;
-      /* âœ… å…³é”®ï¼šä½¿ç”¨åŠ¨æ€è§†å£é«˜åº¦ */
+      /* ? ¹Ø¼ü£ºÊ¹ÓÃ¶¯Ì¬ÊÓ¿Ú¸ß¶È */
       display: grid;
       grid-template-rows: auto 1fr;
     }
@@ -331,46 +331,46 @@
   <div id="wrap">
     <header>
       <div class="left">
-        <div class="title">åœ¨çº¿äº”å­æ£‹ï¼ˆ17Ã—17 Â· ç»¿è‰²é¢„è½å­ Â· æ¯æ­¥60ç§’ï¼‰</div>
-        <div class="hint">äººæœºå¯é€‰æ‰§é»‘/ç™½ï¼›é»‘145ç™½144ï¼›ç‚¹å‡»ä¸€æ¬¡é¢„è§ˆï¼Œå†ç‚¹åŒæ ¼è½å­ã€‚</div>
+        <div class="title">ÔÚÏßÎå×ÓÆå£¨17¡Á17 ¡¤ ÂÌÉ«Ô¤Âä×Ó ¡¤ Ã¿²½60Ãë£©</div>
+        <div class="hint">ÈË»ú¿ÉÑ¡Ö´ºÚ/°×£»ºÚ145°×144£»µã»÷Ò»´ÎÔ¤ÀÀ£¬ÔÙµãÍ¬¸ñÂä×Ó¡£</div>
       </div>
       <div class="mobile-status" id="mobileStatus">
-        <span id="mobileTurn">å›åˆï¼šé»‘</span>
-        <span id="mobileTimer">å‰©ä½™ï¼š60s</span>
-        <span id="mobileRoom">æˆ¿é—´ï¼š-</span>
+        <span id="mobileTurn">»ØºÏ£ººÚ</span>
+        <span id="mobileTimer">Ê£Óà£º60s</span>
+        <span id="mobileRoom">·¿¼ä£º-</span>
       </div>
 
       <div class="right mobile-drawer">
-        <span class="pill" id="turn">å›åˆï¼šé»‘</span>
-        <span class="pill" id="timer">å‰©ä½™ï¼š60s</span>
+        <span class="pill" id="turn">»ØºÏ£ººÚ</span>
+        <span class="pill" id="timer">Ê£Óà£º60s</span>
 
-        <span class="pill" id="remainB">é»‘å‰©ï¼š145</span>
-        <span class="pill" id="remainW">ç™½å‰©ï¼š144</span>
-        <span class="pill" id="roleBadge">èº«ä»½ï¼š-</span>
-        <span class="pill" id="roomCount">æˆ¿é—´ï¼š-</span>
+        <span class="pill" id="remainB">ºÚÊ££º145</span>
+        <span class="pill" id="remainW">°×Ê££º144</span>
+        <span class="pill" id="roleBadge">Éí·İ£º-</span>
+        <span class="pill" id="roomCount">·¿¼ä£º-</span>
 
 
         <label class="pill" style="display:flex;gap:6px;align-items:center">
-          æ¨¡å¼
+          Ä£Ê½
           <select id="mode">
-            <option value="pvp">åŒäººå¯¹å¼ˆ</option>
-            <option value="ai">äººæœºå¯¹æˆ˜</option>
+            <option value="pvp">Ë«ÈË¶ÔŞÄ</option>
+            <option value="ai">ÈË»ú¶ÔÕ½</option>
           </select>
         </label>
 
         <label class="pill" id="sideWrap" style="display:flex;gap:6px;align-items:center">
-          ä½ æ‰§
+          ÄãÖ´
           <select id="side">
-            <option value="black">é»‘ï¼ˆå…ˆæ‰‹ï¼‰</option>
-            <option value="white">ç™½ï¼ˆåæ‰‹ï¼‰</option>
+            <option value="black">ºÚ£¨ÏÈÊÖ£©</option>
+            <option value="white">°×£¨ºóÊÖ£©</option>
           </select>
         </label>
 
-        <button id="undo">æ‚”æ£‹</button>
-        <button id="restart">ç”³è¯·é‡å¼€</button>
-        <button id="copyLink">å¤åˆ¶æˆ¿é—´é“¾æ¥</button>
-        <button id="swapSide">å¼€å§‹å‰æ¢é»‘ç™½</button>
-        <button id="rematch">å†æ¥ä¸€å±€</button>
+        <button id="undo">»ÚÆå</button>
+        <button id="restart">ÉêÇëÖØ¿ª</button>
+        <button id="copyLink">¸´ÖÆ·¿¼äÁ´½Ó</button>
+        <button id="swapSide">¿ªÊ¼Ç°»»ºÚ°×</button>
+        <button id="rematch">ÔÙÀ´Ò»¾Ö</button>
 
 
       </div>
@@ -396,21 +396,21 @@
 
   <script>
     (() => {
-      // ===== 17è·¯æ£‹ç›˜ =====
+      // ===== 17Â·ÆåÅÌ =====
       const SIZE = 17;
       const EMPTY = 0, BLACK = 1, WHITE = 2;
 
-      // ===== æ£‹å­æ€»æ•°ï¼ˆ17 è·¯é…ç½®ï¼šé»‘ 145 ç™½ 144ï¼‰=====
+      // ===== Æå×Ó×ÜÊı£¨17 Â·ÅäÖÃ£ººÚ 145 °× 144£©=====
       const MAX_BLACK = 145;
       const MAX_WHITE = 144;
 
-      // ===== è®¡æ—¶ =====
+      // ===== ¼ÆÊ± =====
       const MOVE_LIMIT_SEC = 60;
 
-      // ===== AI å¼ºåº¦å‚æ•°ï¼ˆè¶Šå¤§è¶Šå¼ºä½†æ›´è€—æ€§èƒ½ï¼‰=====
-      const SEARCH_DEPTH = 3;       // 3ï¼šæ˜æ˜¾å¼ºäºå•æ­¥ï¼›æ‰‹æœºä¹Ÿèƒ½è·‘
-      const CAND_LIMIT = 12;      // æ¯å±‚ä¿ç•™å€™é€‰ç‚¹æ•°é‡ï¼ˆè¶Šå¤§è¶Šå¼ºä½†æ›´æ…¢ï¼‰
-      const NEAR_RANGE = 2;       // åªè€ƒè™‘è·ç¦»å·²æœ‰æ£‹å­ NEAR_RANGE èŒƒå›´å†…çš„ç©ºç‚¹
+      // ===== AI Ç¿¶È²ÎÊı£¨Ô½´óÔ½Ç¿µ«¸üºÄĞÔÄÜ£©=====
+      const SEARCH_DEPTH = 3;       // 3£ºÃ÷ÏÔÇ¿ÓÚµ¥²½£»ÊÖ»úÒ²ÄÜÅÜ
+      const CAND_LIMIT = 12;      // Ã¿²ã±£ÁôºòÑ¡µãÊıÁ¿£¨Ô½´óÔ½Ç¿µ«¸üÂı£©
+      const NEAR_RANGE = 2;       // Ö»¿¼ÂÇ¾àÀëÒÑÓĞÆå×Ó NEAR_RANGE ·¶Î§ÄÚµÄ¿Õµã
 
       const canvas = document.getElementById('c');
       const gameEl = document.getElementById('game');
@@ -467,60 +467,60 @@
 
 
       const net = new OnlineClient({
-        // âœ… å»ºè®®ï¼šwsBase æ”¯æŒæ•°ç»„ï¼Œå›½å†…/æµ·å¤–åŒçº¿è·¯å…œåº•ï¼ˆå¯æŒ‰ä½ è‡ªå·±çš„åŸŸåæ›¿æ¢ï¼‰
-        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://ä½ çš„å›½å†…çº¿è·¯åŸŸå"],
+        // ? ½¨Òé£ºwsBase Ö§³ÖÊı×é£¬¹úÄÚ/º£ÍâË«ÏßÂ·¶µµ×£¨¿É°´Äã×Ô¼ºµÄÓòÃûÌæ»»£©
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://ÄãµÄ¹úÄÚÏßÂ·ÓòÃû"],
         wsBase: "wss://ws.cjx88.eu.cc",
-        wsPath: "/ws", // äº”å­æ£‹ç”¨ /wsï¼ˆæƒå¨ï¼‰
-        tokenKeyPrefix: "gm_token", // âœ… å…³é”®ï¼šåˆ·æ–°/æ–­çº¿é‡è¿ä¹Ÿèƒ½â€œç»­åº§â€
+        wsPath: "/ws", // Îå×ÓÆåÓÃ /ws£¨È¨Íş£©
+        tokenKeyPrefix: "gm_token", // ? ¹Ø¼ü£ºË¢ĞÂ/¶ÏÏßÖØÁ¬Ò²ÄÜ¡°Ğø×ù¡±
         connectTimeoutMs: 8000,
         onStatus: (s) => {
-          // online.js ä¼šåŒæ—¶å›è°ƒ object + stringï¼Œè¿™é‡Œç»Ÿä¸€å…¼å®¹
+          // online.js »áÍ¬Ê±»Øµ÷ object + string£¬ÕâÀïÍ³Ò»¼æÈİ
           const status = (typeof s === "string") ? s : (s && s.status) || "";
-          if (status === "connecting") toast("æ­£åœ¨è¿æ¥è”æœºâ€¦");
-          if (status === "connected") toast("è”æœºå·²è¿æ¥");
-          if (status === "timeout") toast("è”æœºè¿æ¥è¶…æ—¶ï¼Œæ­£åœ¨åˆ‡æ¢çº¿è·¯/é‡è¿â€¦");
-          if (status === "disconnected") toast("è”æœºæ–­å¼€ï¼Œæ­£åœ¨é‡è¿â€¦");
-          if (status === "error") toast("è”æœºé”™è¯¯");
+          if (status === "connecting") toast("ÕıÔÚÁ¬½ÓÁª»ú¡­");
+          if (status === "connected") toast("Áª»úÒÑÁ¬½Ó");
+          if (status === "timeout") toast("Áª»úÁ¬½Ó³¬Ê±£¬ÕıÔÚÇĞ»»ÏßÂ·/ÖØÁ¬¡­");
+          if (status === "disconnected") toast("Áª»ú¶Ï¿ª£¬ÕıÔÚÖØÁ¬¡­");
+          if (status === "error") toast("Áª»ú´íÎó");
         },
         onPresence: (n) => {
-          roomCountEl.textContent = `æˆ¿é—´ï¼š${n}äºº`;
+          roomCountEl.textContent = `·¿¼ä£º${n}ÈË`;
           syncMobileStatus();
         },
         onRole: (role) => {
           roleBadgeEl.textContent =
-            role === 1 ? "èº«ä»½ï¼šé»‘" : role === 2 ? "èº«ä»½ï¼šç™½" : "èº«ä»½ï¼šè§‚æˆ˜";
+            role === 1 ? "Éí·İ£ººÚ" : role === 2 ? "Éí·İ£º°×" : "Éí·İ£º¹ÛÕ½";
           updateGameButtons();
         },
         onMessage: (msg) => {
 
           if (msg.type === "reject") {
-            toast(msg.reason || "æ“ä½œæ— æ•ˆ");
+            toast(msg.reason || "²Ù×÷ÎŞĞ§");
             return;
           }
 
-          // === äº¤æ¢é»‘ç™½åï¼šåç«¯ä¼šå®šå‘å‘ä½ æ˜¯è° ===
+          // === ½»»»ºÚ°×ºó£ººó¶Ë»á¶¨Ïò·¢ÄãÊÇË­ ===
           if (msg.type === "role") {
             net.role = (msg.you ?? msg.role ?? 0);
 
             roleBadgeEl.textContent =
-              net.role === 1 ? "èº«ä»½ï¼šé»‘" : net.role === 2 ? "èº«ä»½ï¼šç™½" : "èº«ä»½ï¼šè§‚æˆ˜";
+              net.role === 1 ? "Éí·İ£ººÚ" : net.role === 2 ? "Éí·İ£º°×" : "Éí·İ£º¹ÛÕ½";
             updateGameButtons();
             return;
           }
 
-          // === æœ‰äººå‘èµ·â€œæ¢é»‘ç™½â€ ===
+          // === ÓĞÈË·¢Æğ¡°»»ºÚ°×¡± ===
           if (msg.type === "swap_pending") {
-            toast("å¯¹æ–¹è¯·æ±‚æ¢é»‘ç™½ï¼šä½ ä¹Ÿç‚¹ä¸€ä¸‹å³å¯åŒæ„");
+            toast("¶Ô·½ÇëÇó»»ºÚ°×£ºÄãÒ²µãÒ»ÏÂ¼´¿ÉÍ¬Òâ");
             return;
           }
 
-          // === æœ‰äººå‘èµ·â€œå†æ¥ä¸€å±€â€ ===
+          // === ÓĞÈË·¢Æğ¡°ÔÙÀ´Ò»¾Ö¡± ===
           if (msg.type === "rematch_pending") {
-            toast("å¯¹æ–¹è¯·æ±‚å†æ¥ä¸€å±€ï¼šä½ ä¹Ÿç‚¹ä¸€ä¸‹å³å¯å¼€å§‹");
+            toast("¶Ô·½ÇëÇóÔÙÀ´Ò»¾Ö£ºÄãÒ²µãÒ»ÏÂ¼´¿É¿ªÊ¼");
             return;
           }
 
-          // === æ–°å±€çŠ¶æ€ï¼ˆå†æ¥ä¸€å±€æˆåŠŸåå¹¿æ’­ï¼‰===
+          // === ĞÂ¾Ö×´Ì¬£¨ÔÙÀ´Ò»¾Ö³É¹¦ºó¹ã²¥£©===
           if (msg.type === "state") {
             stopTimer();
             board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
@@ -531,7 +531,7 @@
 
             for (const m of (msg.moves || [])) {
               current = m.p;
-              doPlace(m.r, m.c, true); // å›æ”¾ silent
+              doPlace(m.r, m.c, true); // »Ø·Å silent
             }
 
             gameOver = !!msg.gameOver;
@@ -542,14 +542,14 @@
             draw();
             startTurnTimer();
 
-            toast("æ–°ä¸€å±€å¼€å§‹ï¼");
+            toast("ĞÂÒ»¾Ö¿ªÊ¼£¡");
             updateGameButtons();
             return;
           }
 
-          // === ä½ åŸæ¥çš„ initï¼ˆä¿ç•™ï¼‰===
+          // === ÄãÔ­À´µÄ init£¨±£Áô£©===
           if (msg.type === "init") {
-            // é‡ç½®ç›˜é¢ + å›æ”¾å†å²ï¼ˆä¸ nextTurnï¼‰
+            // ÖØÖÃÅÌÃæ + »Ø·ÅÀúÊ·£¨²» nextTurn£©
             stopTimer();
             board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
             moves = [];
@@ -559,9 +559,9 @@
 
             for (const m of (msg.moves || [])) {
               current = m.p;
-              doPlace(m.r, m.c, true); // âœ… å›æ”¾ç”¨ silent
+              doPlace(m.r, m.c, true); // ? »Ø·ÅÓÃ silent
             }
-            gameOver = !!msg.gameOver; // âœ… ä»¥æœåŠ¡å™¨çŠ¶æ€ä¸ºå‡†
+            gameOver = !!msg.gameOver; // ? ÒÔ·şÎñÆ÷×´Ì¬Îª×¼
 
             current = msg.current || current;
             updateTurn();
@@ -572,13 +572,13 @@
             return;
           }
 
-          // === ä½ åŸæ¥çš„ moveï¼ˆä¿ç•™ï¼‰===
+          // === ÄãÔ­À´µÄ move£¨±£Áô£©===
           if (msg.type === "move") {
             current = msg.p;
             if (!doPlace(msg.r, msg.c)) return;
 
             if (msg.win) {
-              endGame(msg.win, `${colorName(msg.win)}èƒœï¼`);
+              endGame(msg.win, `${colorName(msg.win)}Ê¤£¡`);
               return;
             }
 
@@ -596,8 +596,8 @@
 
       copyLinkBtn.addEventListener("click", () => {
         net.copyLink()
-          .then(() => toast("æˆ¿é—´é“¾æ¥å·²å¤åˆ¶"))
-          .catch(() => toast("å¤åˆ¶å¤±è´¥ï¼Œè¯·æ‰‹åŠ¨å¤åˆ¶åœ°å€æ "));
+          .then(() => toast("·¿¼äÁ´½ÓÒÑ¸´ÖÆ"))
+          .catch(() => toast("¸´ÖÆÊ§°Ü£¬ÇëÊÖ¶¯¸´ÖÆµØÖ·À¸"));
       });
 
 
@@ -610,11 +610,11 @@
 
 
 
-      // é€‰è¾¹ï¼šäººæœºæ¨¡å¼ä¸‹æœ‰æ•ˆ
+      // Ñ¡±ß£ºÈË»úÄ£Ê½ÏÂÓĞĞ§
       let humanColor = BLACK;
       let aiColor = WHITE;
 
-      // è®¡æ—¶
+      // ¼ÆÊ±
       let timeLeft = MOVE_LIMIT_SEC;
       let timerId = null;
 
@@ -628,7 +628,7 @@
 
 
 
-      function colorName(p) { return p === BLACK ? "é»‘" : "ç™½"; }
+      function colorName(p) { return p === BLACK ? "ºÚ" : "°×"; }
       function other(p) { return p === BLACK ? WHITE : BLACK; }
 
       function setSideFromUI() {
@@ -646,16 +646,16 @@
         return (color === BLACK ? MAX_BLACK : MAX_WHITE) - used;
       }
       function updateRemainUI() {
-        remainBEl.textContent = `é»‘å‰©ï¼š${remainCount(BLACK)}`;
-        remainWEl.textContent = `ç™½å‰©ï¼š${remainCount(WHITE)}`;
+        remainBEl.textContent = `ºÚÊ££º${remainCount(BLACK)}`;
+        remainWEl.textContent = `°×Ê££º${remainCount(WHITE)}`;
       }
 
       function updateTurn(extra = "") {
-        turnEl.textContent = `å›åˆï¼š${colorName(current)}${extra}`;
+        turnEl.textContent = `»ØºÏ£º${colorName(current)}${extra}`;
         syncMobileStatus();
       }
       function updateTimerUI() {
-        timerEl.textContent = `å‰©ä½™ï¼š${timeLeft}s`;
+        timerEl.textContent = `Ê£Óà£º${timeLeft}s`;
         syncMobileStatus();
       }
       function stopTimer() {
@@ -667,8 +667,8 @@
         gameOver = true;
         aiThinking = false;
         stopTimer();
-        updateTurn("ï¼ˆç»“æŸï¼‰");
-        toast(msg || `${colorName(winner)}èƒœï¼`);
+        updateTurn("£¨½áÊø£©");
+        toast(msg || `${colorName(winner)}Ê¤£¡`);
         updateGameButtons();
 
       }
@@ -687,7 +687,7 @@
           if (timeLeft <= 0) {
             stopTimer();
             const winner = other(current);
-            endGame(winner, `${colorName(current)}è¶…æ—¶ï¼${colorName(winner)}èƒœ`);
+            endGame(winner, `${colorName(current)}³¬Ê±£¡${colorName(winner)}Ê¤`);
           }
         }, 1000);
       }
@@ -696,10 +696,10 @@
   const isPvp = modeEl.value !== "ai";
   const isPlayer = (net.role === 1 || net.role === 2);
 
-  // æ¢è¾¹åªèƒ½åœ¨ç¬¬ä¸€æ‰‹ä¹‹å‰ç”³è¯·
+  // »»±ßÖ»ÄÜÔÚµÚÒ»ÊÖÖ®Ç°ÉêÇë
   swapBtn.disabled = !isPvp || !isPlayer || gameOver || moves.length !== 0;
 
-  // é‡å¼€ç°åœ¨éšæ—¶éƒ½èƒ½ç”³è¯·ï¼Œç»“æŸåä¹Ÿå¯ä»¥ç›´æ¥ç‚¹
+  // ÖØ¿ªÏÖÔÚËæÊ±¶¼ÄÜÉêÇë£¬½áÊøºóÒ²¿ÉÒÔÖ±½Óµã
   restartBtn.disabled = isPvp && !isPlayer;
   rematchBtn.disabled = isPvp && !isPlayer;
 }
@@ -711,7 +711,7 @@
 
         board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
         moves = [];
-        current = BLACK;       // é»‘å…ˆ
+        current = BLACK;       // ºÚÏÈ
         gameOver = false;
         aiThinking = false;
 
@@ -721,12 +721,12 @@
         startTurnTimer();
 
         if (modeEl.value === "ai") {
-          net.close(); // âœ… äººæœºï¼šå½»åº•æ–­è”æœº+åœæ­¢é‡è¿
-          toast(`äººæœºï¼šä½ æ‰§${colorName(humanColor)}ï¼ˆé»‘145ç™½144 / æ¯æ­¥${MOVE_LIMIT_SEC}sï¼‰`);
+          net.close(); // ? ÈË»ú£º³¹µ×¶ÏÁª»ú+Í£Ö¹ÖØÁ¬
+          toast(`ÈË»ú£ºÄãÖ´${colorName(humanColor)}£¨ºÚ145°×144 / Ã¿²½${MOVE_LIMIT_SEC}s£©`);
           if (current === aiColor) aiMove();
         } else {
-          toast(`åŒäººå¯¹å¼ˆï¼šé»‘å…ˆï¼ˆé»‘145ç™½144 / æ¯æ­¥${MOVE_LIMIT_SEC}sï¼‰`);
-          net.autoReconnect = true; // âœ… å¯é€‰ï¼šç¡®ä¿å›åˆ°PVPä¼šè‡ªåŠ¨é‡è¿
+          toast(`Ë«ÈË¶ÔŞÄ£ººÚÏÈ£¨ºÚ145°×144 / Ã¿²½${MOVE_LIMIT_SEC}s£©`);
+          net.autoReconnect = true; // ? ¿ÉÑ¡£ºÈ·±£»Øµ½PVP»á×Ô¶¯ÖØÁ¬
           net.connect();
         }
 
@@ -736,16 +736,16 @@
       }
 
 
-      // âœ… â€œé‡å¼€â€æŒ‰é’®ï¼šäººæœº=ç›´æ¥é‡å¼€ï¼›è”æœº=å¯¹å±€ç»“æŸåå‘èµ·â€œå†æ¥ä¸€å±€â€ï¼ˆé¿å…æœ¬åœ°æ¸…ç©ºååˆè¢«æœåŠ¡å™¨æ—§æ£‹è°±è¦†ç›–ï¼‰
+      // ? ¡°ÖØ¿ª¡±°´Å¥£ºÈË»ú=Ö±½ÓÖØ¿ª£»Áª»ú=¶Ô¾Ö½áÊøºó·¢Æğ¡°ÔÙÀ´Ò»¾Ö¡±£¨±ÜÃâ±¾µØÇå¿ÕºóÓÖ±»·şÎñÆ÷¾ÉÆåÆ×¸²¸Ç£©
             function requestRematch() {
         if (modeEl.value === "ai") {
           reset();
           return;
         }
 
-        if (!(net.role === 1 || net.role === 2)) return toast("è§‚æˆ˜ä¸èƒ½ç‚¹");
-        if (!net.send({ type: "rematch" })) return toast("æœªè¿æ¥è”æœº");
-        toast(gameOver ? "å·²ç”³è¯·é‡å¼€ä¸€å±€" : "å·²å‘èµ·é‡å¼€ç”³è¯·ï¼Œç­‰å¯¹æ–¹åŒæ„");
+        if (!(net.role === 1 || net.role === 2)) return toast("¹ÛÕ½²»ÄÜµã");
+        if (!net.send({ type: "rematch" })) return toast("Î´Á¬½ÓÁª»ú");
+        toast(gameOver ? "ÒÑÉêÇëÖØ¿ªÒ»¾Ö" : "ÒÑ·¢ÆğÖØ¿ªÉêÇë£¬µÈ¶Ô·½Í¬Òâ");
       }
 
 
@@ -779,7 +779,7 @@
         const boardW = cell * (SIZE - 1) + cell;
         const boardH = cell * (SIZE - 1) + cell;
 
-        // æœ¨è´¨æ£‹ç›˜èƒŒæ™¯ï¼ˆæµ…æœ¨çº¹ï¼‰
+        // Ä¾ÖÊÆåÅÌ±³¾°£¨Ç³Ä¾ÎÆ£©
         ctx.fillStyle = "#f4e2bf";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -790,7 +790,7 @@
         ctx.fillStyle = woodBase;
         ctx.fillRect(boardX, boardY, boardW, boardH);
 
-        // æœ¨çº¹ç»†èŠ‚ï¼ˆè½»å¾®æ¡çº¹ï¼‰
+        // Ä¾ÎÆÏ¸½Ú£¨ÇáÎ¢ÌõÎÆ£©
         ctx.save();
         ctx.globalAlpha = 0.18;
         for (let i = 0; i < 22; i++) {
@@ -804,14 +804,14 @@
         }
         ctx.restore();
 
-        // æ£‹ç›˜å¤–éƒ¨èƒŒæ™¯ä¿æŒæ·±è‰²è¡¬æ‰˜
+        // ÆåÅÌÍâ²¿±³¾°±£³ÖÉîÉ«³ÄÍĞ
         ctx.save();
         ctx.globalCompositeOperation = "destination-over";
         ctx.fillStyle = "#0b1225";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
 
-        // ç½‘æ ¼çº¿
+        // Íø¸ñÏß
         ctx.strokeStyle = "rgba(90,60,30,0.45)";
         ctx.lineWidth = Math.max(1, Math.floor(1 * pxRatio));
         for (let i = 0; i < SIZE; i++) {
@@ -821,7 +821,7 @@
           ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + (SIZE - 1) * cell); ctx.stroke();
         }
 
-        // æ˜Ÿä½ï¼ˆ17è·¯ï¼š4,8,12ï¼‰
+        // ĞÇÎ»£¨17Â·£º4,8,12£©
         const stars = [4, 8, 12];
         ctx.fillStyle = "rgba(70, 48, 26, 0.58)";
         for (const r of stars) for (const c of stars) {
@@ -829,7 +829,7 @@
           ctx.beginPath(); ctx.arc(x, y, Math.max(2, 3 * pxRatio), 0, Math.PI * 2); ctx.fill();
         }
 
-        // æ£‹å­
+        // Æå×Ó
         for (let r = 0; r < SIZE; r++) {
           for (let c = 0; c < SIZE; c++) {
             const v = board[r][c];
@@ -837,11 +837,11 @@
             const x = pad + c * cell, y = pad + r * cell;
             const radius = cell * 0.42;
 
-            // é˜´å½±
+            // ÒõÓ°
             ctx.fillStyle = "rgba(0,0,0,0.35)";
             ctx.beginPath(); ctx.arc(x + 2 * pxRatio, y + 2 * pxRatio, radius, 0, Math.PI * 2); ctx.fill();
 
-            // æ¸å˜
+            // ½¥±ä
             const g = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.2, x, y, radius);
             if (v === BLACK) { g.addColorStop(0, "#4a5568"); g.addColorStop(1, "#111827"); }
             else { g.addColorStop(0, "#fffdf8"); g.addColorStop(1, "#d7c7b2"); }
@@ -849,7 +849,7 @@
             ctx.fillStyle = g;
             ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
 
-            // æœ€åä¸€æ­¥æ ‡è®°
+            // ×îºóÒ»²½±ê¼Ç
             if (moves.length && moves[moves.length - 1].r === r && moves[moves.length - 1].c === c) {
               ctx.strokeStyle = "rgba(239,68,68,0.85)";
               ctx.lineWidth = Math.max(2, 2 * pxRatio);
@@ -858,7 +858,7 @@
           }
         }
 
-        // ç»¿è‰²é¢„è½å­ç‚¹ï¼šç¬¬ä¸€æ¬¡ç‚¹åªé¢„è§ˆï¼Œç¬¬äºŒæ¬¡ç‚¹åŒæ ¼æ‰è½å­
+        // ÂÌÉ«Ô¤Âä×Óµã£ºµÚÒ»´ÎµãÖ»Ô¤ÀÀ£¬µÚ¶ş´ÎµãÍ¬¸ñ²ÅÂä×Ó
         if (previewMove && inBounds(previewMove.r, previewMove.c) && board[previewMove.r][previewMove.c] === EMPTY && !gameOver) {
           const x = pad + previewMove.c * cell;
           const y = pad + previewMove.r * cell;
@@ -919,14 +919,14 @@
         return remainCount(color) > 0;
       }
       function doPlace(r, c, silent = false) {
-        // silent=trueï¼šå›æ”¾å†å²/åˆå§‹åŒ–æ—¶ä¸å¼¹ toast
+        // silent=true£º»Ø·ÅÀúÊ·/³õÊ¼»¯Ê±²»µ¯ toast
         if (gameOver) return false;
         if (!inBounds(r, c) || board[r][c] !== EMPTY) return false;
 
-        // æ£‹å­ç”¨å°½åˆ¤è´Ÿ
+        // Æå×ÓÓÃ¾¡ÅĞ¸º
         if (!canPlace(current)) {
           const winner = other(current);
-          if (!silent) endGame(winner, `${colorName(current)}æ£‹å­ç”¨å°½ï¼${colorName(winner)}èƒœ`);
+          if (!silent) endGame(winner, `${colorName(current)}Æå×ÓÓÃ¾¡£¡${colorName(winner)}Ê¤`);
           else gameOver = true;
           return false;
         }
@@ -938,9 +938,9 @@
         updateRemainUI();
         draw();
 
-        // èƒœè´Ÿåˆ¤æ–­
+        // Ê¤¸ºÅĞ¶Ï
         if (checkWin(r, c, current)) {
-          if (!silent) endGame(current, `${colorName(current)}èƒœï¼`);
+          if (!silent) endGame(current, `${colorName(current)}Ê¤£¡`);
           else gameOver = true;
         }
         return true;
@@ -951,17 +951,17 @@
         if (gameOver || aiThinking) return;
         if (!inBounds(r, c) || board[r][c] !== EMPTY) return;
 
-        // ===== è”æœº PVPï¼šåªå‘æ¶ˆæ¯ï¼Œç­‰æœåŠ¡å™¨å¹¿æ’­å›æ¥å†è½å­ =====
-        // PVP è”æœºï¼šå‘æ¶ˆæ¯ï¼Œç­‰æœåŠ¡å™¨å¹¿æ’­å›æ¥å†è½å­
+        // ===== Áª»ú PVP£ºÖ»·¢ÏûÏ¢£¬µÈ·şÎñÆ÷¹ã²¥»ØÀ´ÔÙÂä×Ó =====
+        // PVP Áª»ú£º·¢ÏûÏ¢£¬µÈ·şÎñÆ÷¹ã²¥»ØÀ´ÔÙÂä×Ó
         if (modeEl.value !== "ai") {
-          if (net.role === 0) return toast("ä½ æ˜¯è§‚æˆ˜ï¼Œä¸èƒ½è½å­");
-          if (current !== net.role) return toast("è¿˜æ²¡è½®åˆ°ä½ ");
-          if (!net.send({ type: "move", r, c })) return toast("æœªè¿æ¥è”æœº");
+          if (net.role === 0) return toast("ÄãÊÇ¹ÛÕ½£¬²»ÄÜÂä×Ó");
+          if (current !== net.role) return toast("»¹Ã»ÂÖµ½Äã");
+          if (!net.send({ type: "move", r, c })) return toast("Î´Á¬½ÓÁª»ú");
           return;
         }
 
 
-        // äººæœºï¼šåªå…è®¸äººç±»åœ¨è‡ªå·±å›åˆè½
+        // ÈË»ú£ºÖ»ÔÊĞíÈËÀàÔÚ×Ô¼º»ØºÏÂä
         if (!isHumanTurn()) return;
 
         if (!doPlace(r, c)) return;
@@ -979,7 +979,7 @@
       function setPreviewMove(r, c) {
         previewMove = { r, c };
         draw();
-        toast("ç»¿è‰²é¢„è½å­ï¼Œå†ç‚¹ä¸€æ¬¡ç¡®è®¤è½å­");
+        toast("ÂÌÉ«Ô¤Âä×Ó£¬ÔÙµãÒ»´ÎÈ·ÈÏÂä×Ó");
       }
 
       function confirmPreviewOrMove(r, c) {
@@ -1010,7 +1010,7 @@
       }
 
       // =========================
-      // æ›´å¼º AIï¼šå€™é€‰ç‚¹ + è¯„ä¼° + Minimax(Î±Î²)
+      // ¸üÇ¿ AI£ººòÑ¡µã + ÆÀ¹À + Minimax(¦Á¦Â)
       // =========================
 
       function hasNeighbor(r, c, range = NEAR_RANGE) {
@@ -1024,10 +1024,10 @@
         return false;
       }
 
-      // è¯„ä¼°çª—å£ï¼ˆ5 è¿çª—å£ï¼‰å¾—åˆ†ï¼šåªè¦åŒçª—å†…æœ‰åŒæ–¹æ£‹å­åˆ™æ— æ•ˆ
+      // ÆÀ¹À´°¿Ú£¨5 Á¬´°¿Ú£©µÃ·Ö£ºÖ»ÒªÍ¬´°ÄÚÓĞË«·½Æå×ÓÔòÎŞĞ§
       function windowScore(count, open) {
-        // count: è¯¥æ–¹åœ¨çª—å£/çº¿æ®µä¸­å½¢æˆçš„è¿åŠ¿ï¼ˆè¿‘ä¼¼ï¼‰ï¼Œopen: ä¸¤ç«¯å¼€æ”¾(0/1/2)
-        // ç”¨äºæ•´ä½“è¯„ä¼°ï¼šåˆ†å€¼å±‚çº§æ‹‰å¼€ï¼ŒAI æ›´é‡è§†å¨èƒ
+        // count: ¸Ã·½ÔÚ´°¿Ú/Ïß¶ÎÖĞĞÎ³ÉµÄÁ¬ÊÆ£¨½üËÆ£©£¬open: Á½¶Ë¿ª·Å(0/1/2)
+        // ÓÃÓÚÕûÌåÆÀ¹À£º·ÖÖµ²ã¼¶À­¿ª£¬AI ¸üÖØÊÓÍşĞ²
         if (count >= 5) return 1e9;
         if (count === 4 && open === 2) return 500000;
         if (count === 4 && open === 1) return 120000;
@@ -1039,9 +1039,9 @@
         return 8;
       }
 
-      // çº¿æ®µè¯„ä¼°ï¼šä»¥â€œè¿ç»­æ®µ+å¼€æ”¾ç«¯â€æ¥æ‰“åˆ†ï¼ˆæ¯”å•ç‚¹æ›´ç¨³ï¼‰
+      // Ïß¶ÎÆÀ¹À£ºÒÔ¡°Á¬Ğø¶Î+¿ª·Å¶Ë¡±À´´ò·Ö£¨±Èµ¥µã¸üÎÈ£©
       function lineEvalAt(r, c, dr, dc, player) {
-        // ä» (r,c) å‘ä¸¤ç«¯æ‰©å±•ç»Ÿè®¡è¿ç»­ player ä¸å¼€æ”¾ç«¯
+        // ´Ó (r,c) ÏòÁ½¶ËÀ©Õ¹Í³¼ÆÁ¬Ğø player Óë¿ª·Å¶Ë
         let cnt1 = 0, cnt2 = 0, open1 = 0, open2 = 0;
 
         for (let k = 1; k < 6; k++) {
@@ -1062,25 +1062,25 @@
         return windowScore(cnt, open);
       }
 
-      // ç‚¹æ‰“åˆ†ï¼ˆç”¨äºå€™é€‰ç‚¹æ’åºï¼‰ï¼šè¿›æ”» + é˜²å®ˆ
+      // µã´ò·Ö£¨ÓÃÓÚºòÑ¡µãÅÅĞò£©£º½ø¹¥ + ·ÀÊØ
       function pointHeuristic(r, c, player) {
         const opp = other(player);
         const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
         let s = 0;
         for (const [dr, dc] of dirs) {
-          // è¿›æ”»
+          // ½ø¹¥
           s += lineEvalAt(r, c, dr, dc, player) * 1.0;
-          // é˜²å®ˆï¼ˆç•¥å¤§ä¸€ç‚¹ï¼Œè®© AI æ›´éš¾è¢«â€œç§’æ€â€ï¼‰
+          // ·ÀÊØ£¨ÂÔ´óÒ»µã£¬ÈÃ AI ¸üÄÑ±»¡°ÃëÉ±¡±£©
           s += lineEvalAt(r, c, dr, dc, opp) * 0.95;
         }
-        // ä¸­å¿ƒåå¥½ï¼ˆå¾®å¼±ï¼‰
+        // ÖĞĞÄÆ«ºÃ£¨Î¢Èõ£©
         const center = (SIZE - 1) / 2;
         const dist = Math.abs(r - center) + Math.abs(c - center);
         s += Math.max(0, 9 - dist) * 2;
         return s;
       }
 
-      // ç”Ÿæˆå€™é€‰ç©ºç‚¹ï¼ˆåªå–é™„è¿‘ & å–å‰ Kï¼‰
+      // Éú³ÉºòÑ¡¿Õµã£¨Ö»È¡¸½½ü & È¡Ç° K£©
       function genCandidates(player) {
         const cands = [];
         if (moves.length === 0) {
@@ -1099,18 +1099,18 @@
         return cands.slice(0, CAND_LIMIT);
       }
 
-      // å…¨å±€è¯„ä¼°ï¼šå¯¹æ‰€æœ‰å·²æœ‰æ£‹å­é™„è¿‘ç©ºç‚¹è¿›è¡Œâ€œæ½œåŠ›å’Œâ€è¯„ä¼°ï¼ˆAI - äººç±»ï¼‰
+      // È«¾ÖÆÀ¹À£º¶ÔËùÓĞÒÑÓĞÆå×Ó¸½½ü¿Õµã½øĞĞ¡°Ç±Á¦ºÍ¡±ÆÀ¹À£¨AI - ÈËÀà£©
       function evaluate(forPlayer) {
         const opp = other(forPlayer);
         let score = 0;
 
-        // åªåœ¨â€œç›¸å…³åŒºåŸŸâ€æ‰“åˆ†ï¼ˆé è¿‘æ£‹å­ï¼‰ï¼Œé¿å… 19x19 å…¨æ‰«å¤ªæ…¢
+        // Ö»ÔÚ¡°Ïà¹ØÇøÓò¡±´ò·Ö£¨¿¿½üÆå×Ó£©£¬±ÜÃâ 19x19 È«É¨Ì«Âı
         const seen = new Set();
         const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
         function key(r, c) { return r + "#" + c; }
 
-        // æ”¶é›†ç›¸å…³ç‚¹ï¼šæ‰€æœ‰æ£‹å­å‘¨å›´ 2 æ ¼å†…çš„ç©ºä½ + æ£‹å­æœ¬èº«
+        // ÊÕ¼¯Ïà¹Øµã£ºËùÓĞÆå×ÓÖÜÎ§ 2 ¸ñÄÚµÄ¿ÕÎ» + Æå×Ó±¾Éí
         for (const m of moves) {
           for (let dr = -2; dr <= 2; dr++) {
             for (let dc = -2; dc <= 2; dc++) {
@@ -1121,13 +1121,13 @@
               seen.add(k);
 
               if (board[rr][cc] === EMPTY) {
-                // å‡è®¾è¿™é‡Œè½å­ï¼Œè¯„ä¼°è¿›æ”»/é˜²å®ˆæ½œåŠ›
+                // ¼ÙÉèÕâÀïÂä×Ó£¬ÆÀ¹À½ø¹¥/·ÀÊØÇ±Á¦
                 const pPot = pointHeuristic(rr, cc, forPlayer);
                 const oPot = pointHeuristic(rr, cc, opp);
                 score += pPot * 0.06;
                 score -= oPot * 0.06;
               } else {
-                // å¯¹å·²è½å­ä½ç½®ï¼šæŒ‰è¿åŠ¿ç»™å°‘é‡åŠ æˆ
+                // ¶ÔÒÑÂä×ÓÎ»ÖÃ£º°´Á¬ÊÆ¸øÉÙÁ¿¼Ó³É
                 const owner = board[rr][cc];
                 for (const [d1, d2] of dirs) {
                   const v = lineEvalAt(rr, cc, d1, d2, owner);
@@ -1142,12 +1142,12 @@
       }
 
       function minimax(depth, alpha, beta, playerToMove, maximizingFor) {
-        // ç»ˆæ­¢
+        // ÖÕÖ¹
         if (depth === 0 || gameOver) {
           return evaluate(maximizingFor);
         }
 
-        // è‹¥è¯¥æ–¹æ²¡æ£‹å¯ä¸‹ï¼Œç›´æ¥åˆ¤è´Ÿï¼ˆå¯¹è¯„ä¼°æ¥è¯´ç»™æå¤§è´Ÿ/æ­£ï¼‰
+        // Èô¸Ã·½Ã»Æå¿ÉÏÂ£¬Ö±½ÓÅĞ¸º£¨¶ÔÆÀ¹ÀÀ´Ëµ¸ø¼«´ó¸º/Õı£©
         if (!canPlace(playerToMove)) {
           return (playerToMove === maximizingFor) ? -1e8 : 1e8;
         }
@@ -1159,14 +1159,14 @@
         let best = isMax ? -Infinity : Infinity;
 
         for (const { r, c } of cands) {
-          // è½å­
+          // Âä×Ó
           const prevCurrent = current;
           current = playerToMove;
 
           board[r][c] = playerToMove;
           moves.push({ r, c, p: playerToMove });
 
-          // ç«‹å³èƒœè´Ÿåˆ¤æ–­ï¼šæ¯”ç»§ç»­æœç´¢æ›´å¿«æ›´å‡†
+          // Á¢¼´Ê¤¸ºÅĞ¶Ï£º±È¼ÌĞøËÑË÷¸ü¿ì¸ü×¼
           let val;
           if (checkWin(r, c, playerToMove)) {
             val = (playerToMove === maximizingFor) ? 1e8 : -1e8;
@@ -1174,7 +1174,7 @@
             val = minimax(depth - 1, alpha, beta, other(playerToMove), maximizingFor);
           }
 
-          // æ’¤é”€
+          // ³·Ïú
           moves.pop();
           board[r][c] = EMPTY;
           current = prevCurrent;
@@ -1182,22 +1182,22 @@
           if (isMax) {
             if (val > best) best = val;
             if (best > alpha) alpha = best;
-            if (beta <= alpha) break; // Î²å‰ªæ
+            if (beta <= alpha) break; // ¦Â¼ôÖ¦
           } else {
             if (val < best) best = val;
             if (best < beta) beta = best;
-            if (beta <= alpha) break; // Î±å‰ªæ
+            if (beta <= alpha) break; // ¦Á¼ôÖ¦
           }
         }
         return best;
       }
 
       function aiChooseMove() {
-        // å…ˆæ‰¾â€œå¿…èƒœä¸€æ­¥â€æˆ–â€œå¿…é˜²ä¸€æ­¥â€ï¼Œå‡å°‘æœç´¢å‹åŠ›
+        // ÏÈÕÒ¡°±ØÊ¤Ò»²½¡±»ò¡°±Ø·ÀÒ»²½¡±£¬¼õÉÙËÑË÷Ñ¹Á¦
         const opp = other(aiColor);
         const cands = genCandidates(aiColor);
 
-        // 1) AI ä¸€æ­¥å¿…èƒœ
+        // 1) AI Ò»²½±ØÊ¤
         for (const { r, c } of cands) {
           board[r][c] = aiColor;
           const win = checkWin(r, c, aiColor);
@@ -1205,21 +1205,21 @@
           if (win) return { r, c };
         }
 
-        // 2) å¿…é¡»é˜²å®ˆå¯¹æ‰‹ä¸‹ä¸€æ­¥å¿…èƒœ
+        // 2) ±ØĞë·ÀÊØ¶ÔÊÖÏÂÒ»²½±ØÊ¤
         for (const { r, c } of genCandidates(opp)) {
           board[r][c] = opp;
           const win = checkWin(r, c, opp);
           board[r][c] = EMPTY;
-          if (win) return { r, c }; // è¿™é‡Œ AI ä¸‹è¿™ä¸ªç‚¹å»å µ
+          if (win) return { r, c }; // ÕâÀï AI ÏÂÕâ¸öµãÈ¥¶Â
         }
 
-        // 3) Minimax æœç´¢
+        // 3) Minimax ËÑË÷
         let bestMove = null;
         let bestVal = -Infinity;
 
         const searchCands = genCandidates(aiColor);
         for (const { r, c } of searchCands) {
-          // è¯•èµ°
+          // ÊÔ×ß
           const prevCurrent = current;
           current = aiColor;
 
@@ -1230,7 +1230,7 @@
           if (checkWin(r, c, aiColor)) val = 1e8;
           else val = minimax(SEARCH_DEPTH - 1, -Infinity, Infinity, opp, aiColor);
 
-          // æ’¤é”€
+          // ³·Ïú
           moves.pop();
           board[r][c] = EMPTY;
           current = prevCurrent;
@@ -1251,14 +1251,14 @@
       function aiMove() {
         if (gameOver) return;
         if (!canPlace(aiColor)) {
-          endGame(humanColor, `AIï¼ˆ${colorName(aiColor)}ï¼‰æ£‹å­ç”¨å°½ï¼ä½ èƒœ`);
+          endGame(humanColor, `AI£¨${colorName(aiColor)}£©Æå×ÓÓÃ¾¡£¡ÄãÊ¤`);
           return;
         }
 
         aiThinking = true;
-        updateTurn("ï¼ˆAIæ€è€ƒä¸­â€¦ï¼‰");
+        updateTurn("£¨AIË¼¿¼ÖĞ¡­£©");
 
-        // ç»™ UI ä¸€ç‚¹æ—¶é—´åˆ·æ–°
+        // ¸ø UI Ò»µãÊ±¼äË¢ĞÂ
         setTimeout(() => {
           if (gameOver) { aiThinking = false; return; }
 
@@ -1267,21 +1267,21 @@
           aiThinking = false;
           updateTurn();
 
-          // AI è½å­
+          // AI Âä×Ó
           if (!doPlace(r, c)) return;
           nextTurn();
         }, 80);
       }
 
-      // æ‚”æ£‹ï¼š
-      // - PVPï¼šæ’¤ 1 æ­¥
-      // - AIï¼šæ’¤ 2 æ­¥ï¼ˆå°½é‡å›åˆ°ä½ èµ°ä¹‹å‰ï¼‰
+      // »ÚÆå£º
+      // - PVP£º³· 1 ²½
+      // - AI£º³· 2 ²½£¨¾¡Á¿»Øµ½Äã×ßÖ®Ç°£©
       function undo() {
-        if (modeEl.value !== "ai") return toast("è”æœºæ¨¡å¼æš‚ä¸æ”¯æŒæ‚”æ£‹");
+        if (modeEl.value !== "ai") return toast("Áª»úÄ£Ê½Ôİ²»Ö§³Ö»ÚÆå");
 
 
         if (aiThinking) return;
-        if (moves.length === 0) return toast("è¿˜æ²¡ä¸‹å­");
+        if (moves.length === 0) return toast("»¹Ã»ÏÂ×Ó");
 
         stopTimer();
         if (gameOver) gameOver = false;
@@ -1297,10 +1297,10 @@
         if (modeEl.value === "ai") {
           const a = popOne();
           const b = popOne();
-          toast(b ? "å·²æ‚”æ£‹ï¼ˆä¸¤æ­¥ï¼‰" : "å·²æ‚”æ£‹ï¼ˆä¸€æ­¥ï¼‰");
+          toast(b ? "ÒÑ»ÚÆå£¨Á½²½£©" : "ÒÑ»ÚÆå£¨Ò»²½£©");
         } else {
           popOne();
-          toast("å·²æ‚”æ£‹");
+          toast("ÒÑ»ÚÆå");
         }
 
         updateRemainUI();
@@ -1308,23 +1308,23 @@
         updateTurn();
         startTurnTimer();
 
-        // æ‚”æ£‹åå¦‚æœè½®åˆ° AIï¼Œè®© AI æ¥ç€èµ°ï¼ˆä¿æŒè‡ªç„¶å¯¹å±€ï¼‰
+        // »ÚÆåºóÈç¹ûÂÖµ½ AI£¬ÈÃ AI ½Ó×Å×ß£¨±£³Ö×ÔÈ»¶Ô¾Ö£©
         if (modeEl.value === "ai" && current === aiColor && !gameOver) {
           aiMove();
         }
       }
 
-      // è§¦å±/é¼ æ ‡è½å­
+      // ´¥ÆÁ/Êó±êÂä×Ó
       canvas.addEventListener('pointerdown', (e) => {
         e.preventDefault();
-        if (gameOver) return toast("å·²ç»“æŸï¼Œç‚¹é‡å¼€");
+        if (gameOver) return toast("ÒÑ½áÊø£¬µãÖØ¿ª");
         const hit = eventToCell(e);
-        if (!hit) return toast("ç‚¹åˆ°çº¿å¤–äº†");
+        if (!hit) return toast("µãµ½ÏßÍâÁË");
         const { r, c } = hit;
         confirmPreviewOrMove(r, c);
       }, { passive: false });
 
-      // é˜²æ­¢éƒ¨åˆ†å®‰å“æµè§ˆå™¨æ»šåŠ¨å¹²æ‰°
+      // ·ÀÖ¹²¿·Ö°²×¿ä¯ÀÀÆ÷¹ö¶¯¸ÉÈÅ
       document.addEventListener("touchmove", (e) => {
         if (e.target === canvas) e.preventDefault();
       }, { passive: false });
@@ -1336,22 +1336,22 @@
       mobileMoreBtn.addEventListener("click", toggleMobileMore);
       mobileMoreBackdrop.addEventListener("click", closeMobileMore);
 
-// ===== å¼€å§‹å‰æ¢é»‘ç™½ =====
+// ===== ¿ªÊ¼Ç°»»ºÚ°× =====
 swapBtn.addEventListener("click", () => {
-  if (modeEl.value === "ai") return toast("äººæœºæ¨¡å¼ä¸ç”¨æ¢è¾¹");
-  if (gameOver) return toast("å·²ç»“æŸï¼Œè¯·ç‚¹å†æ¥ä¸€å±€");
-  if (moves.length !== 0) return toast("å¼€å±€åä¸èƒ½æ¢è¾¹");
-  if (!(net.role === 1 || net.role === 2)) return toast("è§‚æˆ˜ä¸èƒ½æ¢è¾¹");
+  if (modeEl.value === "ai") return toast("ÈË»úÄ£Ê½²»ÓÃ»»±ß");
+  if (gameOver) return toast("ÒÑ½áÊø£¬ÇëµãÔÙÀ´Ò»¾Ö");
+  if (moves.length !== 0) return toast("¿ª¾Öºó²»ÄÜ»»±ß");
+  if (!(net.role === 1 || net.role === 2)) return toast("¹ÛÕ½²»ÄÜ»»±ß");
 
   if (!net.send({ type: "swap" })) {
-    toast("æœªè¿æ¥è”æœº");
+    toast("Î´Á¬½ÓÁª»ú");
     return;
   }
 
-  toast("å·²è¯·æ±‚æ¢é»‘ç™½ï¼ˆåŒæ–¹éƒ½ç‚¹æ‰ä¼šç”Ÿæ•ˆï¼‰");
+  toast("ÒÑÇëÇó»»ºÚ°×£¨Ë«·½¶¼µã²Å»áÉúĞ§£©");
 });
 
-// ===== å†æ¥ä¸€å±€ =====
+// ===== ÔÙÀ´Ò»¾Ö =====
 rematchBtn.addEventListener("click", () => {
   requestRematch();
 });
@@ -1375,7 +1375,7 @@ rematchBtn.addEventListener("click", () => {
         if (e.key === 'Escape') closeMobileMore();
       });
 
-      // åˆå§‹åŒ–
+      // ³õÊ¼»¯
       sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
       function applyMobileLayout() {
         const isMobile = isMobileLayout();

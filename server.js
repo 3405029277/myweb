@@ -51,7 +51,17 @@ function loadEnvFile(filePath) {
   });
 }
 
-function normalizePostMeta(slug, data = {}) {
+function countContentWords(content) {
+  const text = String(content || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`[^`]*`/g, " ")
+    .replace(/<[^>]+>/g, " ");
+  const cjk = text.match(/[\u4e00-\u9fff]/g) || [];
+  const words = text.match(/[A-Za-z0-9_+-]+/g) || [];
+  return cjk.length + words.length;
+}
+
+function normalizePostMeta(slug, data = {}, content = "") {
   const tags = Array.isArray(data.tags)
     ? data.tags.map((item) => String(item).trim()).filter(Boolean)
     : [];
@@ -64,15 +74,28 @@ function normalizePostMeta(slug, data = {}) {
     ? data.category.trim()
     : "Article";
   const gameUrl = typeof data.gameUrl === "string" ? data.gameUrl.trim() : "";
+  const cover = typeof data.cover === "string" && data.cover.trim()
+    ? data.cover.trim()
+    : "";
+  const updated = data.updated || data.update || "";
+  const wordCount = countContentWords(content);
+  const readingTime = Math.max(1, Math.ceil(wordCount / 400));
 
   return {
     slug,
     title,
     date: data.date || "",
+    updated,
     description,
+    summary: data.summary || description,
     category,
     tags,
-    gameUrl
+    gameUrl,
+    cover,
+    pinned: Boolean(data.pinned),
+    wordCount,
+    readingTime,
+    yearMonth: data.date ? String(data.date).slice(0, 7) : ""
   };
 }
 
@@ -81,7 +104,7 @@ async function readPostFile(filename) {
   const fullPath = path.join(postsDir, filename);
   const source = await fs.readFile(fullPath, "utf8");
   const parsed = matter(source);
-  const meta = normalizePostMeta(slug, parsed.data);
+  const meta = normalizePostMeta(slug, parsed.data, parsed.content);
   const html = marked.parse(parsed.content);
   return {
     ...meta,
@@ -97,7 +120,7 @@ async function listPosts() {
 
   const posts = await Promise.all(markdownFiles.map(readPostFile));
   return posts
-    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || String(b.date).localeCompare(String(a.date)))
     .map(({ html, ...meta }) => meta);
 }
 

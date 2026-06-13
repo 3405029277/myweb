@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>鍦ㄧ嚎浜斿瓙妫?Gomoku锛?9璺锋瀛愭暟路鏇村己AI路璁℃椂锛?/title>
+  <title>在线五子�?Gomoku�?9路·棋子数·更强AI·计时�?/title>
   <style>
     :root {
       color-scheme: dark;
@@ -26,7 +26,7 @@
     #wrap {
       min-height: 100vh;
       min-height: 100dvh;
-      /* ? 鍏抽敭锛氫娇鐢ㄥ姩鎬佽鍙ｉ珮搴?*/
+      /* ? 关键：使用动态视口高�?*/
       display: grid;
       grid-template-rows: auto 1fr;
     }
@@ -356,46 +356,46 @@
   <div id="wrap">
     <header>
       <div class="left">
-        <div class="title">鍦ㄧ嚎浜斿瓙妫嬶紙19脳19 路 妫嬪瓙鏁?路 鏇村己AI 路 姣忔60绉掞級</div>
-        <div class="hint">浜烘満鍙€夋墽榛?鐧斤紱榛?81鐧?80锛涙瘡姝?0绉掕秴鏃跺垽璐熴€?/div>
+        <div class="title">在线五子棋（19×19 · 棋子�?· 更强AI · 每步60秒）</div>
+        <div class="hint">人机可选执�?白；�?81�?80；每�?0秒超时判负�?/div>
       </div>
       <div class="mobile-status" id="mobileStatus">
-        <span id="mobileTurn">鍥炲悎锛氶粦</span>
-        <span id="mobileTimer">鍓╀綑锛?0s</span>
-        <span id="mobileRoom">鎴块棿锛?</span>
+        <span id="mobileTurn">回合：黑</span>
+        <span id="mobileTimer">剩余�?0s</span>
+        <span id="mobileRoom">房间�?</span>
       </div>
 
       <div class="right">
-        <span class="pill" id="turn">鍥炲悎锛氶粦</span>
-        <span class="pill" id="timer">鍓╀綑锛?0s</span>
+        <span class="pill" id="turn">回合：黑</span>
+        <span class="pill" id="timer">剩余�?0s</span>
 
-        <span class="pill" id="remainB">榛戝墿锛?81</span>
-        <span class="pill" id="remainW">鐧藉墿锛?80</span>
-        <span class="pill" id="roleBadge">韬唤锛?</span>
-        <span class="pill" id="roomCount">鎴块棿锛?</span>
+        <span class="pill" id="remainB">黑剩�?81</span>
+        <span class="pill" id="remainW">白剩�?80</span>
+        <span class="pill" id="roleBadge">身份�?</span>
+        <span class="pill" id="roomCount">房间�?</span>
 
 
         <label class="pill" style="display:flex;gap:6px;align-items:center">
-          妯″紡
+          模式
           <select id="mode">
-            <option value="pvp">鍙屼汉瀵瑰紙</option>
-            <option value="ai">浜烘満瀵规垬</option>
+            <option value="pvp">双人对弈</option>
+            <option value="ai">人机对战</option>
           </select>
         </label>
 
         <label class="pill" id="sideWrap" style="display:flex;gap:6px;align-items:center">
-          浣犳墽
+          你执
           <select id="side">
-            <option value="black">榛戯紙鍏堟墜锛?/option>
-            <option value="white">鐧斤紙鍚庢墜锛?/option>
+            <option value="black">黑（先手�?/option>
+            <option value="white">白（后手�?/option>
           </select>
         </label>
 
-        <button id="undo">鎮旀</button>
-        <button id="restart">鐢宠閲嶅紑</button>
-        <button id="copyLink">澶嶅埗鎴块棿閾炬帴</button>
-        <button id="swapSide">寮€濮嬪墠鎹㈤粦鐧?/button>
-        <button id="rematch">鍐嶆潵涓€灞€</button>
+        <button id="undo">悔棋</button>
+        <button id="restart">申请重开</button>
+        <button id="copyLink">复制房间链接</button>
+        <button id="swapSide">开始前换黑�?/button>
+        <button id="rematch">再来一局</button>
 
 
       </div>
@@ -407,10 +407,10 @@
     </div>
 
     <div id="mobilePrimaryBar" class="mobile-primary-bar hidden">
-      <button id="mobileUndo" type="button">悔棋</button>
-      <button id="mobileRestart" type="button">重开</button>
-      <button id="mobileRematch" type="button">再来</button>
-      <button id="mobileMore" type="button">更多</button>
+      <button id="mobileUndo" type="button">����</button>
+      <button id="mobileRestart" type="button">�ؿ�</button>
+      <button id="mobileRematch" type="button">����</button>
+      <button id="mobileMore" type="button">����</button>
     </div>
     <div id="mobileDrawerBackdrop" class="mobile-drawer-backdrop hidden"></div>
     <div id="mobileActionsHost" class="mobile-actions-host"></div>
@@ -420,21 +420,21 @@
 
   <script>
     (() => {
-      // ===== 19璺鐩?=====
+      // ===== 19路棋�?=====
       const SIZE = 19;
       const EMPTY = 0, BLACK = 1, WHITE = 2;
 
-      // ===== 妫嬪瓙鎬绘暟锛堝父瑙?19 璺厤缃細榛?181 鐧?180锛?====
+      // ===== 棋子总数（常�?19 路配置：�?181 �?180�?====
       const MAX_BLACK = 181;
       const MAX_WHITE = 180;
 
-      // ===== 璁℃椂 =====
+      // ===== 计时 =====
       const MOVE_LIMIT_SEC = 60;
 
-      // ===== AI 寮哄害鍙傛暟锛堣秺澶ц秺寮轰絾鏇磋€楁€ц兘锛?====
-      const SEARCH_DEPTH = 3;       // 3锛氭槑鏄惧己浜庡崟姝ワ紱鎵嬫満涔熻兘璺?
-      const CAND_LIMIT = 12;      // 姣忓眰淇濈暀鍊欓€夌偣鏁伴噺锛堣秺澶ц秺寮轰絾鏇存參锛?
-      const NEAR_RANGE = 2;       // 鍙€冭檻璺濈宸叉湁妫嬪瓙 NEAR_RANGE 鑼冨洿鍐呯殑绌虹偣
+      // ===== AI 强度参数（越大越强但更耗性能�?====
+      const SEARCH_DEPTH = 3;       // 3：明显强于单步；手机也能�?
+      const CAND_LIMIT = 12;      // 每层保留候选点数量（越大越强但更慢�?
+      const NEAR_RANGE = 2;       // 只考虑距离已有棋子 NEAR_RANGE 范围内的空点
 
       const canvas = document.getElementById('c');
       const gameEl = document.getElementById('game');
@@ -493,60 +493,60 @@
 
 
       const net = new OnlineClient({
-        // ? 寤鸿锛歸sBase 鏀寔鏁扮粍锛屽浗鍐?娴峰鍙岀嚎璺厹搴曪紙鍙寜浣犺嚜宸辩殑鍩熷悕鏇挎崲锛?
-        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://浣犵殑鍥藉唴绾胯矾鍩熷悕"],
+        // ? 建议：wsBase 支持数组，国�?海外双线路兜底（可按你自己的域名替换�?
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://你的国内线路域名"],
         wsBase: "wss://ws.cjx88.eu.cc",
-        wsPath: "/ws", // 浜斿瓙妫嬬敤 /ws锛堟潈濞侊級
-        tokenKeyPrefix: "gm_token", // ? 鍏抽敭锛氬埛鏂?鏂嚎閲嶈繛涔熻兘鈥滅画搴р€?
+        wsPath: "/ws", // 五子棋用 /ws（权威）
+        tokenKeyPrefix: "gm_token", // ? 关键：刷�?断线重连也能“续座�?
         connectTimeoutMs: 8000,
         onStatus: (s) => {
-          // online.js 浼氬悓鏃跺洖璋?object + string锛岃繖閲岀粺涓€鍏煎
+          // online.js 会同时回�?object + string，这里统一兼容
           const status = (typeof s === "string") ? s : (s && s.status) || "";
-          if (status === "connecting") toast("姝ｅ湪杩炴帴鑱旀満鈥?);
-          if (status === "connected") toast("鑱旀満宸茶繛鎺?);
-          if (status === "timeout") toast("鑱旀満杩炴帴瓒呮椂锛屾鍦ㄥ垏鎹㈢嚎璺?閲嶈繛鈥?);
-          if (status === "disconnected") toast("鑱旀満鏂紑锛屾鍦ㄩ噸杩炩€?);
-          if (status === "error") toast("鑱旀満閿欒");
+          if (status === "connecting") toast("正在连接联机�?);
+          if (status === "connected") toast("联机已连�?);
+          if (status === "timeout") toast("联机连接超时，正在切换线�?重连�?);
+          if (status === "disconnected") toast("联机断开，正在重连�?);
+          if (status === "error") toast("联机错误");
         },
         onPresence: (n) => {
-          roomCountEl.textContent = `鎴块棿锛?{n}浜篳;
+          roomCountEl.textContent = `房间�?{n}人`;
           syncMobileStatus();
         },
         onRole: (role) => {
           roleBadgeEl.textContent =
-            role === 1 ? "韬唤锛氶粦" : role === 2 ? "韬唤锛氱櫧" : "韬唤锛氳鎴?;
+            role === 1 ? "身份：黑" : role === 2 ? "身份：白" : "身份：观�?;
           updateGameButtons();
         },
         onMessage: (msg) => {
 
           if (msg.type === "reject") {
-            toast(msg.reason || "鎿嶄綔鏃犳晥");
+            toast(msg.reason || "操作无效");
             return;
           }
 
-          // === 浜ゆ崲榛戠櫧鍚庯細鍚庣浼氬畾鍚戝彂浣犳槸璋?===
+          // === 交换黑白后：后端会定向发你是�?===
           if (msg.type === "role") {
             net.role = (msg.you ?? msg.role ?? 0);
 
             roleBadgeEl.textContent =
-              net.role === 1 ? "韬唤锛氶粦" : net.role === 2 ? "韬唤锛氱櫧" : "韬唤锛氳鎴?;
+              net.role === 1 ? "身份：黑" : net.role === 2 ? "身份：白" : "身份：观�?;
             updateGameButtons();
             return;
           }
 
-          // === 鏈変汉鍙戣捣鈥滄崲榛戠櫧鈥?===
+          // === 有人发起“换黑白�?===
           if (msg.type === "swap_pending") {
-            toast("瀵规柟璇锋眰鎹㈤粦鐧斤細浣犱篃鐐逛竴涓嬪嵆鍙悓鎰?);
+            toast("对方请求换黑白：你也点一下即可同�?);
             return;
           }
 
-          // === 鏈変汉鍙戣捣鈥滃啀鏉ヤ竴灞€鈥?===
+          // === 有人发起“再来一局�?===
           if (msg.type === "rematch_pending") {
-            toast("瀵规柟璇锋眰鍐嶆潵涓€灞€锛氫綘涔熺偣涓€涓嬪嵆鍙紑濮?);
+            toast("对方请求再来一局：你也点一下即可开�?);
             return;
           }
 
-          // === 鏂板眬鐘舵€侊紙鍐嶆潵涓€灞€鎴愬姛鍚庡箍鎾級===
+          // === 新局状态（再来一局成功后广播）===
           if (msg.type === "state") {
             stopTimer();
             board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
@@ -557,7 +557,7 @@
 
             for (const m of (msg.moves || [])) {
               current = m.p;
-              doPlace(m.r, m.c, true); // 鍥炴斁 silent
+              doPlace(m.r, m.c, true); // 回放 silent
             }
 
             gameOver = !!msg.gameOver;
@@ -568,14 +568,14 @@
             draw();
             startTurnTimer();
 
-            toast("鏂颁竴灞€寮€濮嬶紒");
+            toast("新一局开始！");
             updateGameButtons();
             return;
           }
 
-          // === 浣犲師鏉ョ殑 init锛堜繚鐣欙級===
+          // === 你原来的 init（保留）===
           if (msg.type === "init") {
-            // 閲嶇疆鐩橀潰 + 鍥炴斁鍘嗗彶锛堜笉 nextTurn锛?
+            // 重置盘面 + 回放历史（不 nextTurn�?
             stopTimer();
             board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
             moves = [];
@@ -585,9 +585,9 @@
 
             for (const m of (msg.moves || [])) {
               current = m.p;
-              doPlace(m.r, m.c, true); // ? 鍥炴斁鐢?silent
+              doPlace(m.r, m.c, true); // ? 回放�?silent
             }
-            gameOver = !!msg.gameOver; // ? 浠ユ湇鍔″櫒鐘舵€佷负鍑?
+            gameOver = !!msg.gameOver; // ? 以服务器状态为�?
 
             current = msg.current || current;
             updateTurn();
@@ -598,13 +598,13 @@
             return;
           }
 
-          // === 浣犲師鏉ョ殑 move锛堜繚鐣欙級===
+          // === 你原来的 move（保留）===
           if (msg.type === "move") {
             current = msg.p;
             if (!doPlace(msg.r, msg.c)) return;
 
             if (msg.win) {
-              endGame(msg.win, `${colorName(msg.win)}鑳滐紒`);
+              endGame(msg.win, `${colorName(msg.win)}胜！`);
               return;
             }
 
@@ -622,8 +622,8 @@
 
       copyLinkBtn.addEventListener("click", () => {
         net.copyLink()
-          .then(() => toast("鎴块棿閾炬帴宸插鍒?))
-          .catch(() => toast("澶嶅埗澶辫触锛岃鎵嬪姩澶嶅埗鍦板潃鏍?));
+          .then(() => toast("房间链接已复�?))
+          .catch(() => toast("复制失败，请手动复制地址�?));
       });
 
 
@@ -635,11 +635,11 @@
 
 
 
-      // 閫夎竟锛氫汉鏈烘ā寮忎笅鏈夋晥
+      // 选边：人机模式下有效
       let humanColor = BLACK;
       let aiColor = WHITE;
 
-      // 璁℃椂
+      // 计时
       let timeLeft = MOVE_LIMIT_SEC;
       let timerId = null;
 
@@ -653,7 +653,7 @@
 
 
 
-      function colorName(p) { return p === BLACK ? "榛? : "鐧?; }
+      function colorName(p) { return p === BLACK ? "�? : "�?; }
       function other(p) { return p === BLACK ? WHITE : BLACK; }
       function isCoarsePointer() {
         return window.matchMedia("(pointer: coarse)").matches;
@@ -678,16 +678,16 @@
         return (color === BLACK ? MAX_BLACK : MAX_WHITE) - used;
       }
       function updateRemainUI() {
-        remainBEl.textContent = `榛戝墿锛?{remainCount(BLACK)}`;
-        remainWEl.textContent = `鐧藉墿锛?{remainCount(WHITE)}`;
+        remainBEl.textContent = `黑剩�?{remainCount(BLACK)}`;
+        remainWEl.textContent = `白剩�?{remainCount(WHITE)}`;
       }
 
       function updateTurn(extra = "") {
-        turnEl.textContent = `鍥炲悎锛?{colorName(current)}${extra}`;
+        turnEl.textContent = `回合�?{colorName(current)}${extra}`;
         syncMobileStatus();
       }
       function updateTimerUI() {
-        timerEl.textContent = `鍓╀綑锛?{timeLeft}s`;
+        timerEl.textContent = `剩余�?{timeLeft}s`;
         syncMobileStatus();
       }
       function stopTimer() {
@@ -700,8 +700,8 @@
         aiThinking = false;
         clearSelectedCell();
         stopTimer();
-        updateTurn("锛堢粨鏉燂級");
-        toast(msg || `${colorName(winner)}鑳滐紒`);
+        updateTurn("（结束）");
+        toast(msg || `${colorName(winner)}胜！`);
         updateGameButtons();
 
       }
@@ -720,7 +720,7 @@
           if (timeLeft <= 0) {
             stopTimer();
             const winner = other(current);
-            endGame(winner, `${colorName(current)}瓒呮椂锛?{colorName(winner)}鑳渀);
+            endGame(winner, `${colorName(current)}超时�?{colorName(winner)}胜`);
           }
         }, 1000);
       }
@@ -729,9 +729,9 @@
   const isPvp = modeEl.value !== "ai";
   const isPlayer = (net.role === 1 || net.role === 2);
 
-  // 鎹㈣竟鍙兘鍦ㄧ涓€鎵嬩箣鍓嶇敵璇?  swapBtn.disabled = !isPvp || !isPlayer || gameOver || moves.length !== 0;
+  // 换边只能在第一手之前申�?  swapBtn.disabled = !isPvp || !isPlayer || gameOver || moves.length !== 0;
 
-  // 閲嶅紑鐜板湪闅忔椂閮借兘鐢宠锛岀粨鏉熷悗涔熷彲浠ョ洿鎺ョ偣
+  // 重开现在随时都能申请，结束后也可以直接点
   restartBtn.disabled = isPvp && !isPlayer;
   rematchBtn.disabled = isPvp && !isPlayer;
 }
@@ -744,7 +744,7 @@
 
         board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
         moves = [];
-        current = BLACK;       // 榛戝厛
+        current = BLACK;       // 黑先
         gameOver = false;
         aiThinking = false;
 
@@ -754,12 +754,12 @@
         startTurnTimer();
 
         if (modeEl.value === "ai") {
-          net.close(); // ? 浜烘満锛氬交搴曟柇鑱旀満+鍋滄閲嶈繛
-          toast(`浜烘満锛氫綘鎵?{colorName(humanColor)}锛堥粦181鐧?80 / 姣忔${MOVE_LIMIT_SEC}s锛塦);
+          net.close(); // ? 人机：彻底断联机+停止重连
+          toast(`人机：你�?{colorName(humanColor)}（黑181�?80 / 每步${MOVE_LIMIT_SEC}s）`);
           if (current === aiColor) aiMove();
         } else {
-          toast(`鍙屼汉瀵瑰紙锛氶粦鍏堬紙榛?81鐧?80 / 姣忔${MOVE_LIMIT_SEC}s锛塦);
-          net.autoReconnect = true; // ? 鍙€夛細纭繚鍥炲埌PVP浼氳嚜鍔ㄩ噸杩?
+          toast(`双人对弈：黑先（�?81�?80 / 每步${MOVE_LIMIT_SEC}s）`);
+          net.autoReconnect = true; // ? 可选：确保回到PVP会自动重�?
           net.connect();
         }
 
@@ -769,16 +769,16 @@
       }
 
 
-      // ? 鈥滈噸寮€鈥濇寜閽細浜烘満=鐩存帴閲嶅紑锛涜仈鏈?瀵瑰眬缁撴潫鍚庡彂璧封€滃啀鏉ヤ竴灞€鈥濓紙閬垮厤鏈湴娓呯┖鍚庡張琚湇鍔″櫒鏃ф璋辫鐩栵級
+      // ? “重开”按钮：人机=直接重开；联�?对局结束后发起“再来一局”（避免本地清空后又被服务器旧棋谱覆盖）
             function requestRematch() {
         if (modeEl.value === "ai") {
           reset();
           return;
         }
 
-        if (!(net.role === 1 || net.role === 2)) return toast("瑙傛垬涓嶈兘鐐?);
-        if (!net.send({ type: "rematch" })) return toast("鏈繛鎺ヨ仈鏈?);
-        toast(gameOver ? "宸茬敵璇烽噸寮€涓€灞€" : "宸插彂璧烽噸寮€鐢宠锛岀瓑瀵规柟鍚屾剰");
+        if (!(net.role === 1 || net.role === 2)) return toast("观战不能�?);
+        if (!net.send({ type: "rematch" })) return toast("未连接联�?);
+        toast(gameOver ? "已申请重开一局" : "已发起重开申请，等对方同意");
       }
 
 
@@ -813,7 +813,7 @@
         const boardW = cell * (SIZE - 1) + cell;
         const boardH = cell * (SIZE - 1) + cell;
 
-        // 鏈ㄨ川妫嬬洏鑳屾櫙锛堟祬鏈ㄧ汗锛?        ctx.fillStyle = "#f4e2bf";
+        // 木质棋盘背景（浅木纹�?        ctx.fillStyle = "#f4e2bf";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         const woodBase = ctx.createLinearGradient(0, boardY, 0, boardY + boardH);
@@ -823,7 +823,7 @@
         ctx.fillStyle = woodBase;
         ctx.fillRect(boardX, boardY, boardW, boardH);
 
-        // 鏈ㄧ汗缁嗚妭锛堣交寰潯绾癸級
+        // 木纹细节（轻微条纹）
         ctx.save();
         ctx.globalAlpha = 0.18;
         for (let i = 0; i < 22; i++) {
@@ -837,14 +837,14 @@
         }
         ctx.restore();
 
-        // 妫嬬洏澶栭儴鑳屾櫙淇濇寔娣辫壊琛墭
+        // 棋盘外部背景保持深色衬托
         ctx.save();
         ctx.globalCompositeOperation = "destination-over";
         ctx.fillStyle = "#0b1225";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
 
-        // 缃戞牸绾?
+        // 网格�?
         ctx.strokeStyle = "rgba(90,60,30,0.45)";
         ctx.lineWidth = Math.max(1, Math.floor(1 * pxRatio));
         for (let i = 0; i < SIZE; i++) {
@@ -854,14 +854,14 @@
           ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + (SIZE - 1) * cell); ctx.stroke();
         }
 
-        // 鏄熶綅锛?9璺父瑙侊細3,9,15锛?        const stars = [3, 9, 15];
+        // 星位�?9路常见：3,9,15�?        const stars = [3, 9, 15];
         ctx.fillStyle = "rgba(70, 48, 26, 0.58)";
         for (const r of stars) for (const c of stars) {
           const x = pad + c * cell, y = pad + r * cell;
           ctx.beginPath(); ctx.arc(x, y, Math.max(2, 3 * pxRatio), 0, Math.PI * 2); ctx.fill();
         }
 
-        // 妫嬪瓙
+        // 棋子
         for (let r = 0; r < SIZE; r++) {
           for (let c = 0; c < SIZE; c++) {
             const v = board[r][c];
@@ -869,11 +869,11 @@
             const x = pad + c * cell, y = pad + r * cell;
             const radius = cell * 0.42;
 
-            // 闃村奖
+            // 阴影
             ctx.fillStyle = "rgba(0,0,0,0.35)";
             ctx.beginPath(); ctx.arc(x + 2 * pxRatio, y + 2 * pxRatio, radius, 0, Math.PI * 2); ctx.fill();
 
-            // 娓愬彉
+            // 渐变
             const g = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.2, x, y, radius);
             if (v === BLACK) { g.addColorStop(0, "#4a5568"); g.addColorStop(1, "#111827"); }
             else { g.addColorStop(0, "#fffdf8"); g.addColorStop(1, "#d7c7b2"); }
@@ -881,7 +881,7 @@
             ctx.fillStyle = g;
             ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
 
-            // 鏈€鍚庝竴姝ユ爣璁?
+            // 最后一步标�?
             if (moves.length && moves[moves.length - 1].r === r && moves[moves.length - 1].c === c) {
               ctx.strokeStyle = "rgba(239,68,68,0.85)";
               ctx.lineWidth = Math.max(2, 2 * pxRatio);
@@ -946,14 +946,14 @@
         return remainCount(color) > 0;
       }
       function doPlace(r, c, silent = false) {
-        // silent=true锛氬洖鏀惧巻鍙?鍒濆鍖栨椂涓嶅脊 toast
+        // silent=true：回放历�?初始化时不弹 toast
         if (gameOver) return false;
         if (!inBounds(r, c) || board[r][c] !== EMPTY) return false;
 
-        // 妫嬪瓙鐢ㄥ敖鍒よ礋
+        // 棋子用尽判负
         if (!canPlace(current)) {
           const winner = other(current);
-          if (!silent) endGame(winner, `${colorName(current)}妫嬪瓙鐢ㄥ敖锛?{colorName(winner)}鑳渀);
+          if (!silent) endGame(winner, `${colorName(current)}棋子用尽�?{colorName(winner)}胜`);
           else gameOver = true;
           return false;
         }
@@ -965,9 +965,9 @@
         updateRemainUI();
         draw();
 
-        // 鑳滆礋鍒ゆ柇
+        // 胜负判断
         if (checkWin(r, c, current)) {
-          if (!silent) endGame(current, `${colorName(current)}鑳滐紒`);
+          if (!silent) endGame(current, `${colorName(current)}胜！`);
           else gameOver = true;
         }
         return true;
@@ -982,24 +982,24 @@
           if (!selectedCell || selectedCell.r !== r || selectedCell.c !== c) {
             selectedCell = { r, c };
             draw();
-            toast("宸查€変腑锛屽啀鐐逛竴娆＄‘璁よ惤瀛?);
+            toast("已选中，再点一次确认落�?);
             return;
           }
         }
 
         clearSelectedCell();
 
-        // ===== 鑱旀満 PVP锛氬彧鍙戞秷鎭紝绛夋湇鍔″櫒骞挎挱鍥炴潵鍐嶈惤瀛?=====
-        // PVP 鑱旀満锛氬彂娑堟伅锛岀瓑鏈嶅姟鍣ㄥ箍鎾洖鏉ュ啀钀藉瓙
+        // ===== 联机 PVP：只发消息，等服务器广播回来再落�?=====
+        // PVP 联机：发消息，等服务器广播回来再落子
         if (modeEl.value !== "ai") {
-          if (net.role === 0) return toast("浣犳槸瑙傛垬锛屼笉鑳借惤瀛?);
-          if (current !== net.role) return toast("杩樻病杞埌浣?);
-          if (!net.send({ type: "move", r, c })) return toast("鏈繛鎺ヨ仈鏈?);
+          if (net.role === 0) return toast("你是观战，不能落�?);
+          if (current !== net.role) return toast("还没轮到�?);
+          if (!net.send({ type: "move", r, c })) return toast("未连接联�?);
           return;
         }
 
 
-        // 浜烘満锛氬彧鍏佽浜虹被鍦ㄨ嚜宸卞洖鍚堣惤
+        // 人机：只允许人类在自己回合落
         if (!isHumanTurn()) return;
 
         if (!doPlace(r, c)) return;
@@ -1023,7 +1023,7 @@
       }
 
       // =========================
-      // 鏇村己 AI锛氬€欓€夌偣 + 璇勪及 + Minimax(伪尾)
+      // 更强 AI：候选点 + 评估 + Minimax(αβ)
       // =========================
 
       function hasNeighbor(r, c, range = NEAR_RANGE) {
@@ -1037,10 +1037,10 @@
         return false;
       }
 
-      // 璇勪及绐楀彛锛? 杩炵獥鍙ｏ級寰楀垎锛氬彧瑕佸悓绐楀唴鏈夊弻鏂规瀛愬垯鏃犳晥
+      // 评估窗口�? 连窗口）得分：只要同窗内有双方棋子则无效
       function windowScore(count, open) {
-        // count: 璇ユ柟鍦ㄧ獥鍙?绾挎涓舰鎴愮殑杩炲娍锛堣繎浼硷級锛宱pen: 涓ょ寮€鏀?0/1/2)
-        // 鐢ㄤ簬鏁翠綋璇勪及锛氬垎鍊煎眰绾ф媺寮€锛孉I 鏇撮噸瑙嗗▉鑳?
+        // count: 该方在窗�?线段中形成的连势（近似），open: 两端开�?0/1/2)
+        // 用于整体评估：分值层级拉开，AI 更重视威�?
         if (count >= 5) return 1e9;
         if (count === 4 && open === 2) return 500000;
         if (count === 4 && open === 1) return 120000;
@@ -1052,9 +1052,9 @@
         return 8;
       }
 
-      // 绾挎璇勪及锛氫互鈥滆繛缁+寮€鏀剧鈥濇潵鎵撳垎锛堟瘮鍗曠偣鏇寸ǔ锛?
+      // 线段评估：以“连续段+开放端”来打分（比单点更稳�?
       function lineEvalAt(r, c, dr, dc, player) {
-        // 浠?(r,c) 鍚戜袱绔墿灞曠粺璁¤繛缁?player 涓庡紑鏀剧
+        // �?(r,c) 向两端扩展统计连�?player 与开放端
         let cnt1 = 0, cnt2 = 0, open1 = 0, open2 = 0;
 
         for (let k = 1; k < 6; k++) {
@@ -1075,25 +1075,25 @@
         return windowScore(cnt, open);
       }
 
-      // 鐐规墦鍒嗭紙鐢ㄤ簬鍊欓€夌偣鎺掑簭锛夛細杩涙敾 + 闃插畧
+      // 点打分（用于候选点排序）：进攻 + 防守
       function pointHeuristic(r, c, player) {
         const opp = other(player);
         const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
         let s = 0;
         for (const [dr, dc] of dirs) {
-          // 杩涙敾
+          // 进攻
           s += lineEvalAt(r, c, dr, dc, player) * 1.0;
-          // 闃插畧锛堢暐澶т竴鐐癸紝璁?AI 鏇撮毦琚€滅鏉€鈥濓級
+          // 防守（略大一点，�?AI 更难被“秒杀”）
           s += lineEvalAt(r, c, dr, dc, opp) * 0.95;
         }
-        // 涓績鍋忓ソ锛堝井寮憋級
+        // 中心偏好（微弱）
         const center = (SIZE - 1) / 2;
         const dist = Math.abs(r - center) + Math.abs(c - center);
         s += Math.max(0, 9 - dist) * 2;
         return s;
       }
 
-      // 鐢熸垚鍊欓€夌┖鐐癸紙鍙彇闄勮繎 & 鍙栧墠 K锛?
+      // 生成候选空点（只取附近 & 取前 K�?
       function genCandidates(player) {
         const cands = [];
         if (moves.length === 0) {
@@ -1112,18 +1112,18 @@
         return cands.slice(0, CAND_LIMIT);
       }
 
-      // 鍏ㄥ眬璇勪及锛氬鎵€鏈夊凡鏈夋瀛愰檮杩戠┖鐐硅繘琛屸€滄綔鍔涘拰鈥濊瘎浼帮紙AI - 浜虹被锛?
+      // 全局评估：对所有已有棋子附近空点进行“潜力和”评估（AI - 人类�?
       function evaluate(forPlayer) {
         const opp = other(forPlayer);
         let score = 0;
 
-        // 鍙湪鈥滅浉鍏冲尯鍩熲€濇墦鍒嗭紙闈犺繎妫嬪瓙锛夛紝閬垮厤 19x19 鍏ㄦ壂澶參
+        // 只在“相关区域”打分（靠近棋子），避免 19x19 全扫太慢
         const seen = new Set();
         const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
         function key(r, c) { return r + "#" + c; }
 
-        // 鏀堕泦鐩稿叧鐐癸細鎵€鏈夋瀛愬懆鍥?2 鏍煎唴鐨勭┖浣?+ 妫嬪瓙鏈韩
+        // 收集相关点：所有棋子周�?2 格内的空�?+ 棋子本身
         for (const m of moves) {
           for (let dr = -2; dr <= 2; dr++) {
             for (let dc = -2; dc <= 2; dc++) {
@@ -1134,13 +1134,13 @@
               seen.add(k);
 
               if (board[rr][cc] === EMPTY) {
-                // 鍋囪杩欓噷钀藉瓙锛岃瘎浼拌繘鏀?闃插畧娼滃姏
+                // 假设这里落子，评估进�?防守潜力
                 const pPot = pointHeuristic(rr, cc, forPlayer);
                 const oPot = pointHeuristic(rr, cc, opp);
                 score += pPot * 0.06;
                 score -= oPot * 0.06;
               } else {
-                // 瀵瑰凡钀藉瓙浣嶇疆锛氭寜杩炲娍缁欏皯閲忓姞鎴?
+                // 对已落子位置：按连势给少量加�?
                 const owner = board[rr][cc];
                 for (const [d1, d2] of dirs) {
                   const v = lineEvalAt(rr, cc, d1, d2, owner);
@@ -1155,12 +1155,12 @@
       }
 
       function minimax(depth, alpha, beta, playerToMove, maximizingFor) {
-        // 缁堟
+        // 终止
         if (depth === 0 || gameOver) {
           return evaluate(maximizingFor);
         }
 
-        // 鑻ヨ鏂规病妫嬪彲涓嬶紝鐩存帴鍒よ礋锛堝璇勪及鏉ヨ缁欐瀬澶ц礋/姝ｏ級
+        // 若该方没棋可下，直接判负（对评估来说给极大负/正）
         if (!canPlace(playerToMove)) {
           return (playerToMove === maximizingFor) ? -1e8 : 1e8;
         }
@@ -1172,14 +1172,14 @@
         let best = isMax ? -Infinity : Infinity;
 
         for (const { r, c } of cands) {
-          // 钀藉瓙
+          // 落子
           const prevCurrent = current;
           current = playerToMove;
 
           board[r][c] = playerToMove;
           moves.push({ r, c, p: playerToMove });
 
-          // 绔嬪嵆鑳滆礋鍒ゆ柇锛氭瘮缁х画鎼滅储鏇村揩鏇村噯
+          // 立即胜负判断：比继续搜索更快更准
           let val;
           if (checkWin(r, c, playerToMove)) {
             val = (playerToMove === maximizingFor) ? 1e8 : -1e8;
@@ -1187,7 +1187,7 @@
             val = minimax(depth - 1, alpha, beta, other(playerToMove), maximizingFor);
           }
 
-          // 鎾ら攢
+          // 撤销
           moves.pop();
           board[r][c] = EMPTY;
           current = prevCurrent;
@@ -1195,22 +1195,22 @@
           if (isMax) {
             if (val > best) best = val;
             if (best > alpha) alpha = best;
-            if (beta <= alpha) break; // 尾鍓灊
+            if (beta <= alpha) break; // β剪枝
           } else {
             if (val < best) best = val;
             if (best < beta) beta = best;
-            if (beta <= alpha) break; // 伪鍓灊
+            if (beta <= alpha) break; // α剪枝
           }
         }
         return best;
       }
 
       function aiChooseMove() {
-        // 鍏堟壘鈥滃繀鑳滀竴姝モ€濇垨鈥滃繀闃蹭竴姝モ€濓紝鍑忓皯鎼滅储鍘嬪姏
+        // 先找“必胜一步”或“必防一步”，减少搜索压力
         const opp = other(aiColor);
         const cands = genCandidates(aiColor);
 
-        // 1) AI 涓€姝ュ繀鑳?
+        // 1) AI 一步必�?
         for (const { r, c } of cands) {
           board[r][c] = aiColor;
           const win = checkWin(r, c, aiColor);
@@ -1218,21 +1218,21 @@
           if (win) return { r, c };
         }
 
-        // 2) 蹇呴』闃插畧瀵规墜涓嬩竴姝ュ繀鑳?
+        // 2) 必须防守对手下一步必�?
         for (const { r, c } of genCandidates(opp)) {
           board[r][c] = opp;
           const win = checkWin(r, c, opp);
           board[r][c] = EMPTY;
-          if (win) return { r, c }; // 杩欓噷 AI 涓嬭繖涓偣鍘诲牭
+          if (win) return { r, c }; // 这里 AI 下这个点去堵
         }
 
-        // 3) Minimax 鎼滅储
+        // 3) Minimax 搜索
         let bestMove = null;
         let bestVal = -Infinity;
 
         const searchCands = genCandidates(aiColor);
         for (const { r, c } of searchCands) {
-          // 璇曡蛋
+          // 试走
           const prevCurrent = current;
           current = aiColor;
 
@@ -1243,7 +1243,7 @@
           if (checkWin(r, c, aiColor)) val = 1e8;
           else val = minimax(SEARCH_DEPTH - 1, -Infinity, Infinity, opp, aiColor);
 
-          // 鎾ら攢
+          // 撤销
           moves.pop();
           board[r][c] = EMPTY;
           current = prevCurrent;
@@ -1264,14 +1264,14 @@
       function aiMove() {
         if (gameOver) return;
         if (!canPlace(aiColor)) {
-          endGame(humanColor, `AI锛?{colorName(aiColor)}锛夋瀛愮敤灏斤紒浣犺儨`);
+          endGame(humanColor, `AI�?{colorName(aiColor)}）棋子用尽！你胜`);
           return;
         }
 
         aiThinking = true;
-        updateTurn("锛圓I鎬濊€冧腑鈥︼級");
+        updateTurn("（AI思考中…）");
 
-        // 缁?UI 涓€鐐规椂闂村埛鏂?
+        // �?UI 一点时间刷�?
         setTimeout(() => {
           if (gameOver) { aiThinking = false; return; }
 
@@ -1280,21 +1280,21 @@
           aiThinking = false;
           updateTurn();
 
-          // AI 钀藉瓙
+          // AI 落子
           if (!doPlace(r, c)) return;
           nextTurn();
         }, 80);
       }
 
-      // 鎮旀锛?
-      // - PVP锛氭挙 1 姝?
-      // - AI锛氭挙 2 姝ワ紙灏介噺鍥炲埌浣犺蛋涔嬪墠锛?
+      // 悔棋�?
+      // - PVP：撤 1 �?
+      // - AI：撤 2 步（尽量回到你走之前�?
       function undo() {
-        if (modeEl.value !== "ai") return toast("鑱旀満妯″紡鏆備笉鏀寔鎮旀");
+        if (modeEl.value !== "ai") return toast("联机模式暂不支持悔棋");
 
 
         if (aiThinking) return;
-        if (moves.length === 0) return toast("杩樻病涓嬪瓙");
+        if (moves.length === 0) return toast("还没下子");
 
         stopTimer();
         if (gameOver) gameOver = false;
@@ -1310,10 +1310,10 @@
         if (modeEl.value === "ai") {
           const a = popOne();
           const b = popOne();
-          toast(b ? "宸叉倲妫嬶紙涓ゆ锛? : "宸叉倲妫嬶紙涓€姝ワ級");
+          toast(b ? "已悔棋（两步�? : "已悔棋（一步）");
         } else {
           popOne();
-          toast("宸叉倲妫?);
+          toast("已悔�?);
         }
         clearSelectedCell();
 
@@ -1322,23 +1322,23 @@
         updateTurn();
         startTurnTimer();
 
-        // 鎮旀鍚庡鏋滆疆鍒?AI锛岃 AI 鎺ョ潃璧帮紙淇濇寔鑷劧瀵瑰眬锛?
+        // 悔棋后如果轮�?AI，让 AI 接着走（保持自然对局�?
         if (modeEl.value === "ai" && current === aiColor && !gameOver) {
           aiMove();
         }
       }
 
-      // 瑙﹀睆/榧犳爣钀藉瓙
+      // 触屏/鼠标落子
       canvas.addEventListener('pointerdown', (e) => {
         e.preventDefault();
-        if (gameOver) return toast("宸茬粨鏉燂紝鐐归噸寮€");
+        if (gameOver) return toast("已结束，点重开");
         const hit = eventToCell(e);
-        if (!hit) return toast("鐐瑰埌绾垮浜?);
+        if (!hit) return toast("点到线外�?);
         const { r, c } = hit;
         place(r, c);
       }, { passive: false });
 
-      // 闃叉閮ㄥ垎瀹夊崜娴忚鍣ㄦ粴鍔ㄥ共鎵?
+      // 防止部分安卓浏览器滚动干�?
       document.addEventListener("touchmove", (e) => {
         if (e.target === canvas) e.preventDefault();
       }, { passive: false });
@@ -1346,22 +1346,22 @@
       undoBtn.addEventListener('click', undo);
 restartBtn.addEventListener('click', requestRematch);
 
-// ===== 寮€濮嬪墠鎹㈤粦鐧?=====
+// ===== 开始前换黑�?=====
 swapBtn.addEventListener("click", () => {
-  if (modeEl.value === "ai") return toast("浜烘満妯″紡涓嶇敤鎹㈣竟");
-  if (gameOver) return toast("宸茬粨鏉燂紝璇风偣鍐嶆潵涓€灞€");
-  if (moves.length !== 0) return toast("寮€灞€鍚庝笉鑳芥崲杈?);
-  if (!(net.role === 1 || net.role === 2)) return toast("瑙傛垬涓嶈兘鎹㈣竟");
+  if (modeEl.value === "ai") return toast("人机模式不用换边");
+  if (gameOver) return toast("已结束，请点再来一局");
+  if (moves.length !== 0) return toast("开局后不能换�?);
+  if (!(net.role === 1 || net.role === 2)) return toast("观战不能换边");
 
   if (!net.send({ type: "swap" })) {
-    toast("鏈繛鎺ヨ仈鏈?);
+    toast("未连接联�?);
     return;
   }
 
-  toast("宸茶姹傛崲榛戠櫧锛堝弻鏂归兘鐐规墠浼氱敓鏁堬級");
+  toast("已请求换黑白（双方都点才会生效）");
 });
 
-// ===== 鍐嶆潵涓€灞€ =====
+// ===== 再来一局 =====
 rematchBtn.addEventListener("click", () => {
   requestRematch();
 });
@@ -1384,7 +1384,7 @@ rematchBtn.addEventListener("click", () => {
         if (e.key.toLowerCase() === 'z') undo();
       });
 
-      // 鍒濆鍖?      sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+      // 初始�?      sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
       function applyMobileLayout() {
         const isMobile = isMobileLayout();
         if (!headerEl || !rightEl || !mobileActionsHost) return;
@@ -1426,7 +1426,7 @@ rematchBtn.addEventListener("click", () => {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>鍦ㄧ嚎浜斿瓙妫?Gomoku锛?9璺锋瀛愭暟路鏇村己AI路璁℃椂锛?/title>
+  <title>在线五子�?Gomoku�?9路·棋子数·更强AI·计时�?/title>
   <style>
     :root {
       color-scheme: dark;
@@ -1448,7 +1448,7 @@ rematchBtn.addEventListener("click", () => {
     #wrap {
       min-height: 100vh;
       min-height: 100dvh;
-      /* ? 鍏抽敭锛氫娇鐢ㄥ姩鎬佽鍙ｉ珮搴?*/
+      /* ? 关键：使用动态视口高�?*/
       display: grid;
       grid-template-rows: auto 1fr;
     }
@@ -1778,46 +1778,46 @@ rematchBtn.addEventListener("click", () => {
   <div id="wrap">
     <header>
       <div class="left">
-        <div class="title">鍦ㄧ嚎浜斿瓙妫嬶紙19脳19 路 妫嬪瓙鏁?路 鏇村己AI 路 姣忔60绉掞級</div>
-        <div class="hint">浜烘満鍙€夋墽榛?鐧斤紱榛?81鐧?80锛涙瘡姝?0绉掕秴鏃跺垽璐熴€?/div>
+        <div class="title">在线五子棋（19×19 · 棋子�?· 更强AI · 每步60秒）</div>
+        <div class="hint">人机可选执�?白；�?81�?80；每�?0秒超时判负�?/div>
       </div>
       <div class="mobile-status" id="mobileStatus">
-        <span id="mobileTurn">鍥炲悎锛氶粦</span>
-        <span id="mobileTimer">鍓╀綑锛?0s</span>
-        <span id="mobileRoom">鎴块棿锛?</span>
+        <span id="mobileTurn">回合：黑</span>
+        <span id="mobileTimer">剩余�?0s</span>
+        <span id="mobileRoom">房间�?</span>
       </div>
 
       <div class="right">
-        <span class="pill" id="turn">鍥炲悎锛氶粦</span>
-        <span class="pill" id="timer">鍓╀綑锛?0s</span>
+        <span class="pill" id="turn">回合：黑</span>
+        <span class="pill" id="timer">剩余�?0s</span>
 
-        <span class="pill" id="remainB">榛戝墿锛?81</span>
-        <span class="pill" id="remainW">鐧藉墿锛?80</span>
-        <span class="pill" id="roleBadge">韬唤锛?</span>
-        <span class="pill" id="roomCount">鎴块棿锛?</span>
+        <span class="pill" id="remainB">黑剩�?81</span>
+        <span class="pill" id="remainW">白剩�?80</span>
+        <span class="pill" id="roleBadge">身份�?</span>
+        <span class="pill" id="roomCount">房间�?</span>
 
 
         <label class="pill" style="display:flex;gap:6px;align-items:center">
-          妯″紡
+          模式
           <select id="mode">
-            <option value="pvp">鍙屼汉瀵瑰紙</option>
-            <option value="ai">浜烘満瀵规垬</option>
+            <option value="pvp">双人对弈</option>
+            <option value="ai">人机对战</option>
           </select>
         </label>
 
         <label class="pill" id="sideWrap" style="display:flex;gap:6px;align-items:center">
-          浣犳墽
+          你执
           <select id="side">
-            <option value="black">榛戯紙鍏堟墜锛?/option>
-            <option value="white">鐧斤紙鍚庢墜锛?/option>
+            <option value="black">黑（先手�?/option>
+            <option value="white">白（后手�?/option>
           </select>
         </label>
 
-        <button id="undo">鎮旀</button>
-        <button id="restart">鐢宠閲嶅紑</button>
-        <button id="copyLink">澶嶅埗鎴块棿閾炬帴</button>
-        <button id="swapSide">寮€濮嬪墠鎹㈤粦鐧?/button>
-        <button id="rematch">鍐嶆潵涓€灞€</button>
+        <button id="undo">悔棋</button>
+        <button id="restart">申请重开</button>
+        <button id="copyLink">复制房间链接</button>
+        <button id="swapSide">开始前换黑�?/button>
+        <button id="rematch">再来一局</button>
 
 
       </div>
@@ -1829,10 +1829,10 @@ rematchBtn.addEventListener("click", () => {
     </div>
 
     <div id="mobilePrimaryBar" class="mobile-primary-bar hidden">
-      <button id="mobileUndo" type="button">悔棋</button>
-      <button id="mobileRestart" type="button">重开</button>
-      <button id="mobileRematch" type="button">再来</button>
-      <button id="mobileMore" type="button">更多</button>
+      <button id="mobileUndo" type="button">����</button>
+      <button id="mobileRestart" type="button">�ؿ�</button>
+      <button id="mobileRematch" type="button">����</button>
+      <button id="mobileMore" type="button">����</button>
     </div>
     <div id="mobileDrawerBackdrop" class="mobile-drawer-backdrop hidden"></div>
     <div id="mobileActionsHost" class="mobile-actions-host"></div>
@@ -1842,21 +1842,21 @@ rematchBtn.addEventListener("click", () => {
 
   <script>
     (() => {
-      // ===== 19璺鐩?=====
+      // ===== 19路棋�?=====
       const SIZE = 19;
       const EMPTY = 0, BLACK = 1, WHITE = 2;
 
-      // ===== 妫嬪瓙鎬绘暟锛堝父瑙?19 璺厤缃細榛?181 鐧?180锛?====
+      // ===== 棋子总数（常�?19 路配置：�?181 �?180�?====
       const MAX_BLACK = 181;
       const MAX_WHITE = 180;
 
-      // ===== 璁℃椂 =====
+      // ===== 计时 =====
       const MOVE_LIMIT_SEC = 60;
 
-      // ===== AI 寮哄害鍙傛暟锛堣秺澶ц秺寮轰絾鏇磋€楁€ц兘锛?====
-      const SEARCH_DEPTH = 3;       // 3锛氭槑鏄惧己浜庡崟姝ワ紱鎵嬫満涔熻兘璺?
-      const CAND_LIMIT = 12;      // 姣忓眰淇濈暀鍊欓€夌偣鏁伴噺锛堣秺澶ц秺寮轰絾鏇存參锛?
-      const NEAR_RANGE = 2;       // 鍙€冭檻璺濈宸叉湁妫嬪瓙 NEAR_RANGE 鑼冨洿鍐呯殑绌虹偣
+      // ===== AI 强度参数（越大越强但更耗性能�?====
+      const SEARCH_DEPTH = 3;       // 3：明显强于单步；手机也能�?
+      const CAND_LIMIT = 12;      // 每层保留候选点数量（越大越强但更慢�?
+      const NEAR_RANGE = 2;       // 只考虑距离已有棋子 NEAR_RANGE 范围内的空点
 
       const canvas = document.getElementById('c');
       const gameEl = document.getElementById('game');
@@ -1915,60 +1915,60 @@ rematchBtn.addEventListener("click", () => {
 
 
       const net = new OnlineClient({
-        // ? 寤鸿锛歸sBase 鏀寔鏁扮粍锛屽浗鍐?娴峰鍙岀嚎璺厹搴曪紙鍙寜浣犺嚜宸辩殑鍩熷悕鏇挎崲锛?
-        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://浣犵殑鍥藉唴绾胯矾鍩熷悕"],
+        // ? 建议：wsBase 支持数组，国�?海外双线路兜底（可按你自己的域名替换�?
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://你的国内线路域名"],
         wsBase: "wss://ws.cjx88.eu.cc",
-        wsPath: "/ws", // 浜斿瓙妫嬬敤 /ws锛堟潈濞侊級
-        tokenKeyPrefix: "gm_token", // ? 鍏抽敭锛氬埛鏂?鏂嚎閲嶈繛涔熻兘鈥滅画搴р€?
+        wsPath: "/ws", // 五子棋用 /ws（权威）
+        tokenKeyPrefix: "gm_token", // ? 关键：刷�?断线重连也能“续座�?
         connectTimeoutMs: 8000,
         onStatus: (s) => {
-          // online.js 浼氬悓鏃跺洖璋?object + string锛岃繖閲岀粺涓€鍏煎
+          // online.js 会同时回�?object + string，这里统一兼容
           const status = (typeof s === "string") ? s : (s && s.status) || "";
-          if (status === "connecting") toast("姝ｅ湪杩炴帴鑱旀満鈥?);
-          if (status === "connected") toast("鑱旀満宸茶繛鎺?);
-          if (status === "timeout") toast("鑱旀満杩炴帴瓒呮椂锛屾鍦ㄥ垏鎹㈢嚎璺?閲嶈繛鈥?);
-          if (status === "disconnected") toast("鑱旀満鏂紑锛屾鍦ㄩ噸杩炩€?);
-          if (status === "error") toast("鑱旀満閿欒");
+          if (status === "connecting") toast("正在连接联机�?);
+          if (status === "connected") toast("联机已连�?);
+          if (status === "timeout") toast("联机连接超时，正在切换线�?重连�?);
+          if (status === "disconnected") toast("联机断开，正在重连�?);
+          if (status === "error") toast("联机错误");
         },
         onPresence: (n) => {
-          roomCountEl.textContent = `鎴块棿锛?{n}浜篳;
+          roomCountEl.textContent = `房间�?{n}人`;
           syncMobileStatus();
         },
         onRole: (role) => {
           roleBadgeEl.textContent =
-            role === 1 ? "韬唤锛氶粦" : role === 2 ? "韬唤锛氱櫧" : "韬唤锛氳鎴?;
+            role === 1 ? "身份：黑" : role === 2 ? "身份：白" : "身份：观�?;
           updateGameButtons();
         },
         onMessage: (msg) => {
 
           if (msg.type === "reject") {
-            toast(msg.reason || "鎿嶄綔鏃犳晥");
+            toast(msg.reason || "操作无效");
             return;
           }
 
-          // === 浜ゆ崲榛戠櫧鍚庯細鍚庣浼氬畾鍚戝彂浣犳槸璋?===
+          // === 交换黑白后：后端会定向发你是�?===
           if (msg.type === "role") {
             net.role = (msg.you ?? msg.role ?? 0);
 
             roleBadgeEl.textContent =
-              net.role === 1 ? "韬唤锛氶粦" : net.role === 2 ? "韬唤锛氱櫧" : "韬唤锛氳鎴?;
+              net.role === 1 ? "身份：黑" : net.role === 2 ? "身份：白" : "身份：观�?;
             updateGameButtons();
             return;
           }
 
-          // === 鏈変汉鍙戣捣鈥滄崲榛戠櫧鈥?===
+          // === 有人发起“换黑白�?===
           if (msg.type === "swap_pending") {
-            toast("瀵规柟璇锋眰鎹㈤粦鐧斤細浣犱篃鐐逛竴涓嬪嵆鍙悓鎰?);
+            toast("对方请求换黑白：你也点一下即可同�?);
             return;
           }
 
-          // === 鏈変汉鍙戣捣鈥滃啀鏉ヤ竴灞€鈥?===
+          // === 有人发起“再来一局�?===
           if (msg.type === "rematch_pending") {
-            toast("瀵规柟璇锋眰鍐嶆潵涓€灞€锛氫綘涔熺偣涓€涓嬪嵆鍙紑濮?);
+            toast("对方请求再来一局：你也点一下即可开�?);
             return;
           }
 
-          // === 鏂板眬鐘舵€侊紙鍐嶆潵涓€灞€鎴愬姛鍚庡箍鎾級===
+          // === 新局状态（再来一局成功后广播）===
           if (msg.type === "state") {
             stopTimer();
             board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
@@ -1979,7 +1979,7 @@ rematchBtn.addEventListener("click", () => {
 
             for (const m of (msg.moves || [])) {
               current = m.p;
-              doPlace(m.r, m.c, true); // 鍥炴斁 silent
+              doPlace(m.r, m.c, true); // 回放 silent
             }
 
             gameOver = !!msg.gameOver;
@@ -1990,14 +1990,14 @@ rematchBtn.addEventListener("click", () => {
             draw();
             startTurnTimer();
 
-            toast("鏂颁竴灞€寮€濮嬶紒");
+            toast("新一局开始！");
             updateGameButtons();
             return;
           }
 
-          // === 浣犲師鏉ョ殑 init锛堜繚鐣欙級===
+          // === 你原来的 init（保留）===
           if (msg.type === "init") {
-            // 閲嶇疆鐩橀潰 + 鍥炴斁鍘嗗彶锛堜笉 nextTurn锛?
+            // 重置盘面 + 回放历史（不 nextTurn�?
             stopTimer();
             board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
             moves = [];
@@ -2007,9 +2007,9 @@ rematchBtn.addEventListener("click", () => {
 
             for (const m of (msg.moves || [])) {
               current = m.p;
-              doPlace(m.r, m.c, true); // ? 鍥炴斁鐢?silent
+              doPlace(m.r, m.c, true); // ? 回放�?silent
             }
-            gameOver = !!msg.gameOver; // ? 浠ユ湇鍔″櫒鐘舵€佷负鍑?
+            gameOver = !!msg.gameOver; // ? 以服务器状态为�?
 
             current = msg.current || current;
             updateTurn();
@@ -2020,13 +2020,13 @@ rematchBtn.addEventListener("click", () => {
             return;
           }
 
-          // === 浣犲師鏉ョ殑 move锛堜繚鐣欙級===
+          // === 你原来的 move（保留）===
           if (msg.type === "move") {
             current = msg.p;
             if (!doPlace(msg.r, msg.c)) return;
 
             if (msg.win) {
-              endGame(msg.win, `${colorName(msg.win)}鑳滐紒`);
+              endGame(msg.win, `${colorName(msg.win)}胜！`);
               return;
             }
 
@@ -2044,8 +2044,8 @@ rematchBtn.addEventListener("click", () => {
 
       copyLinkBtn.addEventListener("click", () => {
         net.copyLink()
-          .then(() => toast("鎴块棿閾炬帴宸插鍒?))
-          .catch(() => toast("澶嶅埗澶辫触锛岃鎵嬪姩澶嶅埗鍦板潃鏍?));
+          .then(() => toast("房间链接已复�?))
+          .catch(() => toast("复制失败，请手动复制地址�?));
       });
 
 
@@ -2057,11 +2057,11 @@ rematchBtn.addEventListener("click", () => {
 
 
 
-      // 閫夎竟锛氫汉鏈烘ā寮忎笅鏈夋晥
+      // 选边：人机模式下有效
       let humanColor = BLACK;
       let aiColor = WHITE;
 
-      // 璁℃椂
+      // 计时
       let timeLeft = MOVE_LIMIT_SEC;
       let timerId = null;
 
@@ -2075,7 +2075,7 @@ rematchBtn.addEventListener("click", () => {
 
 
 
-      function colorName(p) { return p === BLACK ? "榛? : "鐧?; }
+      function colorName(p) { return p === BLACK ? "�? : "�?; }
       function other(p) { return p === BLACK ? WHITE : BLACK; }
       function isCoarsePointer() {
         return window.matchMedia("(pointer: coarse)").matches;
@@ -2100,16 +2100,16 @@ rematchBtn.addEventListener("click", () => {
         return (color === BLACK ? MAX_BLACK : MAX_WHITE) - used;
       }
       function updateRemainUI() {
-        remainBEl.textContent = `榛戝墿锛?{remainCount(BLACK)}`;
-        remainWEl.textContent = `鐧藉墿锛?{remainCount(WHITE)}`;
+        remainBEl.textContent = `黑剩�?{remainCount(BLACK)}`;
+        remainWEl.textContent = `白剩�?{remainCount(WHITE)}`;
       }
 
       function updateTurn(extra = "") {
-        turnEl.textContent = `鍥炲悎锛?{colorName(current)}${extra}`;
+        turnEl.textContent = `回合�?{colorName(current)}${extra}`;
         syncMobileStatus();
       }
       function updateTimerUI() {
-        timerEl.textContent = `鍓╀綑锛?{timeLeft}s`;
+        timerEl.textContent = `剩余�?{timeLeft}s`;
         syncMobileStatus();
       }
       function stopTimer() {
@@ -2122,8 +2122,8 @@ rematchBtn.addEventListener("click", () => {
         aiThinking = false;
         clearSelectedCell();
         stopTimer();
-        updateTurn("锛堢粨鏉燂級");
-        toast(msg || `${colorName(winner)}鑳滐紒`);
+        updateTurn("（结束）");
+        toast(msg || `${colorName(winner)}胜！`);
         updateGameButtons();
 
       }
@@ -2142,7 +2142,7 @@ rematchBtn.addEventListener("click", () => {
           if (timeLeft <= 0) {
             stopTimer();
             const winner = other(current);
-            endGame(winner, `${colorName(current)}瓒呮椂锛?{colorName(winner)}鑳渀);
+            endGame(winner, `${colorName(current)}超时�?{colorName(winner)}胜`);
           }
         }, 1000);
       }
@@ -2151,9 +2151,9 @@ rematchBtn.addEventListener("click", () => {
   const isPvp = modeEl.value !== "ai";
   const isPlayer = (net.role === 1 || net.role === 2);
 
-  // 鎹㈣竟鍙兘鍦ㄧ涓€鎵嬩箣鍓嶇敵璇?  swapBtn.disabled = !isPvp || !isPlayer || gameOver || moves.length !== 0;
+  // 换边只能在第一手之前申�?  swapBtn.disabled = !isPvp || !isPlayer || gameOver || moves.length !== 0;
 
-  // 閲嶅紑鐜板湪闅忔椂閮借兘鐢宠锛岀粨鏉熷悗涔熷彲浠ョ洿鎺ョ偣
+  // 重开现在随时都能申请，结束后也可以直接点
   restartBtn.disabled = isPvp && !isPlayer;
   rematchBtn.disabled = isPvp && !isPlayer;
 }
@@ -2166,7 +2166,7 @@ rematchBtn.addEventListener("click", () => {
 
         board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
         moves = [];
-        current = BLACK;       // 榛戝厛
+        current = BLACK;       // 黑先
         gameOver = false;
         aiThinking = false;
 
@@ -2176,12 +2176,12 @@ rematchBtn.addEventListener("click", () => {
         startTurnTimer();
 
         if (modeEl.value === "ai") {
-          net.close(); // ? 浜烘満锛氬交搴曟柇鑱旀満+鍋滄閲嶈繛
-          toast(`浜烘満锛氫綘鎵?{colorName(humanColor)}锛堥粦181鐧?80 / 姣忔${MOVE_LIMIT_SEC}s锛塦);
+          net.close(); // ? 人机：彻底断联机+停止重连
+          toast(`人机：你�?{colorName(humanColor)}（黑181�?80 / 每步${MOVE_LIMIT_SEC}s）`);
           if (current === aiColor) aiMove();
         } else {
-          toast(`鍙屼汉瀵瑰紙锛氶粦鍏堬紙榛?81鐧?80 / 姣忔${MOVE_LIMIT_SEC}s锛塦);
-          net.autoReconnect = true; // ? 鍙€夛細纭繚鍥炲埌PVP浼氳嚜鍔ㄩ噸杩?
+          toast(`双人对弈：黑先（�?81�?80 / 每步${MOVE_LIMIT_SEC}s）`);
+          net.autoReconnect = true; // ? 可选：确保回到PVP会自动重�?
           net.connect();
         }
 
@@ -2191,16 +2191,16 @@ rematchBtn.addEventListener("click", () => {
       }
 
 
-      // ? 鈥滈噸寮€鈥濇寜閽細浜烘満=鐩存帴閲嶅紑锛涜仈鏈?瀵瑰眬缁撴潫鍚庡彂璧封€滃啀鏉ヤ竴灞€鈥濓紙閬垮厤鏈湴娓呯┖鍚庡張琚湇鍔″櫒鏃ф璋辫鐩栵級
+      // ? “重开”按钮：人机=直接重开；联�?对局结束后发起“再来一局”（避免本地清空后又被服务器旧棋谱覆盖）
             function requestRematch() {
         if (modeEl.value === "ai") {
           reset();
           return;
         }
 
-        if (!(net.role === 1 || net.role === 2)) return toast("瑙傛垬涓嶈兘鐐?);
-        if (!net.send({ type: "rematch" })) return toast("鏈繛鎺ヨ仈鏈?);
-        toast(gameOver ? "宸茬敵璇烽噸寮€涓€灞€" : "宸插彂璧烽噸寮€鐢宠锛岀瓑瀵规柟鍚屾剰");
+        if (!(net.role === 1 || net.role === 2)) return toast("观战不能�?);
+        if (!net.send({ type: "rematch" })) return toast("未连接联�?);
+        toast(gameOver ? "已申请重开一局" : "已发起重开申请，等对方同意");
       }
 
 
@@ -2235,7 +2235,7 @@ rematchBtn.addEventListener("click", () => {
         const boardW = cell * (SIZE - 1) + cell;
         const boardH = cell * (SIZE - 1) + cell;
 
-        // 鏈ㄨ川妫嬬洏鑳屾櫙锛堟祬鏈ㄧ汗锛?        ctx.fillStyle = "#f4e2bf";
+        // 木质棋盘背景（浅木纹�?        ctx.fillStyle = "#f4e2bf";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         const woodBase = ctx.createLinearGradient(0, boardY, 0, boardY + boardH);
@@ -2245,7 +2245,7 @@ rematchBtn.addEventListener("click", () => {
         ctx.fillStyle = woodBase;
         ctx.fillRect(boardX, boardY, boardW, boardH);
 
-        // 鏈ㄧ汗缁嗚妭锛堣交寰潯绾癸級
+        // 木纹细节（轻微条纹）
         ctx.save();
         ctx.globalAlpha = 0.18;
         for (let i = 0; i < 22; i++) {
@@ -2259,14 +2259,14 @@ rematchBtn.addEventListener("click", () => {
         }
         ctx.restore();
 
-        // 妫嬬洏澶栭儴鑳屾櫙淇濇寔娣辫壊琛墭
+        // 棋盘外部背景保持深色衬托
         ctx.save();
         ctx.globalCompositeOperation = "destination-over";
         ctx.fillStyle = "#0b1225";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
 
-        // 缃戞牸绾?
+        // 网格�?
         ctx.strokeStyle = "rgba(90,60,30,0.45)";
         ctx.lineWidth = Math.max(1, Math.floor(1 * pxRatio));
         for (let i = 0; i < SIZE; i++) {
@@ -2276,14 +2276,14 @@ rematchBtn.addEventListener("click", () => {
           ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + (SIZE - 1) * cell); ctx.stroke();
         }
 
-        // 鏄熶綅锛?9璺父瑙侊細3,9,15锛?        const stars = [3, 9, 15];
+        // 星位�?9路常见：3,9,15�?        const stars = [3, 9, 15];
         ctx.fillStyle = "rgba(70, 48, 26, 0.58)";
         for (const r of stars) for (const c of stars) {
           const x = pad + c * cell, y = pad + r * cell;
           ctx.beginPath(); ctx.arc(x, y, Math.max(2, 3 * pxRatio), 0, Math.PI * 2); ctx.fill();
         }
 
-        // 妫嬪瓙
+        // 棋子
         for (let r = 0; r < SIZE; r++) {
           for (let c = 0; c < SIZE; c++) {
             const v = board[r][c];
@@ -2291,11 +2291,11 @@ rematchBtn.addEventListener("click", () => {
             const x = pad + c * cell, y = pad + r * cell;
             const radius = cell * 0.42;
 
-            // 闃村奖
+            // 阴影
             ctx.fillStyle = "rgba(0,0,0,0.35)";
             ctx.beginPath(); ctx.arc(x + 2 * pxRatio, y + 2 * pxRatio, radius, 0, Math.PI * 2); ctx.fill();
 
-            // 娓愬彉
+            // 渐变
             const g = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.2, x, y, radius);
             if (v === BLACK) { g.addColorStop(0, "#4a5568"); g.addColorStop(1, "#111827"); }
             else { g.addColorStop(0, "#fffdf8"); g.addColorStop(1, "#d7c7b2"); }
@@ -2303,7 +2303,7 @@ rematchBtn.addEventListener("click", () => {
             ctx.fillStyle = g;
             ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
 
-            // 鏈€鍚庝竴姝ユ爣璁?
+            // 最后一步标�?
             if (moves.length && moves[moves.length - 1].r === r && moves[moves.length - 1].c === c) {
               ctx.strokeStyle = "rgba(239,68,68,0.85)";
               ctx.lineWidth = Math.max(2, 2 * pxRatio);
@@ -2368,14 +2368,14 @@ rematchBtn.addEventListener("click", () => {
         return remainCount(color) > 0;
       }
       function doPlace(r, c, silent = false) {
-        // silent=true锛氬洖鏀惧巻鍙?鍒濆鍖栨椂涓嶅脊 toast
+        // silent=true：回放历�?初始化时不弹 toast
         if (gameOver) return false;
         if (!inBounds(r, c) || board[r][c] !== EMPTY) return false;
 
-        // 妫嬪瓙鐢ㄥ敖鍒よ礋
+        // 棋子用尽判负
         if (!canPlace(current)) {
           const winner = other(current);
-          if (!silent) endGame(winner, `${colorName(current)}妫嬪瓙鐢ㄥ敖锛?{colorName(winner)}鑳渀);
+          if (!silent) endGame(winner, `${colorName(current)}棋子用尽�?{colorName(winner)}胜`);
           else gameOver = true;
           return false;
         }
@@ -2387,9 +2387,9 @@ rematchBtn.addEventListener("click", () => {
         updateRemainUI();
         draw();
 
-        // 鑳滆礋鍒ゆ柇
+        // 胜负判断
         if (checkWin(r, c, current)) {
-          if (!silent) endGame(current, `${colorName(current)}鑳滐紒`);
+          if (!silent) endGame(current, `${colorName(current)}胜！`);
           else gameOver = true;
         }
         return true;
@@ -2404,24 +2404,24 @@ rematchBtn.addEventListener("click", () => {
           if (!selectedCell || selectedCell.r !== r || selectedCell.c !== c) {
             selectedCell = { r, c };
             draw();
-            toast("宸查€変腑锛屽啀鐐逛竴娆＄‘璁よ惤瀛?);
+            toast("已选中，再点一次确认落�?);
             return;
           }
         }
 
         clearSelectedCell();
 
-        // ===== 鑱旀満 PVP锛氬彧鍙戞秷鎭紝绛夋湇鍔″櫒骞挎挱鍥炴潵鍐嶈惤瀛?=====
-        // PVP 鑱旀満锛氬彂娑堟伅锛岀瓑鏈嶅姟鍣ㄥ箍鎾洖鏉ュ啀钀藉瓙
+        // ===== 联机 PVP：只发消息，等服务器广播回来再落�?=====
+        // PVP 联机：发消息，等服务器广播回来再落子
         if (modeEl.value !== "ai") {
-          if (net.role === 0) return toast("浣犳槸瑙傛垬锛屼笉鑳借惤瀛?);
-          if (current !== net.role) return toast("杩樻病杞埌浣?);
-          if (!net.send({ type: "move", r, c })) return toast("鏈繛鎺ヨ仈鏈?);
+          if (net.role === 0) return toast("你是观战，不能落�?);
+          if (current !== net.role) return toast("还没轮到�?);
+          if (!net.send({ type: "move", r, c })) return toast("未连接联�?);
           return;
         }
 
 
-        // 浜烘満锛氬彧鍏佽浜虹被鍦ㄨ嚜宸卞洖鍚堣惤
+        // 人机：只允许人类在自己回合落
         if (!isHumanTurn()) return;
 
         if (!doPlace(r, c)) return;
@@ -2445,7 +2445,7 @@ rematchBtn.addEventListener("click", () => {
       }
 
       // =========================
-      // 鏇村己 AI锛氬€欓€夌偣 + 璇勪及 + Minimax(伪尾)
+      // 更强 AI：候选点 + 评估 + Minimax(αβ)
       // =========================
 
       function hasNeighbor(r, c, range = NEAR_RANGE) {
@@ -2459,10 +2459,10 @@ rematchBtn.addEventListener("click", () => {
         return false;
       }
 
-      // 璇勪及绐楀彛锛? 杩炵獥鍙ｏ級寰楀垎锛氬彧瑕佸悓绐楀唴鏈夊弻鏂规瀛愬垯鏃犳晥
+      // 评估窗口�? 连窗口）得分：只要同窗内有双方棋子则无效
       function windowScore(count, open) {
-        // count: 璇ユ柟鍦ㄧ獥鍙?绾挎涓舰鎴愮殑杩炲娍锛堣繎浼硷級锛宱pen: 涓ょ寮€鏀?0/1/2)
-        // 鐢ㄤ簬鏁翠綋璇勪及锛氬垎鍊煎眰绾ф媺寮€锛孉I 鏇撮噸瑙嗗▉鑳?
+        // count: 该方在窗�?线段中形成的连势（近似），open: 两端开�?0/1/2)
+        // 用于整体评估：分值层级拉开，AI 更重视威�?
         if (count >= 5) return 1e9;
         if (count === 4 && open === 2) return 500000;
         if (count === 4 && open === 1) return 120000;
@@ -2474,9 +2474,9 @@ rematchBtn.addEventListener("click", () => {
         return 8;
       }
 
-      // 绾挎璇勪及锛氫互鈥滆繛缁+寮€鏀剧鈥濇潵鎵撳垎锛堟瘮鍗曠偣鏇寸ǔ锛?
+      // 线段评估：以“连续段+开放端”来打分（比单点更稳�?
       function lineEvalAt(r, c, dr, dc, player) {
-        // 浠?(r,c) 鍚戜袱绔墿灞曠粺璁¤繛缁?player 涓庡紑鏀剧
+        // �?(r,c) 向两端扩展统计连�?player 与开放端
         let cnt1 = 0, cnt2 = 0, open1 = 0, open2 = 0;
 
         for (let k = 1; k < 6; k++) {
@@ -2497,25 +2497,25 @@ rematchBtn.addEventListener("click", () => {
         return windowScore(cnt, open);
       }
 
-      // 鐐规墦鍒嗭紙鐢ㄤ簬鍊欓€夌偣鎺掑簭锛夛細杩涙敾 + 闃插畧
+      // 点打分（用于候选点排序）：进攻 + 防守
       function pointHeuristic(r, c, player) {
         const opp = other(player);
         const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
         let s = 0;
         for (const [dr, dc] of dirs) {
-          // 杩涙敾
+          // 进攻
           s += lineEvalAt(r, c, dr, dc, player) * 1.0;
-          // 闃插畧锛堢暐澶т竴鐐癸紝璁?AI 鏇撮毦琚€滅鏉€鈥濓級
+          // 防守（略大一点，�?AI 更难被“秒杀”）
           s += lineEvalAt(r, c, dr, dc, opp) * 0.95;
         }
-        // 涓績鍋忓ソ锛堝井寮憋級
+        // 中心偏好（微弱）
         const center = (SIZE - 1) / 2;
         const dist = Math.abs(r - center) + Math.abs(c - center);
         s += Math.max(0, 9 - dist) * 2;
         return s;
       }
 
-      // 鐢熸垚鍊欓€夌┖鐐癸紙鍙彇闄勮繎 & 鍙栧墠 K锛?
+      // 生成候选空点（只取附近 & 取前 K�?
       function genCandidates(player) {
         const cands = [];
         if (moves.length === 0) {
@@ -2534,18 +2534,18 @@ rematchBtn.addEventListener("click", () => {
         return cands.slice(0, CAND_LIMIT);
       }
 
-      // 鍏ㄥ眬璇勪及锛氬鎵€鏈夊凡鏈夋瀛愰檮杩戠┖鐐硅繘琛屸€滄綔鍔涘拰鈥濊瘎浼帮紙AI - 浜虹被锛?
+      // 全局评估：对所有已有棋子附近空点进行“潜力和”评估（AI - 人类�?
       function evaluate(forPlayer) {
         const opp = other(forPlayer);
         let score = 0;
 
-        // 鍙湪鈥滅浉鍏冲尯鍩熲€濇墦鍒嗭紙闈犺繎妫嬪瓙锛夛紝閬垮厤 19x19 鍏ㄦ壂澶參
+        // 只在“相关区域”打分（靠近棋子），避免 19x19 全扫太慢
         const seen = new Set();
         const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
         function key(r, c) { return r + "#" + c; }
 
-        // 鏀堕泦鐩稿叧鐐癸細鎵€鏈夋瀛愬懆鍥?2 鏍煎唴鐨勭┖浣?+ 妫嬪瓙鏈韩
+        // 收集相关点：所有棋子周�?2 格内的空�?+ 棋子本身
         for (const m of moves) {
           for (let dr = -2; dr <= 2; dr++) {
             for (let dc = -2; dc <= 2; dc++) {
@@ -2556,13 +2556,13 @@ rematchBtn.addEventListener("click", () => {
               seen.add(k);
 
               if (board[rr][cc] === EMPTY) {
-                // 鍋囪杩欓噷钀藉瓙锛岃瘎浼拌繘鏀?闃插畧娼滃姏
+                // 假设这里落子，评估进�?防守潜力
                 const pPot = pointHeuristic(rr, cc, forPlayer);
                 const oPot = pointHeuristic(rr, cc, opp);
                 score += pPot * 0.06;
                 score -= oPot * 0.06;
               } else {
-                // 瀵瑰凡钀藉瓙浣嶇疆锛氭寜杩炲娍缁欏皯閲忓姞鎴?
+                // 对已落子位置：按连势给少量加�?
                 const owner = board[rr][cc];
                 for (const [d1, d2] of dirs) {
                   const v = lineEvalAt(rr, cc, d1, d2, owner);
@@ -2577,12 +2577,12 @@ rematchBtn.addEventListener("click", () => {
       }
 
       function minimax(depth, alpha, beta, playerToMove, maximizingFor) {
-        // 缁堟
+        // 终止
         if (depth === 0 || gameOver) {
           return evaluate(maximizingFor);
         }
 
-        // 鑻ヨ鏂规病妫嬪彲涓嬶紝鐩存帴鍒よ礋锛堝璇勪及鏉ヨ缁欐瀬澶ц礋/姝ｏ級
+        // 若该方没棋可下，直接判负（对评估来说给极大负/正）
         if (!canPlace(playerToMove)) {
           return (playerToMove === maximizingFor) ? -1e8 : 1e8;
         }
@@ -2594,14 +2594,14 @@ rematchBtn.addEventListener("click", () => {
         let best = isMax ? -Infinity : Infinity;
 
         for (const { r, c } of cands) {
-          // 钀藉瓙
+          // 落子
           const prevCurrent = current;
           current = playerToMove;
 
           board[r][c] = playerToMove;
           moves.push({ r, c, p: playerToMove });
 
-          // 绔嬪嵆鑳滆礋鍒ゆ柇锛氭瘮缁х画鎼滅储鏇村揩鏇村噯
+          // 立即胜负判断：比继续搜索更快更准
           let val;
           if (checkWin(r, c, playerToMove)) {
             val = (playerToMove === maximizingFor) ? 1e8 : -1e8;
@@ -2609,7 +2609,7 @@ rematchBtn.addEventListener("click", () => {
             val = minimax(depth - 1, alpha, beta, other(playerToMove), maximizingFor);
           }
 
-          // 鎾ら攢
+          // 撤销
           moves.pop();
           board[r][c] = EMPTY;
           current = prevCurrent;
@@ -2617,22 +2617,22 @@ rematchBtn.addEventListener("click", () => {
           if (isMax) {
             if (val > best) best = val;
             if (best > alpha) alpha = best;
-            if (beta <= alpha) break; // 尾鍓灊
+            if (beta <= alpha) break; // β剪枝
           } else {
             if (val < best) best = val;
             if (best < beta) beta = best;
-            if (beta <= alpha) break; // 伪鍓灊
+            if (beta <= alpha) break; // α剪枝
           }
         }
         return best;
       }
 
       function aiChooseMove() {
-        // 鍏堟壘鈥滃繀鑳滀竴姝モ€濇垨鈥滃繀闃蹭竴姝モ€濓紝鍑忓皯鎼滅储鍘嬪姏
+        // 先找“必胜一步”或“必防一步”，减少搜索压力
         const opp = other(aiColor);
         const cands = genCandidates(aiColor);
 
-        // 1) AI 涓€姝ュ繀鑳?
+        // 1) AI 一步必�?
         for (const { r, c } of cands) {
           board[r][c] = aiColor;
           const win = checkWin(r, c, aiColor);
@@ -2640,21 +2640,21 @@ rematchBtn.addEventListener("click", () => {
           if (win) return { r, c };
         }
 
-        // 2) 蹇呴』闃插畧瀵规墜涓嬩竴姝ュ繀鑳?
+        // 2) 必须防守对手下一步必�?
         for (const { r, c } of genCandidates(opp)) {
           board[r][c] = opp;
           const win = checkWin(r, c, opp);
           board[r][c] = EMPTY;
-          if (win) return { r, c }; // 杩欓噷 AI 涓嬭繖涓偣鍘诲牭
+          if (win) return { r, c }; // 这里 AI 下这个点去堵
         }
 
-        // 3) Minimax 鎼滅储
+        // 3) Minimax 搜索
         let bestMove = null;
         let bestVal = -Infinity;
 
         const searchCands = genCandidates(aiColor);
         for (const { r, c } of searchCands) {
-          // 璇曡蛋
+          // 试走
           const prevCurrent = current;
           current = aiColor;
 
@@ -2665,7 +2665,7 @@ rematchBtn.addEventListener("click", () => {
           if (checkWin(r, c, aiColor)) val = 1e8;
           else val = minimax(SEARCH_DEPTH - 1, -Infinity, Infinity, opp, aiColor);
 
-          // 鎾ら攢
+          // 撤销
           moves.pop();
           board[r][c] = EMPTY;
           current = prevCurrent;
@@ -2686,14 +2686,14 @@ rematchBtn.addEventListener("click", () => {
       function aiMove() {
         if (gameOver) return;
         if (!canPlace(aiColor)) {
-          endGame(humanColor, `AI锛?{colorName(aiColor)}锛夋瀛愮敤灏斤紒浣犺儨`);
+          endGame(humanColor, `AI�?{colorName(aiColor)}）棋子用尽！你胜`);
           return;
         }
 
         aiThinking = true;
-        updateTurn("锛圓I鎬濊€冧腑鈥︼級");
+        updateTurn("（AI思考中…）");
 
-        // 缁?UI 涓€鐐规椂闂村埛鏂?
+        // �?UI 一点时间刷�?
         setTimeout(() => {
           if (gameOver) { aiThinking = false; return; }
 
@@ -2702,21 +2702,21 @@ rematchBtn.addEventListener("click", () => {
           aiThinking = false;
           updateTurn();
 
-          // AI 钀藉瓙
+          // AI 落子
           if (!doPlace(r, c)) return;
           nextTurn();
         }, 80);
       }
 
-      // 鎮旀锛?
-      // - PVP锛氭挙 1 姝?
-      // - AI锛氭挙 2 姝ワ紙灏介噺鍥炲埌浣犺蛋涔嬪墠锛?
+      // 悔棋�?
+      // - PVP：撤 1 �?
+      // - AI：撤 2 步（尽量回到你走之前�?
       function undo() {
-        if (modeEl.value !== "ai") return toast("鑱旀満妯″紡鏆備笉鏀寔鎮旀");
+        if (modeEl.value !== "ai") return toast("联机模式暂不支持悔棋");
 
 
         if (aiThinking) return;
-        if (moves.length === 0) return toast("杩樻病涓嬪瓙");
+        if (moves.length === 0) return toast("还没下子");
 
         stopTimer();
         if (gameOver) gameOver = false;
@@ -2732,10 +2732,10 @@ rematchBtn.addEventListener("click", () => {
         if (modeEl.value === "ai") {
           const a = popOne();
           const b = popOne();
-          toast(b ? "宸叉倲妫嬶紙涓ゆ锛? : "宸叉倲妫嬶紙涓€姝ワ級");
+          toast(b ? "已悔棋（两步�? : "已悔棋（一步）");
         } else {
           popOne();
-          toast("宸叉倲妫?);
+          toast("已悔�?);
         }
         clearSelectedCell();
 
@@ -2744,23 +2744,23 @@ rematchBtn.addEventListener("click", () => {
         updateTurn();
         startTurnTimer();
 
-        // 鎮旀鍚庡鏋滆疆鍒?AI锛岃 AI 鎺ョ潃璧帮紙淇濇寔鑷劧瀵瑰眬锛?
+        // 悔棋后如果轮�?AI，让 AI 接着走（保持自然对局�?
         if (modeEl.value === "ai" && current === aiColor && !gameOver) {
           aiMove();
         }
       }
 
-      // 瑙﹀睆/榧犳爣钀藉瓙
+      // 触屏/鼠标落子
       canvas.addEventListener('pointerdown', (e) => {
         e.preventDefault();
-        if (gameOver) return toast("宸茬粨鏉燂紝鐐归噸寮€");
+        if (gameOver) return toast("已结束，点重开");
         const hit = eventToCell(e);
-        if (!hit) return toast("鐐瑰埌绾垮浜?);
+        if (!hit) return toast("点到线外�?);
         const { r, c } = hit;
         place(r, c);
       }, { passive: false });
 
-      // 闃叉閮ㄥ垎瀹夊崜娴忚鍣ㄦ粴鍔ㄥ共鎵?
+      // 防止部分安卓浏览器滚动干�?
       document.addEventListener("touchmove", (e) => {
         if (e.target === canvas) e.preventDefault();
       }, { passive: false });
@@ -2768,22 +2768,22 @@ rematchBtn.addEventListener("click", () => {
       undoBtn.addEventListener('click', undo);
 restartBtn.addEventListener('click', requestRematch);
 
-// ===== 寮€濮嬪墠鎹㈤粦鐧?=====
+// ===== 开始前换黑�?=====
 swapBtn.addEventListener("click", () => {
-  if (modeEl.value === "ai") return toast("浜烘満妯″紡涓嶇敤鎹㈣竟");
-  if (gameOver) return toast("宸茬粨鏉燂紝璇风偣鍐嶆潵涓€灞€");
-  if (moves.length !== 0) return toast("寮€灞€鍚庝笉鑳芥崲杈?);
-  if (!(net.role === 1 || net.role === 2)) return toast("瑙傛垬涓嶈兘鎹㈣竟");
+  if (modeEl.value === "ai") return toast("人机模式不用换边");
+  if (gameOver) return toast("已结束，请点再来一局");
+  if (moves.length !== 0) return toast("开局后不能换�?);
+  if (!(net.role === 1 || net.role === 2)) return toast("观战不能换边");
 
   if (!net.send({ type: "swap" })) {
-    toast("鏈繛鎺ヨ仈鏈?);
+    toast("未连接联�?);
     return;
   }
 
-  toast("宸茶姹傛崲榛戠櫧锛堝弻鏂归兘鐐规墠浼氱敓鏁堬級");
+  toast("已请求换黑白（双方都点才会生效）");
 });
 
-// ===== 鍐嶆潵涓€灞€ =====
+// ===== 再来一局 =====
 rematchBtn.addEventListener("click", () => {
   requestRematch();
 });
@@ -2806,7 +2806,7 @@ rematchBtn.addEventListener("click", () => {
         if (e.key.toLowerCase() === 'z') undo();
       });
 
-      // 鍒濆鍖?      sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+      // 初始�?      sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
       function applyMobileLayout() {
         const isMobile = isMobileLayout();
         if (!headerEl || !rightEl || !mobileActionsHost) return;

@@ -30,8 +30,10 @@
     url.searchParams.set("quality", cfg.quality || "MP3_320");
     url.searchParams.set("lyrics", "0");
 
+    console.log("[Music] Karpov URL:", url.toString());
     return fetchKarpovPlaylist(url.toString(), 0)
-      .catch(function () {
+      .catch(function (err) {
+        console.warn("[Music] Karpov fetch failed:", err);
         var cached = getCachedKarpovPlaylist();
         if (cached) return cached;
         throw new Error("No playable music");
@@ -156,7 +158,9 @@
   }
 
   function initFallback() {
+    console.log("[Music] Fallback triggered. cfg:", cfg);
     var metingCfg = getMetingConfig();
+    console.log("[Music] metingCfg:", metingCfg, "customElements.get('meting-js'):", window.customElements.get("meting-js"));
     if (metingCfg && window.customElements.get("meting-js")) initMeting(metingCfg);
     else initLocal();
   }
@@ -168,6 +172,7 @@
   }
 
   function initMeting(metingCfg) {
+    console.log("[Music] initMeting with config:", metingCfg);
     var meting = document.createElement("meting-js");
     meting.setAttribute("server", metingCfg.server || "netease");
     meting.setAttribute("type", metingCfg.type || "playlist");
@@ -184,22 +189,36 @@
     shell.appendChild(meting);
     var tries = 0;
     var t = setInterval(function () {
-      if (meting.aplayer) { clearInterval(t); bindEvents(meting.aplayer); }
-      else if (++tries > 40) { clearInterval(t); if (!shell.querySelector(".aplayer")) initLocal(); }
+      if (meting.aplayer) {
+        clearInterval(t);
+        console.log("[Music] MetingJS initialized successfully");
+        bindEvents(meting.aplayer);
+      }
+      else if (++tries > 40) {
+        clearInterval(t);
+        console.warn("[Music] MetingJS timeout after", tries, "tries. Falling back to local.");
+        initLocal();
+      }
     }, 200);
   }
 
   function initLocal() {
-    var player = new APlayer({
-      container: createAPlayerContainer(),
-      fixed: true, mini: true, autoplay: false,
-      loop: "all", order: "list", preload: "none",
-      volume: initialVolume, mutex: true,
-      audio: [{ name: "BGM", artist: "Local",
-                url: "assets/music/background.wav",
-                cover: "assets/avatar.jpg" }]
-    });
-    bindEvents(player);
+    console.log("[Music] initLocal() called - creating local APlayer fallback");
+    try {
+      var player = new APlayer({
+        container: createAPlayerContainer(),
+        fixed: true, mini: true, autoplay: false,
+        loop: "all", order: "list", preload: "none",
+        volume: initialVolume, mutex: true,
+        audio: [{ name: "BGM", artist: "Local",
+                  url: "assets/music/background.wav",
+                  cover: "assets/avatar.jpg" }]
+      });
+      console.log("[Music] Local APlayer created successfully");
+      bindEvents(player);
+    } catch (err) {
+      console.error("[Music] initLocal() failed:", err);
+    }
   }
 
   function createAPlayerContainer() {

@@ -51,14 +51,14 @@ for (const file of ["index.html", "post.html", "comments.html"]) {
   assert.match(html, /assets\/vendor\/meting\/Meting\.min\.js/, `${file} should load local MetingJS`);
   assert.match(html, /assets\/music-config\.js\?v=3/, `${file} should load music config`);
   assert.match(html, /assets\/music-player\.css\?v=22/, `${file} should load versioned music player stylesheet`);
-  assert.match(html, /assets\/music-player\.js\?v=30/, `${file} should load versioned music player script`);
+  assert.match(html, /assets\/music-player\.js\?v=29/, `${file} should load versioned music player script`);
   assert.match(html, /<main id="siteRoute" class="shell-inner page-grid">/, `${file} should expose stable SPA route container`);
 }
 
 for (const file of ["archive.html", "about.html", "links.html"]) {
   const html = fs.readFileSync(file, "utf8");
-  assert.match(html, /assets\/site\.css\?v=20260612-vmss/, `${file} should load the Mizuki redesign stylesheet`);
-  assert.match(html, /assets\/site\.js\?v=20260612-vmss/, `${file} should load the Mizuki redesign script`);
+  assert.match(html, /assets\/site\.css\?v=20260610-mizuki/, `${file} should load the Mizuki redesign stylesheet`);
+  assert.match(html, /assets\/site\.js\?v=20260610-mizuki/, `${file} should load the Mizuki redesign script`);
   assert.match(html, /<main id="siteRoute" class="shell-inner page-grid">/, `${file} should expose stable SPA route container`);
 }
 
