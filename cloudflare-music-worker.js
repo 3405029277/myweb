@@ -113,7 +113,10 @@ function json(value, status = 200) {
 
 async function cachedResponse(request, ttlSeconds, factory) {
   const cache = caches.default;
-  const cached = await cache.match(request);
+  const cacheKey = new URL(request.url);
+  cacheKey.searchParams.set("_cacheVer", "v4-trackids"); // Bust cache
+  const cacheRequest = new Request(cacheKey.toString(), request);
+  const cached = await cache.match(cacheRequest);
   if (cached) return cached;
   const response = await factory();
   const ttl = typeof ttlSeconds === "function" ? ttlSeconds() : ttlSeconds;
@@ -124,7 +127,7 @@ async function cachedResponse(request, ttlSeconds, factory) {
     statusText: response.statusText,
     headers
   });
-  if (response.status >= 200 && response.status < 400) await cache.put(request, cacheable.clone());
+  if (response.status >= 200 && response.status < 400) await cache.put(cacheRequest, cacheable.clone());
   return cacheable;
 }
 
@@ -467,23 +470,51 @@ async function getSongLyric(env, provider, id) {
 }
 
 async function buildNeteasePlaylist(env, { provider, playlistId, limit }) {
-  const key = cacheKey(["playlist", provider, playlistId, limit]);
+  const key = cacheKey(["playlist-v4-trackids", provider, playlistId, limit]); // v4: fixed batch fetch
   const cached = getCached(key);
   if (cached) return cached;
 
-  const body = await fetchNetease(env, "/weapi/v6/playlist/detail", {
+  // 获取歌单所有信息（包含完整 trackIds）
+  const detailBody = await fetchNetease(env, "/weapi/v6/playlist/detail", {
     id: playlistId,
     n: 100000,
     s: 8
   });
-  const playlist = body.playlist || {};
-  const tracks = playlist.tracks || [];
+  const playlist = detailBody.playlist || {};
+  const coverImgUrl = playlist.coverImgUrl;
+  const playlistName = playlist.name || "Music Playlist";
+
+  // trackIds 包含完整歌单，tracks 只有前几首
+  const trackIds = (playlist.trackIds || []).map(item => item.id || item);
+
+  // 如果 trackIds 为空，fallback 到 tracks
+  let allTracks = [];
+  if (trackIds.length === 0) {
+    allTracks = playlist.tracks || [];
+  } else {
+    // 应用 limit
+    const targetIds = limit > 0 ? trackIds.slice(0, limit) : trackIds;
+
+    // 批量获取歌曲详情（每次最多 1000 首）
+    const batchSize = 1000;
+
+    for (let i = 0; i < targetIds.length; i += batchSize) {
+      const batchIds = targetIds.slice(i, i + batchSize);
+      const songBody = await fetchNetease(env, "/weapi/v3/song/detail", {
+        c: JSON.stringify(batchIds.map(id => ({ id }))),
+        ids: JSON.stringify(batchIds)
+      });
+      const songs = songBody.songs || [];
+      allTracks.push(...songs);
+    }
+  }
+
+  // 转换为统一格式
   const audio = [];
   let skipped = 0;
 
-  for (const track of tracks) {
-    if (limit > 0 && audio.length >= limit) break;
-    const song = normalizeSong(track, playlist.coverImgUrl);
+  for (const track of allTracks) {
+    const song = normalizeSong(track, coverImgUrl);
     if (!song.id) {
       skipped += 1;
       continue;
@@ -495,7 +526,7 @@ async function buildNeteasePlaylist(env, { provider, playlistId, limit }) {
     source: "netease-worker",
     provider,
     playlistId,
-    title: playlist.name || "Music Playlist",
+    title: playlistName,
     count: audio.length,
     skipped,
     audio
