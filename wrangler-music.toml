@@ -3,7 +3,13 @@ main = "cloudflare-music-worker.js"
 compatibility_date = "2026-05-25"
 
 [vars]
-KARPOV_GATEWAY_BASE_URL = "https://ldc.karpov.cn"
-KARPOV_MUSIC_PROVIDER = "netease"
-KARPOV_MUSIC_PLAYLIST_ID = "2668671168"
-KARPOV_MUSIC_QUALITY = "MP3_320"
+MUSIC_PROVIDER = "netease"
+MUSIC_PLAYLIST_ID = "2668671168"
+MUSIC_QUALITY = "320000"
+
+# 可选：VIP 账号 Cookie（用于访问受限歌曲）
+# NETEASE_COOKIE = "填入你的网易云 Cookie"
+
+[[r2_buckets]]
+binding = "MUSIC_BUCKET"
+bucket_name = "site-music-cache"

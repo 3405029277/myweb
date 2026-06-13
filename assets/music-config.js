@@ -3,16 +3,21 @@ window.SITE_MUSIC_CONFIG = {
   provider: "netease",
   type: "playlist",
   playlistId: "2668671168",
-  endpoint: "/api/music/playlist",
+  endpoint: "https://site-music-proxy.3405029277.workers.dev/api/music/playlist",
+  audioEndpoint: "https://site-music-proxy.3405029277.workers.dev/api/music/audio",
+  lyricEndpoint: "https://site-music-proxy.3405029277.workers.dev/api/music/lyric",
   limit: 0,
   quality: "MP3_320",
   lyrics: true,
 
   fallback: {
-    source: "meting",
-    server: "netease",
-    type: "playlist",
-    id: "2668671168",
-    api: "https://api.injahow.cn/meting/?server=:server&type=:type&id=:id&r=:r"
+    source: "local",
+    audio: [{
+      name: "Background Music",
+      artist: "Local",
+      url: "assets/music/background.wav",
+      cover: "assets/avatar.jpg",
+      lrc: ""
+    }]
   }
 };

@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>中国象棋 - 人机 / 本地双人 / 联机（房间·断线重连·换边·再来一局）</title>
+  <style>
+    /* --- 基础设置 --- */
+    :root{
+      color-scheme: dark;
+      --board-bg:#e6b380;
+      --line-color:#5d3a1a;
+      --red-color:#ce1f1f;
+      --black-color:#1a1a1a;
+      --select-glow:rgba(255,215,0,.8);
+      --timer-bg:#333;
+      --timer-text:#0f0;
+      --pill-bg:rgba(255,255,255,.10);
+      --pill-bd:rgba(255,255,255,.22);
+      --pill-tx:#ebdcb9;
+    }
+    body{
+      margin:0; padding:0;
+      background:#262626;
+      font-family:"KaiTi","楷体",serif;
+      /* ✅ 视口高度兼容：先用 100vh 兜底，再用 100dvh 修复手机地址栏导致的高度跳变 */
+      min-height:100vh; height:100vh; width:100vw;
+      min-height:100dvh; height:100dvh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      box-sizing:border-box;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      overflow:hidden; user-select:none; -webkit-user-select:none;
+    }
+
+    /* --- 游戏主区域 --- */
+    .game-area{
+      position:relative;
+      width:min(96vw, 600px);
+      height:min(96vh, 860px);
+      height:min(96dvh, 860px);
+      max-height:860px;
+      /* flex 子元素允许收缩（避免某些手机上 board-wrapper 被挤到 0 高度） */
+      min-height:0;
+      display:flex; flex-direction:column;
+      align-items:center;
+    }
+
+    /* 顶部信息栏 */
+    .header{
+      width:100%;
+      height:12%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:#ebdcb9;
+      font-size:clamp(14px,4vmin,20px);
+      text-shadow:1px 1px 2px #000;
+      padding:6px 6px;
+      box-sizing:border-box;
+      gap:10px;
+    }
+    .header .left{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+    .header .right{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:6px;
+      flex-shrink:0;
+    }
+    .mini-row{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .pill{
+      background:var(--pill-bg);
+      border:1px solid var(--pill-bd);
+      color:var(--pill-tx);
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:0.9em;
+      line-height:1;
+      white-space:nowrap;
+      backdrop-filter: blur(6px);
+    }
+    .pill small{opacity:.75; font-size:.9em}
+
+    .timer-box{
+      background:var(--timer-bg);
+      color:var(--timer-text);
+      padding:4px 12px;
+      border-radius:6px;
+      font-family:monospace;
+      font-size:1.1em;
+      border:1px solid #555;
+      box-shadow:0 0 5px rgba(0,255,0,0.2);
+      line-height:1.2;
+    }
+    .timer-box.urgent{color:#f00; box-shadow:0 0 8px rgba(255,0,0,0.5); animation:pulse .5s infinite;}
+    @keyframes pulse{0%{opacity:1;} 50%{opacity:.5;} 100%{opacity:1;}}
+
+    /* --- 棋盘容器 --- */
+    .board-wrapper{
+      position:relative;
+      /* ✅ 用 JS + 明确宽高来适配手机（防止部分浏览器用高度推导宽度导致“超出屏幕”） */
+      width:100%;
+      max-width:100%;
+      margin:0 auto;
+      aspect-ratio: 9 / 10;
+      flex:0 0 auto;
+
+      background-color:var(--board-bg);
+      border-radius:4px;
+      box-shadow:0 0 20px rgba(0,0,0,0.6);
+      background-image:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size:4% 4%;
+      min-height:0;
+      will-change:transform;
+      backface-visibility:hidden;
+      transition:transform .6s cubic-bezier(0.4,0.0,0.2,1);
+    }
+    .board-wrapper.flipped{transform:rotate(180deg);}
+    .board-wrapper.flipped .piece{transform:translate(-50%,-50%) rotate(180deg);}
+    .board-wrapper.flipped .piece.selected{transform:translate(-50%,-50%) rotate(180deg) scale(1.15);}
+    .board-wrapper.flipped .check-line{transform-origin:left center;}
+    .board-wrapper.flipped .toast-inner{transform:rotate(180deg);}
+
+    .board-svg{position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none;}
+    .pieces-layer{position:absolute; inset:0; z-index:10;}
+    .click-layer{position:absolute; inset:0; z-index:20; cursor:pointer; touch-action:none; -webkit-tap-highlight-color:transparent;}
+
+    .piece{
+      position:absolute;
+      width:10%; height:9%;
+      border-radius:50%;
+      background:#f3e5d3;
+      box-shadow: inset 0 3px 6px rgba(255,255,255,0.9),
+                  inset 0 -3px 6px rgba(0,0,0,0.4),
+                  2px 4px 8px rgba(0,0,0,0.5);
+      border:2px solid #8e6e52;
+      box-sizing:border-box;
+      display:flex; justify-content:center; align-items:center;
+      font-size:clamp(12px,5vmin,30px);
+      font-weight:bold;
+      transition:left .2s, top .2s, transform .2s;
+      transform:translate(-50%,-50%);
+      z-index:10;
+    }
+    .piece::after{content:''; position:absolute; width:80%; height:80%; border-radius:50%; border:1px solid rgba(0,0,0,0.1);}
+    .piece.red{color:var(--red-color); border-color:#d88;}
+    .piece.black{color:var(--black-color); border-color:#888;}
+    .piece.selected{
+      z-index:100;
+      background:#fff;
+      box-shadow:0 0 20px var(--select-glow);
+      transform:translate(-50%,-50%) scale(1.15);
+    }
+
+    .marker{position:absolute; transform:translate(-50%,-50%); pointer-events:none; z-index:5;}
+    .dot{
+      width:3%; height:2.7%;
+      background:rgba(0,200,0,.8);
+      border-radius:50%;
+      box-shadow:0 0 5px #afa;
+    }
+    .trace{
+      width:10%; height:9%;
+      border-radius:50%;
+      border:2px dashed rgba(0,100,255,.6);
+      background:rgba(0,100,255,.1);
+      box-sizing:border-box;
+    }
+
+    /* 将军显形线 */
+    .check-line{
+      position:absolute;
+      background-color:rgba(255,0,0,.82);
+      height:4px;
+      transform-origin:left center;
+      z-index:99;
+      pointer-events:none;
+      box-shadow:0 0 6px red;
+      border-radius:2px;
+    }
+
+    .controls{
+      height:10%;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding-top:8px;
+    }
+    .btn{
+      background:#d4a76a;
+      border:1px solid #5d3a1a;
+      color:#3e2723;
+      padding:8px 18px;
+      border-radius:6px;
+      font-weight:bold;
+      font-size:.9rem;
+      box-shadow:0 3px 0 #5d3a1a;
+      transition:all .1s;
+    }
+    .btn:active{transform:translateY(3px); box-shadow:none;}
+    .btn.primary{background:#ce1f1f; color:#fff; border-color:#8b0000; box-shadow:0 3px 0 #8b0000;}
+    .btn.small{padding:6px 10px; font-size:.8rem;}
+    .btn[disabled]{opacity:.55; filter:grayscale(0.2); pointer-events:none;}
+
+    /* Modal */
+    .modal-overlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.85);
+      z-index:999;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      backdrop-filter: blur(2px);
+    }
+    .modal{
+      background:#fff;
+      width:88%;
+      max-width:420px;
+      padding:22px;
+      border-radius:10px;
+      text-align:center;
+      border:4px solid var(--line-color);
+      box-shadow:0 10px 30px rgba(0,0,0,.5);
+    }
+    .row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+    .role-btn{display:inline-block; width:46%; padding:10px; cursor:pointer; border-radius:10px; user-select:none;}
+    .role-btn:hover{background:#eee;}
+    .section-title{margin:14px 0 8px; font-weight:800; color:#3e2723;}
+    .muted{opacity:.8; font-size:.95rem; margin:0;}
+    .hint{opacity:.72; font-size:.9rem; margin:6px 0 0; line-height:1.4;}
+
+    /* 将军提示框 */
+    .check-toast{
+      position:absolute; top:50%; left:50%; width:90%;
+      transform:translate(-50%,-50%) scale(0);
+      background:rgba(0,0,0,.85); color:#fff;
+      padding:15px; font-size:1.2rem;
+      border-radius:10px; border:2px solid #f00;
+      pointer-events:none; opacity:0; z-index:500; transition:.2s;
+      box-shadow:0 5px 20px rgba(0,0,0,.5);
+    }
+    .toast-inner{width:100%; display:flex; flex-direction:column; align-items:center; gap:5px;}
+    .check-toast.active{transform:translate(-50%,-50%) scale(1); opacity:1; animation:shake .5s;}
+    .check-toast span{font-size:.9rem; color:#ccc;}
+    .check-toast strong{color:#f55; font-size:1.4rem;}
+    @keyframes shake{
+      0%,100%{transform:translate(-50%,-50%) rotate(0)}
+      25%{transform:translate(-50%,-50%) rotate(-5deg)}
+      75%{transform:translate(-50%,-50%) rotate(5deg)}
+    }
+
+    /* 通用 toast */
+    .toast-msg{
+      position:fixed;
+      left:50%;
+      bottom:16px;
+      transform:translateX(-50%) translateY(6px);
+      background:rgba(0,0,0,.78);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      opacity:0;
+      transition:.18s ease;
+      z-index:2000;
+      pointer-events:none;
+      font-size:14px;
+      max-width: min(420px, 92vw);
+      text-align:center;
+      backdrop-filter: blur(6px);
+    }
+    .toast-msg.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+    @media (max-width: 520px){
+      body{
+        justify-content:flex-start;
+        background:#f1e4cf;
+        color:#2a2118;
+      }
+
+      .game-area{
+        width:100%;
+        height:100dvh;
+        max-height:none;
+        padding:calc(64px + env(safe-area-inset-top)) 10px calc(76px + env(safe-area-inset-bottom));
+        box-sizing:border-box;
+        display:flex;
+        justify-content:center;
+      }
+
+      .header{
+        position:fixed;
+        left:10px;
+        right:10px;
+        top:calc(8px + env(safe-area-inset-top));
+        z-index:140;
+        height:auto;
+        font-size:clamp(12px,3.8vmin,16px);
+        color:#2a2118;
+        text-shadow:none;
+        padding:8px 10px;
+        flex-wrap:wrap;
+        border:1px solid rgba(111,79,41,.16);
+        border-radius:16px;
+        background:rgba(255,252,245,.84);
+        box-shadow:0 12px 26px rgba(79,55,28,.12);
+        backdrop-filter:blur(8px);
+      }
+
+      .header .right{
+        flex-direction:row;
+        flex-wrap:wrap;
+        justify-content:flex-end;
+      }
+
+      .pill{
+        padding:4px 8px;
+        font-size:.82em;
+        color:#4a3720;
+        background:rgba(255,255,255,.72);
+        border-color:rgba(111,79,41,.18);
+      }
+
+      .timer-box{
+        padding:4px 10px;
+        font-size:1em;
+      }
+
+      .board-wrapper{
+        align-self:center;
+        justify-self:center;
+        width:min(94vw, 460px);
+      }
+
+      .controls{
+        position:fixed;
+        left:10px;
+        right:10px;
+        bottom:calc(8px + env(safe-area-inset-bottom));
+        z-index:130;
+        height:auto;
+        padding:10px;
+        gap:8px;
+        flex-wrap:wrap;
+        justify-content:center;
+        border:1px solid rgba(111,79,41,.16);
+        border-radius:16px;
+        background:rgba(255,252,245,.92);
+        box-shadow:0 16px 30px rgba(79,55,28,.16);
+        backdrop-filter:blur(10px);
+      }
+
+      .btn{
+        padding:8px 12px;
+        font-size:.84rem;
+        border-radius:8px;
+      }
+
+      .btn.small{
+        padding:6px 10px;
+        font-size:.78rem;
+      }
+
+      .role-btn{
+        width:100%;
+      }
+
+      .modal{
+        padding:16px;
+      }
+
+      .hint{
+        font-size:.85rem;
+      }
+    }
+  </style>
+</head>
+<body class="mobile-board-first">
+
+  <div class="game-area">
+    <div class="header">
+      <div class="left">
+        <div id="turnInfo">等待开始...</div>
+        <div class="mini-row">
+          <span class="pill" id="roleBadge">你是：未连接</span>
+          <span class="pill" id="roomCount">房间：0人</span>
+          <span class="pill" id="netStatus">离线</span>
+        </div>
+      </div>
+      <div class="right">
+        <div id="timer" class="timer-box">60</div>
+        <button id="copyLinkBtn" class="btn small" style="display:none;">复制房间链接</button>
+      </div>
+    </div>
+
+    <div class="board-wrapper" id="boardRef">
+      <svg class="board-svg" viewBox="0 0 900 1000" preserveAspectRatio="none">
+        <rect x="5" y="5" width="890" height="990" fill="none" stroke="#5d3a1a" stroke-width="5"/>
+        <rect x="50" y="50" width="800" height="900" fill="none" stroke="#5d3a1a" stroke-width="3"/>
+        <g stroke="#5d3a1a" stroke-width="2">
+          <line x1="50" y1="50" x2="850" y2="50" /><line x1="50" y1="150" x2="850" y2="150" />
+          <line x1="50" y1="250" x2="850" y2="250" /><line x1="50" y1="350" x2="850" y2="350" />
+          <line x1="50" y1="450" x2="850" y2="450" /><line x1="50" y1="550" x2="850" y2="550" />
+          <line x1="50" y1="650" x2="850" y2="650" /><line x1="50" y1="750" x2="850" y2="750" />
+          <line x1="50" y1="850" x2="850" y2="850" /><line x1="50" y1="950" x2="850" y2="950" />
+        </g>
+        <g stroke="#5d3a1a" stroke-width="2">
+          <path d="M50 50 V450 M50 550 V950" /><path d="M150 50 V450 M150 550 V950" />
+          <path d="M250 50 V450 M250 550 V950" /><path d="M350 50 V450 M350 550 V950" />
+          <path d="M450 50 V450 M450 550 V950" /><path d="M550 50 V450 M550 550 V950" />
+          <path d="M650 50 V450 M650 550 V950" /><path d="M750 50 V450 M750 550 V950" />
+          <path d="M850 50 V450 M850 550 V950" />
+        </g>
+        <g stroke="#5d3a1a" stroke-width="2">
+          <line x1="350" y1="50" x2="550" y2="250" /><line x1="550" y1="50" x2="350" y2="250" />
+          <line x1="350" y1="950" x2="550" y2="750" /><line x1="550" y1="950" x2="350" y2="750" />
+        </g>
+        <text x="250" y="520" font-size="50" fill="#5d3a1a" text-anchor="middle" dominant-baseline="middle">楚 河</text>
+        <text x="650" y="520" font-size="50" fill="#5d3a1a" text-anchor="middle" dominant-baseline="middle">汉 界</text>
+      </svg>
+
+      <div id="piecesLayer" class="pieces-layer"></div>
+      <div id="clickLayer" class="click-layer"></div>
+
+      <!-- 将军提示框 -->
+      <div id="checkToast" class="check-toast">
+        <div class="toast-inner">
+          <strong id="chkTitle">将军!</strong>
+          <span id="chkDetail"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="undoBtn" class="btn" onclick="game.undo()">悔棋</button>
+      <button class="btn primary" onclick="showSettings()">新局</button>
+      <button id="requestRematchBtn" class="btn">申请重开</button>
+    </div>
+  </div>
+
+  <!-- 开始菜单 -->
+  <div class="modal-overlay" id="startModal">
+    <div class="modal">
+      <h2 style="margin:0 0 6px;">中国象棋</h2>
+      <p class="muted">每步 60 秒 · 人机 / 本地双人 / 联机（免费）</p>
+
+      <div class="section-title">人机对战</div>
+      <div class="row" style="margin:10px 0 0;">
+        <div class="role-btn" onclick="startAIGame(1)" style="border:1px solid #c00;">
+          <strong style="color:#c00; font-size:1.6em;">帅</strong><br>执红先行
+        </div>
+        <div class="role-btn" onclick="startAIGame(-1)" style="border:1px solid #000;">
+          <strong style="color:#000; font-size:1.6em;">将</strong><br>执黑后行
+        </div>
+      </div>
+
+      <div class="section-title">本地双人</div>
+      <div class="row">
+        <button class="btn" onclick="startLocal()">双人本地</button>
+      </div>
+
+      <div class="section-title">联机对战</div>
+      <div class="row">
+        <button class="btn primary" onclick="startOnline('red')">联机执红</button>
+        <button class="btn primary" onclick="startOnline('black')">联机执黑</button>
+        <button class="btn" onclick="startOnline('spectate')">观战</button>
+      </div>
+      <p class="hint">提示：进入联机后点右上角「复制房间链接」发给朋友。同一房间最多 2 人对弈，其余观战。断线会自动重连（保座位一段时间）。</p>
+    </div>
+  </div>
+
+  <!-- 结束弹窗 -->
+  <div class="modal-overlay" id="endModal" style="display:none;">
+    <div class="modal">
+      <h2 id="endTitle" style="color:#c00; margin:0 0 6px;">游戏结束</h2>
+      <p id="endReason" class="muted" style="margin:0 0 12px;">原因</p>
+
+      <!-- 联机：双方同意 -->
+      <div id="onlineEndBox" style="display:none;">
+        <div class="row">
+          <button id="onlineRematchBtn" class="btn primary">再来一局（双方同意）</button>
+          <button id="onlineSwapBtn" class="btn">换边（双方同意）</button>
+        </div>
+        <p id="voteHint" class="hint" style="margin-top:10px;"></p>
+      </div>
+
+      <!-- 非联机：本地 -->
+      <div id="offlineEndBox" style="display:none;">
+        <div class="row">
+          <button id="offlineAgainBtn" class="btn primary">再来一局</button>
+          <button id="offlineSwapBtn" class="btn">换边</button>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn" onclick="closeModal('endModal')">查看棋局</button>
+        <button class="btn" onclick="showSettings()">返回菜单</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast-msg"></div>
+
+  <!-- ✅ 复用联机模块（请把你仓库里的 online_final.js 改名为 online.js 放同目录） -->
+  <script src="./online.js"></script>
+
+  <script>
+    // ===========================
+    // 常量 / 引擎（基于你原来的版本）
+    // ===========================
+    const RED = 1, BLACK = -1;
+    const ROLES = { K:1, A:2, E:3, H:4, R:5, C:6, P:7 };
+    const ROWS = 10, COLS = 9;
+    const TIME_LIMIT = 60;
+
+    const INIT_MAP = [
+      ['R','H','E','A','K','A','E','H','R'],
+      [0,0,0,0,0,0,0,0,0],
+      [0,'C',0,0,0,0,0,'C',0],
+      ['P',0,'P',0,'P',0,'P',0,'P'],
+      [0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0],
+      ['p',0,'p',0,'p',0,'p',0,'p'],
+      [0,'c',0,0,0,0,0,'c',0],
+      [0,0,0,0,0,0,0,0,0],
+      ['r','h','e','a','k','a','e','h','r']
+    ];
+
+    const CHAR_CFG = {
+      'r':{t:ROLES.R,c:RED},'h':{t:ROLES.H,c:RED},'e':{t:ROLES.E,c:RED},'a':{t:ROLES.A,c:RED},'k':{t:ROLES.K,c:RED},'c':{t:ROLES.C,c:RED},'p':{t:ROLES.P,c:RED},
+      'R':{t:ROLES.R,c:BLACK},'H':{t:ROLES.H,c:BLACK},'E':{t:ROLES.E,c:BLACK},'A':{t:ROLES.A,c:BLACK},'K':{t:ROLES.K,c:BLACK},'C':{t:ROLES.C,c:BLACK},'P':{t:ROLES.P,c:BLACK}
+    };
+
+    const TEXTS = {
+      [RED]:{1:'帅',2:'仕',3:'相',4:'马',5:'车',6:'炮',7:'兵'},
+      [BLACK]:{1:'将',2:'士',3:'象',4:'马',5:'车',6:'炮',7:'卒'}
+    };
+    const PIECE_VALS = {1:10000, 5:900, 6:450, 4:400, 3:200, 2:200, 7:100};
+
+    class Engine {
+      constructor(){ this.init(RED); }
+      init(side){
+        this.board = Array(ROWS).fill(0).map(()=>Array(COLS).fill(null));
+        for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+          const ch = INIT_MAP[r][c];
+          if (ch && CHAR_CFG[ch]) this.board[r][c] = {...CHAR_CFG[ch]};
+        }
+        this.turn = RED;
+        this.mySide = side;   // 1 红 / -1 黑 / 0 本地双人 or 观战
+        this.gameOver = false;
+        this.history = [];
+        this.selected = null;
+        this.hints = [];
+        this.lastMove = null;
+        this.repMap = {};
+        this.checkInfo = null;
+      }
+
+      getBoardHash(){
+        let str = "";
+        for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+          const p = this.board[r][c];
+          str += p ? `${p.c}${p.t}` : "0";
+        }
+        return str + this.turn;
+      }
+
+      getMoves(color){
+        const moves = [];
+        for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+          const p = this.board[r][c];
+          if (p && p.c === color){
+            const raw = this.getRawMoves(r,c,p.t,color);
+            for (const m of raw) if (!this.checkSimulate(color,m)) moves.push(m);
+          }
+        }
+        return moves;
+      }
+
+      getRawMoves(r,c,type,color){
+        const m = [];
+        const push = (tr,tc)=>{
+          if (tr>=0&&tr<ROWS&&tc>=0&&tc<COLS){
+            const t = this.board[tr][tc];
+            if (!t || t.c !== color) m.push({from:{r,c}, to:{r:tr,c:tc}, capture:t});
+          }
+        };
+
+        if (type === ROLES.R){ // 车
+          [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr,dc])=>{
+            for (let i=1;;i++){
+              const tr=r+dr*i, tc=c+dc*i;
+              if (tr<0||tr>=ROWS||tc<0||tc>=COLS) break;
+              const t = this.board[tr][tc];
+              if (!t) m.push({from:{r,c}, to:{r:tr,c:tc}});
+              else { if (t.c!==color) m.push({from:{r,c}, to:{r:tr,c:tc}, capture:t}); break; }
+            }
+          });
+        }
+        else if (type === ROLES.C){ // 炮
+          [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr,dc])=>{
+            let platform=false;
+            for (let i=1;;i++){
+              const tr=r+dr*i, tc=c+dc*i;
+              if (tr<0||tr>=ROWS||tc<0||tc>=COLS) break;
+              const t=this.board[tr][tc];
+              if (!platform){
+                if (!t) m.push({from:{r,c}, to:{r:tr,c:tc}});
+                else platform=true;
+              } else {
+                if (t){
+                  if (t.c!==color) m.push({from:{r,c}, to:{r:tr,c:tc}, capture:t});
+                  break;
+                }
+              }
+            }
+          });
+        }
+        else if (type === ROLES.H){ // 马
+          [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dr,dc])=>{
+            const tr=r+dr, tc=c+dc;
+            const lr=r+(Math.abs(dr)===2?Math.sign(dr):0);
+            const lc=c+(Math.abs(dc)===2?Math.sign(dc):0);
+            if (tr>=0&&tr<ROWS&&tc>=0&&tc<COLS&&!this.board[lr][lc]) push(tr,tc);
+          });
+        }
+        else if (type === ROLES.E){ // 相/象
+          [[2,2],[2,-2],[-2,2],[-2,-2]].forEach(([dr,dc])=>{
+            const tr=r+dr, tc=c+dc;
+            const er=r+dr/2, ec=c+dc/2;
+            if ((color===RED && tr<5) || (color===BLACK && tr>4)) return;
+            if (tr>=0&&tr<ROWS&&tc>=0&&tc<COLS&&!this.board[er][ec]) push(tr,tc);
+          });
+        }
+        else if (type === ROLES.A){ // 仕/士
+          [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>{
+            const tr=r+dr, tc=c+dc;
+            if (tc<3||tc>5) return;
+            if ((color===RED && tr<7) || (color===BLACK && tr>2)) return;
+            push(tr,tc);
+          });
+        }
+        else if (type === ROLES.K){ // 将/帅
+          [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
+            const tr=r+dr, tc=c+dc;
+            if (tc<3||tc>5) return;
+            if ((color===RED && tr<7) || (color===BLACK && tr>2)) return;
+            push(tr,tc);
+          });
+        }
+        else if (type === ROLES.P){ // 兵/卒
+          const dir = color===RED ? -1 : 1;
+          push(r+dir, c);
+          if ((color===RED && r<=4) || (color===BLACK && r>=5)) { push(r,c+1); push(r,c-1); }
+        }
+
+        return m;
+      }
+
+      checkSimulate(color, move){
+        const old = this.board[move.to.r][move.to.c];
+        this.board[move.to.r][move.to.c] = this.board[move.from.r][move.from.c];
+        this.board[move.from.r][move.from.c] = null;
+        const danger = this.isChecked(color);
+        this.board[move.from.r][move.from.c] = this.board[move.to.r][move.to.c];
+        this.board[move.to.r][move.to.c] = old;
+        return danger;
+      }
+
+      isChecked(color){ return this.getCheckSource(color) !== null; }
+
+      getCheckSource(color){
+        let king=null;
+        for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+          const p=this.board[r][c];
+          if (p && p.t===ROLES.K && p.c===color) king={r,c};
+        }
+        if (!king) return null;
+
+        const enemy = (color===RED ? BLACK : RED);
+
+        // 1) 飞将
+        for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+          const p=this.board[r][c];
+          if (p && p.t===ROLES.K && p.c===enemy){
+            if (c===king.c){
+              let hasBlocker=false;
+              for (let i=Math.min(r,king.r)+1;i<Math.max(r,king.r);i++){
+                if (this.board[i][c]) {hasBlocker=true; break;}
+              }
+              if (!hasBlocker) return {type:'FLY', from:{r,c}, to:king, name:TEXTS[enemy][ROLES.K]};
+            }
+          }
+        }
+
+        // 2) 普攻（含炮）
+        for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+          const p=this.board[r][c];
+          if (p && p.c===enemy){
+            const moves=this.getRawMoves(r,c,p.t,enemy);
+            if (moves.some(m=>m.to.r===king.r && m.to.c===king.c)){
+              let screenInfo = null;
+              if (p.t === ROLES.C){
+                const dr = Math.sign(king.r - r);
+                const dc = Math.sign(king.c - c);
+                if (dr===0 || dc===0){
+                  for (let i=1;;i++){
+                    const tr=r+dr*i, tc=c+dc*i;
+                    if (tr===king.r && tc===king.c) break;
+                    const t=this.board[tr][tc];
+                    if (t){ screenInfo={r:tr,c:tc,name:TEXTS[t.c][t.t]}; break; }
+                  }
+                }
+              }
+              return { type:'NORMAL', from:{r,c}, to:king, name:TEXTS[p.c][p.t], screen:screenInfo };
+            }
+          }
+        }
+        return null;
+      }
+
+      evaluate(color){
+        let s=0;
+        for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+          const p=this.board[r][c];
+          if (p){
+            const val=PIECE_VALS[p.t];
+            let bonus=0;
+            if (p.t===ROLES.P){
+              if (p.c===RED){ if (r<5) bonus+=30; if (r<5 && c>=2 && c<=6) bonus+=20; if (r<=2) bonus+=10; }
+              else { if (r>4) bonus+=30; if (r>4 && c>=2 && c<=6) bonus+=20; if (r>=7) bonus+=10; }
+            } else if (p.t===ROLES.H){
+              if (c===0 || c===8) bonus-=10;
+              else if (r>=3 && r<=6 && c>=2 && c<=6) bonus+=20;
+            } else if (p.t===ROLES.C){
+              if (c===4) bonus+=20;
+            } else if (p.t===ROLES.R){
+              if ((p.c===RED && r===9 && (c===0||c===8)) || (p.c===BLACK && r===0 && (c===0||c===8))) bonus-=10;
+              if (c===4 || c===2 || c===6) bonus+=10;
+            }
+            s += (p.c===color ? (val+bonus) : -(val+bonus));
+          }
+        }
+        return s;
+      }
+    }
+
+    // ===========================
+    // UI + 游戏逻辑
+    // ===========================
+    const engine = new Engine();
+    let uiLock = false;
+    let timerVal = TIME_LIMIT;
+    let timerInterval = null;
+
+    // 模式
+    let onlineMode = false;
+    let net = null;
+    let lastOfflineMode = { type:"ai", side: RED }; // 用于“再来一局/换边”
+
+    // DOM
+    const roleBadgeEl = document.getElementById("roleBadge");
+    const roomCountEl = document.getElementById("roomCount");
+    const netStatusEl = document.getElementById("netStatus");
+    const copyLinkBtn = document.getElementById("copyLinkBtn");
+    const undoBtn = document.getElementById("undoBtn");
+    const requestRematchBtn = document.getElementById("requestRematchBtn");
+
+    const onlineEndBox = document.getElementById("onlineEndBox");
+    const offlineEndBox = document.getElementById("offlineEndBox");
+    const onlineRematchBtn = document.getElementById("onlineRematchBtn");
+    const onlineSwapBtn = document.getElementById("onlineSwapBtn");
+    const offlineAgainBtn = document.getElementById("offlineAgainBtn");
+    const offlineSwapBtn = document.getElementById("offlineSwapBtn");
+    const voteHintEl = document.getElementById("voteHint");
+
+    const toastEl = document.getElementById("toast");
+
+    // ===== 手机端棋盘自适配（避免宽度超屏 + 首帧不绘制）=====
+    const gameAreaEl = document.querySelector(".game-area");
+    const headerEl = document.querySelector(".header");
+    const controlsEl = document.querySelector(".controls");
+    const boardRefEl = document.getElementById("boardRef");
+
+    function fitBoard(){
+      if (!boardRefEl || !gameAreaEl) return;
+      const gaW = gameAreaEl.clientWidth || gameAreaEl.getBoundingClientRect().width;
+      const gaH = gameAreaEl.clientHeight || gameAreaEl.getBoundingClientRect().height;
+      const headerH = headerEl ? headerEl.offsetHeight : 0;
+      const controlsH = controlsEl ? controlsEl.offsetHeight : 0;
+      const padding = 12;
+      const isMobile = window.matchMedia("(max-width: 520px)").matches;
+      const scale = isMobile ? 0.96 : 0.92;
+
+      const availH = Math.max(200, gaH - (isMobile ? 0 : headerH + controlsH) - padding);
+      const availW = Math.max(200, gaW);
+
+      // 9/10 的棋盘比例：w <= availW 且 h=w*10/9 <= availH  => w <= availH*9/10
+      const w = Math.floor(Math.min(availW, availH * 9 / 10) * scale);
+      const h = Math.floor(w * 10 / 9);
+
+      boardRefEl.style.width = w + "px";
+      boardRefEl.style.height = h + "px";
+    }
+
+    window.addEventListener("resize", () => {
+      fitBoard();
+      try { render(); } catch {}
+    }, { passive:true });
+
+    window.addEventListener("orientationchange", () => {
+      setTimeout(() => { fitBoard(); try { render(); } catch {} }, 50);
+    }, { passive:true });
+
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(toastEl._t);
+      toastEl._t = setTimeout(()=>toastEl.classList.remove("show"), 1400);
+    }
+
+    function setRoleBadgeText(){
+      if (!onlineMode) {
+        roleBadgeEl.textContent = (engine.mySide===0) ? "本地：双人" : (engine.mySide===RED ? "人机：你是红" : "人机：你是黑");
+        return;
+      }
+      if (engine.mySide === 0) roleBadgeEl.textContent = "联机：你是观战";
+      else if (engine.mySide === RED) roleBadgeEl.textContent = "联机：你是红";
+      else if (engine.mySide === BLACK) roleBadgeEl.textContent = "联机：你是黑";
+      else roleBadgeEl.textContent = "联机：未知身份";
+    }
+
+    function setNetStatus(text){ netStatusEl.textContent = text; }
+
+    function stopTimer(){ clearInterval(timerInterval); timerInterval=null; }
+
+    function updateTimerUI(){
+      const el = document.getElementById("timer");
+      el.innerText = timerVal;
+      if (timerVal <= 10) el.classList.add("urgent"); else el.classList.remove("urgent");
+    }
+
+    // online：超时只上报服务器；offline：本地判负
+    let onlineTimeoutSent = false;
+    function startTimer(){
+      stopTimer();
+      timerVal = TIME_LIMIT;
+      onlineTimeoutSent = false;
+      updateTimerUI();
+
+      timerInterval = setInterval(() => {
+        if (engine.gameOver) { stopTimer(); return; }
+        timerVal--;
+        updateTimerUI();
+
+        if (timerVal <= 0) {
+          stopTimer();
+
+          if (onlineMode) {
+            // 只有走棋方 + 玩家身份 才上报超时
+            if (!onlineTimeoutSent && engine.mySide !== 0 && engine.turn === engine.mySide) {
+              onlineTimeoutSent = true;
+              toast("你超时了…等待服务器判定");
+              if (net) net.send({ type:"xq_timeout" });
+            }
+            return;
+          }
+
+          // offline
+          engine.gameOver = true;
+          const loser = engine.turn === RED ? "红方" : "黑方";
+          playSound("win");
+          endGame(engine.turn === RED ? "黑方" : "红方", `${loser}超时判负`);
+        }
+      }, 1000);
+    }
+
+    function startGame(side){
+      // side: 1(红) -1(黑) 0(本地双人/观战)
+      closeModal("startModal");
+      engine.init(side);
+
+      // 翻转棋盘：执黑方（无论人机/联机）都翻转，让己方在下方
+      const br = document.getElementById("boardRef");
+      if (side === BLACK) br.classList.add("flipped");
+      else br.classList.remove("flipped");
+
+      // ✅ 先计算棋盘宽高（移动端避免超屏 / 首帧不绘制）
+      fitBoard();
+      // 强制一次重排，修复部分手机背景/棋盘线首帧不显示
+      void br.offsetHeight;
+
+      render();
+      updateStatus();
+      // ✅ 某些手机浏览器首次布局会出现 0 高度/不刷新：下一帧再渲染一次
+      requestAnimationFrame(() => { fitBoard(); try { render(); } catch {} });
+      setTimeout(() => { fitBoard(); try { render(); } catch {} }, 80);
+      setRoleBadgeText();
+      startTimer();
+
+      // ✅ 只有人机模式才让 AI 走
+      if (!onlineMode && side === BLACK) {
+        uiLock = true;
+        setTimeout(aiTurn, 1000 + Math.random() * 1000);
+      } else {
+        uiLock = false;
+      }
+    }
+
+    function startAIGame(side){
+      stopOnline();
+      onlineMode = false;
+      copyLinkBtn.style.display = "none";
+      undoBtn.style.display = "";
+      undoBtn.disabled = false;
+
+      lastOfflineMode = { type:"ai", side };
+      startGame(side);
+    }
+
+    function startLocal(){
+      stopOnline();
+      onlineMode = false;
+      copyLinkBtn.style.display = "none";
+      undoBtn.style.display = "";
+      undoBtn.disabled = false;
+
+      lastOfflineMode = { type:"local", side: 0 };
+      startGame(0);
+    }
+
+    // ===== 联机 =====
+    function ensureNet(){
+      if (net) return net;
+
+      if (!window.OnlineClient) {
+        toast("缺少 online.js（请把 online_final.js 重命名为 online.js）");
+        return null;
+      }
+
+      net = new OnlineClient({
+        // ✅ wsBase 支持数组：国内/海外双线路兜底（可按你自己的域名替换）
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://你的国内线路域名"],
+        wsBase: "wss://ws.cjx88.eu.cc",
+        wsPath: "/relay",
+        query: { game: "xq" },
+        tokenKeyPrefix: "xq_token",
+        connectTimeoutMs: 8000,
+        onStatus: (s) => {
+          // 兼容 string / object 两种回调
+          const status = (typeof s === "string") ? s : (s && s.status) || "";
+          if (status === "connecting") setNetStatus("联机：连接中");
+          else if (status === "connected" || status === "open") setNetStatus("联机：已连接");
+          else if (status === "disconnected" || status === "closed") setNetStatus("联机：断开（自动重连）");
+          else if (status === "error") setNetStatus("联机：错误");
+        },
+        onPresence: (n) => { roomCountEl.textContent = `房间：${n}人`; },
+        onRole: (role) => {
+          // role: 0观战 1红 2黑（服务端）
+          if (!onlineMode) return;
+          if (role === 1) engine.mySide = RED;
+          else if (role === 2) engine.mySide = BLACK;
+          else engine.mySide = 0;
+          setRoleBadgeText();
+        },
+        onMessage: onNetMessage,
+      });
+
+      return net;
+    }
+
+    function startOnline(want){
+      stopOnline();
+      onlineMode = true;
+      copyLinkBtn.style.display = "";
+      undoBtn.style.display = "none"; // 联机禁用悔棋
+
+      const n = ensureNet();
+      if (!n) return;
+
+      // want: red / black / spectate
+      n.setExtraQuery({ want });
+
+      // 先开局为观战（等 init 再真正设置身份/同步棋谱）
+      startGame(0);
+
+      toast("正在连接联机…");
+      n.connect();
+    }
+
+    function stopOnline(){
+      if (!net) return;
+      try { net.send({ type:"xq_leave" }); } catch {}
+      try { net.close(); } catch {}
+      net = null;
+      setNetStatus("离线");
+      roomCountEl.textContent = "房间：0人";
+    }
+
+    copyLinkBtn.addEventListener("click", async () => {
+      try {
+        const n = ensureNet();
+        const url = n ? await n.copyLink() : location.href;
+        toast("已复制房间链接");
+      } catch {
+        // fallback
+        try{
+          await navigator.clipboard.writeText(location.href);
+          toast("已复制房间链接");
+        }catch{
+          toast("复制失败：请手动复制地址栏链接");
+        }
+      }
+    });
+
+    // ===== 网络消息处理 =====
+    function roleToColor(role){
+      // server role: 1红 2黑
+      return role === 1 ? RED : BLACK;
+    }
+
+    function onNetMessage(msg){
+      if (!onlineMode) return;
+
+      if (msg.type === "init") {
+        // 角色
+        const youRole = msg.you || 0;
+        const mySide = (youRole === 1) ? RED : (youRole === 2) ? BLACK : 0;
+
+        // 用 startGame 初始化 UI + 翻转等
+        startGame(mySide);
+
+        // 回放历史（不触发 AI / 不本地判负）
+        stopTimer();
+        engine.turn = RED;
+        engine.gameOver = false;
+        engine.history = [];
+        engine.repMap = {};
+        engine.selected = null;
+        engine.hints = [];
+        engine.lastMove = null;
+        engine.checkInfo = null;
+
+        const moves = Array.isArray(msg.moves) ? msg.moves : [];
+        for (const m of moves){
+          applyMoveInternal(m.from, m.to, { replay:true });
+        }
+
+        // 以服务器 current 为准（server current: 1红 2黑）
+        if (msg.current === 1 || msg.current === 2) {
+          engine.turn = (msg.current === 1) ? RED : BLACK;
+        }
+
+        engine.gameOver = !!msg.gameOver;
+
+        render();
+        updateStatus();
+        setRoleBadgeText();
+
+        if (engine.gameOver) {
+          const winnerRole = msg.winner || 0;
+          const winnerText = (winnerRole === 1) ? "红方" : (winnerRole === 2) ? "黑方" : "未知";
+          endGame(winnerText, msg.reason || "已结束");
+        } else {
+          startTimer();
+        }
+        return;
+      }
+
+      if (msg.type === "xq_move") {
+        // server: {from,to,p,next}
+        const moverRole = msg.p || 0;
+        const nextRole = msg.next || 0;
+
+        // 强制同步 turn（容错）
+        if (moverRole === 1 || moverRole === 2) engine.turn = (moverRole === 1 ? RED : BLACK);
+
+        applyMoveInternal(msg.from, msg.to, { replay:false });
+
+        if (nextRole === 1 || nextRole === 2) engine.turn = (nextRole === 1 ? RED : BLACK);
+
+        render();
+        updateStatus();
+
+        uiLock = false;
+        startTimer();
+        return;
+      }
+
+      if (msg.type === "xq_over") {
+        const w = msg.winner;
+        const winnerText = (w === 1) ? "红方" : (w === 2) ? "黑方" : "未知";
+        engine.gameOver = true;
+        stopTimer();
+        endGame(winnerText, msg.reason || "胜利");
+        return;
+      }
+
+      if (msg.type === "xq_reset") {
+        // reset 会在双方同意后触发；也可能是 swap 的重连前触发
+        // ✅ 新局开始时自动关闭结算弹窗，避免按钮仍在弹窗里导致“再来一局没反应”的错觉
+        closeModal("endModal");
+        updateVoteHint({});
+        uiLock = false;
+
+        const mySide = engine.mySide;
+        startGame(mySide);
+        toast(msg.reason === "swap" ? "已换边，正在刷新身份…" : "新局开始");
+        return;
+      }
+
+      if (msg.type === "xq_votes") {
+        // votes: {rematch:{1:true/false,2:true/false}, swap:{...}}
+        updateVoteHint(msg.votes || {});
+        return;
+      }
+
+      if (msg.type === "reject") {
+        uiLock = false;
+        toast(msg.reason || "操作无效");
+        return;
+      }
+    }
+
+        function updateVoteHint(votes){
+      const r1 = votes?.rematch?.[1] ? "√" : "-";
+      const r2 = votes?.rematch?.[2] ? "√" : "-";
+      const s1 = votes?.swap?.[1] ? "√" : "-";
+      const s2 = votes?.swap?.[2] ? "√" : "-";
+      voteHintEl.textContent = `再来一局：红${r1} 黑${r2} ｜ 换边：红${s1} 黑${s2}`;
+    }
+
+    // ===========================
+    // 走子 / 渲染 / AI
+    // ===========================
+    document.getElementById("clickLayer").addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      if (engine.gameOver || uiLock) return;
+
+      // ✅ 联机：观战禁止、非自己回合禁止
+      if (onlineMode) {
+        if (engine.mySide === 0) return toast("观战中，不能操作");
+        if (engine.turn !== engine.mySide) return toast("还没轮到你");
+      } else {
+        // offline：人机时只有自己回合可点
+        if (engine.mySide !== 0 && engine.turn !== engine.mySide) return toast("电脑回合");
+      }
+
+      const rect = e.target.getBoundingClientRect();
+      let xPct = (e.clientX - rect.left) / rect.width;
+      let yPct = (e.clientY - rect.top) / rect.height;
+
+      // 执黑翻盘：坐标也要翻
+      if (engine.mySide === BLACK) { xPct = 1 - xPct; yPct = 1 - yPct; }
+
+      const c = Math.round((xPct * 900 - 50) / 100);
+      const r = Math.round((yPct * 1000 - 50) / 100);
+      if (c >= 0 && c < COLS && r >= 0 && r < ROWS) handleClick(r, c);
+    }, { passive:false });
+
+    function handleClick(r, c){
+      const p = engine.board[r][c];
+      const move = engine.hints.find(m => m.to.r === r && m.to.c === c);
+
+      if (move) {
+        if (onlineMode) return submitOnlineMove(move);
+        executeMoveOffline(move);
+        return;
+      }
+
+      if (p && p.c === engine.turn){
+        engine.selected = { r, c };
+        engine.hints = engine.getMoves(engine.turn).filter(m => m.from.r === r && m.from.c === c);
+        render();
+        playSound("select");
+        return;
+      }
+
+      engine.selected = null;
+      engine.hints = [];
+      render();
+    }
+
+    let pendingAckTimer = null;
+    function submitOnlineMove(move){
+      if (!net) return toast("未连接联机");
+      // 再检查一遍
+      if (engine.mySide === 0) return toast("观战不能走棋");
+      if (engine.turn !== engine.mySide) return;
+
+      uiLock = true;
+      net.send({ type:"xq_move", from: move.from, to: move.to });
+
+      clearTimeout(pendingAckTimer);
+      pendingAckTimer = setTimeout(() => { uiLock = false; }, 1500);
+    }
+
+    // ===== 走子：offline（本地/人机）=====
+    function executeMoveOffline(move){
+      const hash = engine.getBoardHash();
+      if (!engine.repMap[hash]) engine.repMap[hash] = 0;
+
+      const captured = engine.board[move.to.r][move.to.c];
+      engine.board[move.to.r][move.to.c] = engine.board[move.from.r][move.from.c];
+      engine.board[move.from.r][move.from.c] = null;
+      engine.history.push({ move, capture: captured, hash });
+
+      engine.lastMove = move;
+      engine.selected = null;
+      engine.hints = [];
+      engine.turn = (engine.turn === RED ? BLACK : RED);
+
+      const newHash = engine.getBoardHash();
+      engine.repMap[newHash] = (engine.repMap[newHash] || 0) + 1;
+
+      // 胜负判定
+      const src = engine.getCheckSource(engine.turn);
+      engine.checkInfo = src;
+
+      const canMove = engine.getMoves(engine.turn).length > 0;
+
+      render();
+      updateStatus();
+
+      if (src) showCheckToast(src);
+      playSound(captured ? "capture" : "move");
+
+      if (!canMove) {
+        engine.gameOver = true;
+        stopTimer();
+        playSound("win");
+        endGame(engine.turn === RED ? "黑方" : "红方", src ? "绝杀" : "困毙");
+        return;
+      }
+
+      startTimer();
+
+      // 人机：轮到电脑
+      if (engine.mySide !== 0 && engine.turn !== engine.mySide && !engine.gameOver) {
+        uiLock = true;
+        setTimeout(aiTurn, 1000 + Math.random() * 1000);
+      } else {
+        uiLock = false;
+      }
+    }
+
+    // ===== 走子：online 本地落子（服务器广播回来才会调用）=====
+    function applyMoveInternal(from, to, opts){
+      opts = opts || {};
+      const replay = !!opts.replay;
+
+      if (!from || !to) return;
+
+      // 组装一个 move 结构（兼容你原来的渲染）
+      const move = { from: { r: from.r|0, c: from.c|0 }, to: { r: to.r|0, c: to.c|0 } };
+
+      const captured = engine.board[move.to.r][move.to.c];
+      engine.board[move.to.r][move.to.c] = engine.board[move.from.r][move.from.c];
+      engine.board[move.from.r][move.from.c] = null;
+
+      engine.lastMove = move;
+      engine.selected = null;
+      engine.hints = [];
+      engine.turn = (engine.turn === RED ? BLACK : RED);
+
+      // 将军信息（仅显示，不做胜负裁决）
+      engine.checkInfo = engine.getCheckSource(engine.turn);
+
+      if (!replay) {
+        if (engine.checkInfo) showCheckToast(engine.checkInfo);
+        playSound(captured ? "capture" : "move");
+      }
+    }
+
+    function render(){
+      const layer = document.getElementById("piecesLayer");
+      layer.innerHTML = "";
+
+      for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
+        const p = engine.board[r][c];
+        if (p){
+          const div = document.createElement("div");
+          div.className = `piece ${p.c === RED ? "red" : "black"}`;
+          if (engine.selected && engine.selected.r === r && engine.selected.c === c) div.classList.add("selected");
+          div.innerText = TEXTS[p.c][p.t];
+          div.style.left = ((50 + c*100)/900*100) + "%";
+          div.style.top  = ((50 + r*100)/1000*100) + "%";
+          layer.appendChild(div);
+        }
+      }
+
+      engine.hints.forEach(m=>{
+        const dot = document.createElement("div");
+        dot.className = "marker dot";
+        dot.style.left = ((50 + m.to.c*100)/900*100) + "%";
+        dot.style.top  = ((50 + m.to.r*100)/1000*100) + "%";
+        layer.appendChild(dot);
+      });
+
+      if (engine.lastMove){
+        const mkT = (p)=>{
+          const t=document.createElement("div");
+          t.className="marker trace";
+          t.style.left=((50+p.c*100)/900*100)+"%";
+          t.style.top=((50+p.r*100)/1000*100)+"%";
+          layer.appendChild(t);
+        };
+        mkT(engine.lastMove.from);
+        mkT(engine.lastMove.to);
+      }
+
+      if (engine.checkInfo){
+        const { from, to } = engine.checkInfo;
+        const x1 = (50 + from.c*100), y1 = (50 + from.r*100);
+        const x2 = (50 + to.c*100),   y2 = (50 + to.r*100);
+        const dist = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+        const angle = Math.atan2(y2-y1, x2-x1) * 180/Math.PI;
+
+        const line = document.createElement("div");
+        line.className="check-line";
+        line.style.width = (dist/900*100) + "%";
+        line.style.left = (x1/900*100) + "%";
+        line.style.top  = (y1/1000*100)+ "%";
+        line.style.transform = `rotate(${angle}deg)`;
+        layer.appendChild(line);
+      }
+    }
+
+    function updateStatus(){
+      const t = (engine.turn === RED) ? "红方" : "黑方";
+
+      let s = "";
+      if (onlineMode) {
+        if (engine.mySide === 0) s = `观战中：当前 ${t}走棋`;
+        else s = (engine.turn === engine.mySide) ? `轮到你了（${t}）` : `等待对方（${t}）`;
+      } else {
+        s = (engine.mySide === 0)
+          ? `当前: ${t}走棋`
+          : (engine.turn === engine.mySide ? `轮到你了` : `电脑思考中`);
+      }
+
+      document.getElementById("turnInfo").innerText = s;
+    }
+
+    function aiTurn(){
+      // 只在离线人机模式下运行
+      if (onlineMode) return;
+      if (engine.gameOver) return;
+
+      const moves = engine.getMoves(engine.turn);
+      if (moves.length === 0) return;
+
+      // 简化：先吃子，再极小极大深度2
+      moves.sort((a,b)=>(b.capture?PIECE_VALS[b.capture.t]:0)-(a.capture?PIECE_VALS[a.capture.t]:0));
+
+      let best = -Infinity, bestMove = null, alpha = -Infinity, beta = Infinity;
+
+      for (const m of moves){
+        const cap = engine.board[m.to.r][m.to.c];
+        engine.board[m.to.r][m.to.c] = engine.board[m.from.r][m.from.c];
+        engine.board[m.from.r][m.from.c] = null;
+
+        const v = -minimax(2, -beta, -alpha, engine.turn === RED ? BLACK : RED);
+
+        engine.board[m.from.r][m.from.c] = engine.board[m.to.r][m.to.c];
+        engine.board[m.to.r][m.to.c] = cap;
+
+        if (v > best){ best = v; bestMove = m; }
+        alpha = Math.max(alpha, v);
+      }
+
+      if (bestMove) executeMoveOffline(bestMove);
+      uiLock = false;
+    }
+
+    function minimax(d, alpha, beta, color){
+      if (d === 0) return engine.evaluate(color);
+      const moves = engine.getMoves(color);
+      if (moves.length === 0) return -20000;
+
+      moves.sort((a,b)=>(b.capture?PIECE_VALS[b.capture.t]:0)-(a.capture?PIECE_VALS[a.capture.t]:0));
+
+      for (const m of moves){
+        const cap = engine.board[m.to.r][m.to.c];
+        engine.board[m.to.r][m.to.c] = engine.board[m.from.r][m.from.c];
+        engine.board[m.from.r][m.from.c] = null;
+
+        const v = -minimax(d-1, -beta, -alpha, color === RED ? BLACK : RED);
+
+        engine.board[m.from.r][m.from.c] = engine.board[m.to.r][m.to.c];
+        engine.board[m.to.r][m.to.c] = cap;
+
+        alpha = Math.max(alpha, v);
+        if (alpha >= beta) break;
+      }
+      return alpha;
+    }
+
+    function showCheckToast(info){
+      const t = document.getElementById("checkToast");
+      const title = document.getElementById("chkTitle");
+      const detail = document.getElementById("chkDetail");
+
+      const victim = (engine.turn === RED) ? "红方" : "黑方";
+      title.innerText = `${victim}被将军!`;
+
+      if (info.type === "FLY") detail.innerText = `凶手: 对面老将 (飞将)`;
+      else if (info.screen) detail.innerText = `凶手: ${info.name}(${info.from.r},${info.from.c}) 炮架: ${info.screen.name}`;
+      else detail.innerText = `凶手: ${info.name}(${info.from.r},${info.from.c})`;
+
+      t.classList.add("active");
+      setTimeout(() => t.classList.remove("active"), 2600);
+    }
+
+    function endGame(winnerText, reason){
+      document.getElementById("endTitle").innerText = winnerText.includes("和") ? "和棋" : `${winnerText}胜利`;
+      document.getElementById("endReason").innerText = reason || "";
+      document.getElementById("endModal").style.display = "flex";
+
+      if (onlineMode) {
+        onlineEndBox.style.display = "";
+        offlineEndBox.style.display = "none";
+        updateVoteHint({}); // 清空显示
+      } else {
+        onlineEndBox.style.display = "none";
+        offlineEndBox.style.display = "";
+      }
+    }
+
+    function showSettings(){
+      // 回到菜单：视为退出联机
+      if (onlineMode) {
+        onlineMode = false;
+        stopOnline();
+        copyLinkBtn.style.display = "none";
+        undoBtn.style.display = "";
+        undoBtn.disabled = false;
+      }
+
+      document.getElementById("startModal").style.display = "flex";
+      document.getElementById("endModal").style.display = "none";
+      stopTimer();
+      setNetStatus("离线");
+      roomCountEl.textContent = "房间：0人";
+      roleBadgeEl.textContent = "你是：未连接";
+      document.getElementById("turnInfo").innerText = "等待开始...";
+    }
+
+    function closeModal(id){
+      document.getElementById(id).style.display = "none";
+    }
+
+    // ===== 悔棋 =====
+    window.game = {
+      undo: function(){
+        if (onlineMode) return toast("联机模式不能悔棋");
+        if (engine.history.length < 2 && engine.mySide !== 0) return;
+        if (engine.mySide !== 0 && engine.turn !== engine.mySide) return;
+
+        let steps = engine.mySide === 0 ? 1 : 2;
+        while (steps-- > 0 && engine.history.length > 0){
+          const h = engine.history.pop();
+          engine.board[h.move.from.r][h.move.from.c] = engine.board[h.move.to.r][h.move.to.c];
+          engine.board[h.move.to.r][h.move.to.c] = h.capture;
+          if (engine.repMap[h.hash]) engine.repMap[h.hash]--;
+        }
+
+        engine.turn = engine.history.length ? (engine.history.length % 2 === 0 ? RED : BLACK) : RED;
+        engine.lastMove = engine.history.length ? engine.history[engine.history.length-1].move : null;
+        engine.checkInfo = null;
+        engine.gameOver = false;
+
+        render();
+        updateStatus();
+        startTimer();
+      }
+    };
+
+    // ===== 结束弹窗按钮绑定 =====
+    offlineAgainBtn.addEventListener("click", () => {
+      closeModal("endModal");
+      if (lastOfflineMode.type === "local") startLocal();
+      else startAIGame(lastOfflineMode.side);
+    });
+
+    offlineSwapBtn.addEventListener("click", () => {
+      closeModal("endModal");
+      if (lastOfflineMode.type !== "ai") return startLocal();
+      const newSide = (lastOfflineMode.side === RED) ? BLACK : RED;
+      startAIGame(newSide);
+    });
+
+    function requestOnlineRematch() {
+      if (!onlineMode || !net) return;
+      if (engine.mySide === 0) return toast("观战不能发起");
+      if (!net.send({ type:"xq_rematch" })) return toast("未连接联机");
+      toast(engine.gameOver ? "已申请重开一局" : "已发起重开申请，等对方同意");
+    }
+
+    onlineRematchBtn.addEventListener("click", () => {
+      requestOnlineRematch();
+    });
+
+    requestRematchBtn.addEventListener("click", () => {
+      if (onlineMode) {
+        requestOnlineRematch();
+        return;
+      }
+      showSettings();
+    });
+
+    onlineSwapBtn.addEventListener("click", () => {
+      if (!onlineMode || !net) return;
+      if (!engine.gameOver && engine.history.length > 0) return toast("对局进行中不能换边");
+      if (engine.mySide === 0) return toast("观战不能发起");
+      if (!net.send({ type:"xq_swap" })) return toast("未连接联机");
+      toast("已请求：换边（等待对方）");
+    });
+
+    // ===== 声音 =====
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = new AudioCtx();
+
+    function playSound(t){
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain(), n = audioCtx.currentTime;
+      o.connect(g); g.connect(audioCtx.destination);
+
+      if (t === "move"){
+        o.type="sine"; o.frequency.setValueAtTime(600,n);
+        g.gain.setValueAtTime(0.3,n); g.gain.exponentialRampToValueAtTime(0.01,n+0.1);
+        o.start(n); o.stop(n+0.1);
+      } else if (t === "capture"){
+        o.type="square"; o.frequency.setValueAtTime(150,n);
+        g.gain.setValueAtTime(0.3,n); g.gain.exponentialRampToValueAtTime(0.01,n+0.15);
+        o.start(n); o.stop(n+0.15);
+      } else if (t === "win"){
+        o.type="triangle"; o.frequency.setValueAtTime(523,n);
+        g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0,n+1);
+        o.start(n); o.stop(n+1);
+      } else if (t === "select"){
+        o.type="sine"; o.frequency.setValueAtTime(800,n);
+        g.gain.setValueAtTime(0.1,n); g.gain.exponentialRampToValueAtTime(0.01,n+0.05);
+        o.start(n); o.stop(n+0.05);
+      }
+    }
+
+    // 初始显示菜单
+    showSettings();
+  </script>
+</body>
+</html>
+
+

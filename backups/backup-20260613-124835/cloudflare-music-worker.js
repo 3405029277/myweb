@@ -1,8 +1,7 @@
-// 网易云 API 配置
-const NETEASE_API_BASE = "https://music.163.com";
+const DEFAULT_BASE_URL = "https://ldc.karpov.cn";
 const DEFAULT_PROVIDER = "netease";
 const DEFAULT_PLAYLIST_ID = "2668671168";
-const DEFAULT_QUALITY = "320000"; // 网易云使用 bitrate: 128000, 192000, 320000
+const DEFAULT_QUALITY = "MP3_320";
 const monthSeconds = 30 * 24 * 60 * 60;
 const monthMs = monthSeconds * 1000;
 const songUrlSeconds = 6 * 60 * 60;
@@ -10,12 +9,6 @@ const songUrlBrowserSeconds = 10 * 60;
 const r2AudioLimitBytes = 900 * 1024 * 1024;
 const audioCacheSeconds = monthSeconds;
 const cache = new Map();
-
-// 网易云 API 加密密钥
-const NETEASE_PRESET_KEY = "0CoJUm6Qyw8W8jud";
-const NETEASE_IV = "0102030405060708";
-const NETEASE_PUBLIC_KEY = "010001";
-const NETEASE_MODULUS = "00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7";
 
 export default {
   async fetch(request, env, ctx) {
@@ -30,11 +23,11 @@ export default {
       return json({ error: "Not found." }, 404);
     }
 
-    const provider = getSafeToken(url.searchParams.get("provider"), env.MUSIC_PROVIDER || DEFAULT_PROVIDER);
+    const provider = getSafeToken(url.searchParams.get("provider"), env.KARPOV_MUSIC_PROVIDER || DEFAULT_PROVIDER);
 
     if (url.pathname === "/api/music/audio" || url.pathname === "/music/audio") {
       const id = getSafeToken(url.searchParams.get("id"), "");
-      const quality = getSafeToken(url.searchParams.get("quality"), env.MUSIC_QUALITY || DEFAULT_QUALITY) || DEFAULT_QUALITY;
+      const quality = getSafeToken(url.searchParams.get("quality"), env.KARPOV_MUSIC_QUALITY || DEFAULT_QUALITY) || DEFAULT_QUALITY;
       if (!provider || !id) return corsResponse("", 400, { "Content-Type": "text/plain; charset=utf-8" });
       try {
         return await getCachedAudioResponse(request, env, ctx, provider, id, quality);
@@ -45,7 +38,7 @@ export default {
 
     if (url.pathname === "/api/music/url" || url.pathname === "/music/url") {
       const id = getSafeToken(url.searchParams.get("id"), "");
-      const quality = getSafeToken(url.searchParams.get("quality"), env.MUSIC_QUALITY || DEFAULT_QUALITY) || DEFAULT_QUALITY;
+      const quality = getSafeToken(url.searchParams.get("quality"), env.KARPOV_MUSIC_QUALITY || DEFAULT_QUALITY) || DEFAULT_QUALITY;
       if (!provider || !id) return corsResponse("", 400, { "Content-Type": "text/plain; charset=utf-8" });
       try {
         const urlInfo = await getSongUrl(env, provider, id, quality);
@@ -72,14 +65,14 @@ export default {
       }
     }
 
-    const playlistId = getSafeToken(url.searchParams.get("playlistId"), env.MUSIC_PLAYLIST_ID || DEFAULT_PLAYLIST_ID);
+    const playlistId = getSafeToken(url.searchParams.get("playlistId"), env.KARPOV_MUSIC_PLAYLIST_ID || DEFAULT_PLAYLIST_ID);
     const limit = getLimit(url.searchParams.get("limit"));
 
     if (!provider || !playlistId) return json({ error: "Missing music provider or playlist id." }, 400);
 
     try {
       return await cachedResponse(request, 3600, async () => {
-        const playlist = await buildNeteasePlaylist(env, { provider, playlistId, limit });
+        const playlist = await buildKarpovPlaylist(env, { provider, playlistId, limit });
         return json(playlist);
       });
     } catch (error) {
@@ -162,128 +155,45 @@ function getSongUrlTtlSeconds(urlInfo) {
   return songUrlSeconds;
 }
 
-async function fetchNetease(env, endpoint, params = {}) {
-  const cookie = env.NETEASE_COOKIE || "";
-  const csrfToken = extractCsrfToken(cookie);
+function unwrapKarpovData(body) {
+  if (!body || typeof body !== "object") return body;
+  if (Object.prototype.hasOwnProperty.call(body, "data")) return body.data;
+  return body;
+}
 
-  const url = new URL(endpoint, NETEASE_API_BASE);
-  const headers = {
-    "Accept": "*/*",
-    "Content-Type": "application/x-www-form-urlencoded",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Referer": "https://music.163.com"
-  };
+async function fetchKarpov(env, pathname, params = {}) {
+  const apiKey = env.KARPOV_GATEWAY_API_KEY || "";
+  const cookie = env.KARPOV_GATEWAY_COOKIE || "";
+  if (!apiKey && !cookie) {
+    const error = new Error("Music service is not configured.");
+    error.statusCode = 503;
+    throw error;
+  }
 
-  if (cookie) headers.Cookie = cookie;
-
-  // 构造加密参数
-  const encryptedParams = await weapiEncrypt(params, csrfToken);
-  const body = new URLSearchParams(encryptedParams).toString();
-
-  const response = await fetch(url.toString(), {
-    method: "POST",
-    headers,
-    body
+  const baseUrl = env.KARPOV_GATEWAY_BASE_URL || DEFAULT_BASE_URL;
+  const base = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+  const url = new URL(String(pathname).replace(/^\/+/, ""), base);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, String(value));
   });
 
-  if (!response.ok) {
-    const error = new Error("Netease API request failed.");
-    error.statusCode = response.status;
+  const headers = { Accept: "application/json" };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+  if (cookie) headers.Cookie = cookie;
+
+  const response = await fetch(url.toString(), { headers });
+  const body = await response.json().catch(() => null);
+  if (!response.ok || (body && typeof body.code === "number" && body.code !== 0 && body.code !== 200)) {
+    const error = new Error("Music provider request failed.");
+    error.statusCode = response.ok ? 502 : response.status;
+    error.details = body && body.message ? body.message : undefined;
     throw error;
   }
-
-  const data = await response.json();
-  if (data.code !== 200) {
-    const error = new Error("Netease API returned error code.");
-    error.statusCode = 502;
-    error.details = data.message || `Code ${data.code}`;
-    throw error;
-  }
-
-  return data;
-}
-
-function extractCsrfToken(cookie) {
-  const match = cookie.match(/__csrf=([^;]+)/);
-  return match ? match[1] : "";
-}
-
-// 网易云 WEAPI 加密实现
-async function weapiEncrypt(params, csrfToken) {
-  const text = JSON.stringify({ ...params, csrf_token: csrfToken });
-  const secretKey = randomString(16);
-
-  // 第一次 AES 加密
-  const encText = await aesEncrypt(text, NETEASE_PRESET_KEY, NETEASE_IV);
-  // 第二次 AES 加密
-  const params_encrypted = await aesEncrypt(encText, secretKey, NETEASE_IV);
-  // RSA 加密 secretKey
-  const encSecKey = rsaEncrypt(secretKey, NETEASE_PUBLIC_KEY, NETEASE_MODULUS);
-
-  return {
-    params: params_encrypted,
-    encSecKey
-  };
-}
-
-async function aesEncrypt(text, key, iv) {
-  const encoder = new TextEncoder();
-  const keyBytes = encoder.encode(key);
-  const ivBytes = encoder.encode(iv);
-  const textBytes = encoder.encode(text);
-
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    keyBytes,
-    { name: "AES-CBC" },
-    false,
-    ["encrypt"]
-  );
-
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-CBC", iv: ivBytes },
-    cryptoKey,
-    textBytes
-  );
-
-  return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
-}
-
-function rsaEncrypt(text, pubKey, modulus) {
-  const reversedText = text.split("").reverse().join("");
-  const hexText = Array.from(reversedText)
-    .map(c => c.charCodeAt(0).toString(16).padStart(2, "0"))
-    .join("");
-  const bi = BigInt("0x" + hexText);
-  const biExp = BigInt("0x" + pubKey);
-  const biMod = BigInt("0x" + modulus);
-  const biRet = modPow(bi, biExp, biMod);
-  return biRet.toString(16).padStart(256, "0");
-}
-
-function modPow(base, exponent, modulus) {
-  if (modulus === 1n) return 0n;
-  let result = 1n;
-  base = base % modulus;
-  while (exponent > 0n) {
-    if (exponent % 2n === 1n) result = (result * base) % modulus;
-    exponent = exponent >> 1n;
-    base = (base * base) % modulus;
-  }
-  return result;
-}
-
-function randomString(length) {
-  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  return body;
 }
 
 function normalizeArtists(song) {
-  const artists = song?.ar || song?.artists;
+  const artists = song?.artists || song?.singers || song?.artist || song?.singer || song?.ar;
   if (Array.isArray(artists)) return artists.map((item) => item?.name || item?.title || item).filter(Boolean).join(" / ") || "Unknown";
   if (artists && typeof artists === "object") return artists.name || artists.title || "Unknown";
   if (typeof artists === "string" && artists.trim()) return artists.trim();
@@ -295,39 +205,80 @@ function toHttpsUrl(value) {
 }
 
 function normalizeSong(song, playlistCover) {
-  const id = song?.id;
-  const album = song?.al || song?.album;
+  const id = song?.id || song?.mid || song?.songmid || song?.songId || song?.song_id;
   return {
     id: id == null ? "" : String(id),
-    name: song?.name || song?.title || "Unknown",
+    name: song?.name || song?.title || song?.songname || "Unknown",
     artist: normalizeArtists(song),
-    cover: toHttpsUrl(album?.picUrl || song?.picUrl || playlistCover || "assets/avatar.jpg")
+    cover: toHttpsUrl(song?.cover_url || song?.coverUrl || song?.cover || song?.pic_url || song?.picUrl || song?.album?.cover || playlistCover || "assets/avatar.jpg")
   };
 }
 
 function normalizeSongUrl(body) {
-  const data = body.data || [];
-  if (!Array.isArray(data) || data.length === 0) {
-    return { available: false, url: "", expiresInSeconds: 0 };
-  }
-  const song = data[0];
+  const payload = unwrapKarpovData(body) || {};
+  const audio = payload.audio || payload.data || payload;
   return {
-    available: song.code === 200 && !!song.url,
-    url: toHttpsUrl(song.url || ""),
-    expiresInSeconds: Math.floor((song.expiresIn || 0) / 1000)
+    available: payload.available !== false,
+    url: toHttpsUrl(audio.url || payload.url || ""),
+    expiresInSeconds: Number(audio.expires_in_seconds || audio.expiresInSeconds || payload.expires_in_seconds || 0)
   };
 }
 
 function normalizeLyric(body) {
-  const lrc = body.lrc?.lyric || "";
-  const tlyric = body.tlyric?.lyric || "";
-  return normalizeLyricText(lrc + (tlyric ? "\n" + tlyric : ""));
+  return normalizeLyricText(extractLyricText(unwrapKarpovData(body)));
+}
+
+function extractLyricText(value) {
+  if (typeof value === "string") return value;
+  if (!value || typeof value !== "object") return "";
+  for (const key of ["lrc", "lyric", "lyrics", "text", "content"]) {
+    const text = extractLyricText(value[key]);
+    if (text) return text;
+  }
+  return "";
 }
 
 function normalizeLyricText(text) {
   if (typeof text !== "string" || !text.trim()) return "";
   const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length && lines.every((line) => /^\[\d{2}:\d{2}(?:\.\d{2,3})?\]/.test(line))) return text;
+  return convertKarpovJsonLyric(text);
+}
+
+function convertKarpovJsonLyric(text) {
+  const lines = text.split(/\r?\n/).map((line) => {
+    const trimmed = line.trim();
+    if (/^\[\d{2}:\d{2}(?:\.\d{2,3})?\]/.test(trimmed)) return trimmed;
+    try {
+      const item = JSON.parse(trimmed);
+      if (!Number.isFinite(item?.t) || !Array.isArray(item?.c)) return "";
+      const content = item.c.map((part) => part?.tx || part?.text || "").join("").trim();
+      return content ? `${formatLrcTime(item.t)}${content}` : "";
+    } catch (error) {
+      return "";
+    }
+  }).filter(Boolean);
   return lines.join("\n");
+}
+
+function formatLrcTime(ms) {
+  const total = Math.max(0, Number(ms) / 1000);
+  const minutes = Math.floor(total / 60);
+  const seconds = Math.floor(total % 60);
+  const hundredths = Math.floor((total - Math.floor(total)) * 100);
+  return `[${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(hundredths).padStart(2, "0")}]`;
+}
+
+function getPlaylistPayload(body) {
+  const payload = unwrapKarpovData(body) || {};
+  return payload.playlist || payload;
+}
+
+function getPlaylistSongs(playlist) {
+  if (Array.isArray(playlist?.songs)) return playlist.songs;
+  if (Array.isArray(playlist?.tracks)) return playlist.tracks;
+  if (Array.isArray(playlist?.list)) return playlist.list;
+  return [];
 }
 
 async function getCachedAudioResponse(request, env, ctx, provider, id, quality) {
@@ -439,11 +390,7 @@ async function getSongUrl(env, provider, id, quality) {
     return result;
   }
 
-  const body = await fetchNetease(env, "/weapi/song/enhance/player/url/v1", {
-    ids: [id],
-    level: qualityToLevel(quality),
-    encodeType: "mp3"
-  });
+  const body = await fetchKarpov(env, `/v1/${provider}/songs/${encodeURIComponent(id)}/url`, { quality });
   const result = normalizeSongUrl(body);
   const ttlSeconds = getSongUrlTtlSeconds(result);
   setCached(key, result, ttlSeconds * 1000);
@@ -460,30 +407,27 @@ async function getSongLyric(env, provider, id) {
   const key = cacheKey(["lyric", provider, id]);
   const cached = getCached(key);
   if (cached !== null) return cached;
-  const body = await fetchNetease(env, "/weapi/song/lyric", { id, lv: -1, tv: -1 });
+  const body = await fetchKarpov(env, `/v1/${provider}/songs/${encodeURIComponent(id)}/lyric`);
   const lyric = normalizeLyric(body);
   setCached(key, lyric, monthMs);
   return lyric;
 }
 
-async function buildNeteasePlaylist(env, { provider, playlistId, limit }) {
+async function buildKarpovPlaylist(env, { provider, playlistId, limit }) {
   const key = cacheKey(["playlist", provider, playlistId, limit]);
   const cached = getCached(key);
   if (cached) return cached;
 
-  const body = await fetchNetease(env, "/weapi/v6/playlist/detail", {
-    id: playlistId,
-    n: 100000,
-    s: 8
-  });
-  const playlist = body.playlist || {};
-  const tracks = playlist.tracks || [];
+  const playlistBody = await fetchKarpov(env, `/v1/${provider}/playlists/${encodeURIComponent(playlistId)}`);
+  const playlist = getPlaylistPayload(playlistBody);
+  const playlistCover = playlist.cover_url || playlist.coverUrl || playlist.cover || playlist.pic_url || "assets/avatar.jpg";
+  const songs = getPlaylistSongs(playlist);
   const audio = [];
   let skipped = 0;
 
-  for (const track of tracks) {
+  for (const rawSong of songs) {
     if (limit > 0 && audio.length >= limit) break;
-    const song = normalizeSong(track, playlist.coverImgUrl);
+    const song = normalizeSong(rawSong, playlistCover);
     if (!song.id) {
       skipped += 1;
       continue;
@@ -492,23 +436,14 @@ async function buildNeteasePlaylist(env, { provider, playlistId, limit }) {
   }
 
   const result = {
-    source: "netease-worker",
+    source: "karpov-worker",
     provider,
     playlistId,
-    title: playlist.name || "Music Playlist",
+    title: playlist.title || playlist.name || "Music Playlist",
     count: audio.length,
     skipped,
     audio
   };
   setCached(key, result, 60 * 60 * 1000);
   return result;
-}
-
-function qualityToLevel(quality) {
-  const q = String(quality).toLowerCase();
-  if (q.includes("128") || q === "standard") return "standard";
-  if (q.includes("192") || q === "higher") return "higher";
-  if (q.includes("320") || q === "exhigh") return "exhigh";
-  if (q.includes("flac") || q === "lossless") return "lossless";
-  return "exhigh"; // 默认 320k
 }

@@ -1,0 +1,1416 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>在线五子棋 Gomoku（17路·预落子·更强AI·计时）</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1225;
+      --panel: rgba(255, 255, 255, .08);
+      --line: rgba(255, 255, 255, .18);
+      --txt: #e5e7eb;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--txt);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+
+    #wrap {
+      min-height: 100vh;
+      min-height: 100dvh;
+      /* ✅ 关键：使用动态视口高度 */
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: baseline
+    }
+
+    .title {
+      font-weight: 800;
+      letter-spacing: .3px
+    }
+
+    .hint {
+      opacity: .85;
+      font-size: 12px
+    }
+
+    .right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .pill {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap
+    }
+
+    button,
+    select {
+      background: var(--panel);
+      color: var(--txt);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    button:active {
+      transform: scale(.98)
+    }
+
+    #game {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px 12px;
+      box-sizing: border-box;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.18);
+      touch-action: none;
+    }
+
+    #toast {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, .35);
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: .18s ease;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .mobile-status {
+      display: none;
+    }
+
+    .mobile-actions-host {
+      display: none;
+    }
+
+    .mobile-primary-bar,
+    .mobile-more-backdrop {
+      display: none;
+    }
+
+    @media (max-width: 520px) {
+      :root {
+        color-scheme: light;
+        --bg: #f3ead8;
+        --panel: rgba(255, 255, 255, 0.82);
+        --line: rgba(111, 79, 41, 0.18);
+        --txt: #2a241c;
+      }
+
+      html,
+      body {
+        background: #f3ead8;
+        color: #2a241c;
+      }
+
+      #wrap {
+        min-height: 100dvh;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+      }
+
+      header {
+        padding: 8px 10px 6px;
+        gap: 6px;
+        background: rgba(255, 252, 245, 0.82);
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .left {
+        width: 100%;
+        gap: 4px;
+        align-items: flex-start;
+      }
+
+      .title {
+        font-size: 14px;
+        line-height: 1.25;
+      }
+
+      .hint {
+        display: none;
+      }
+
+      .mobile-status {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 2px;
+        font-size: 12px;
+      }
+
+      .mobile-status span {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: rgba(255, 252, 245, 0.86);
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        color: #4a3720;
+      }
+
+      #game {
+        padding: 6px 8px 8px;
+        justify-content: center;
+        align-items: center;
+        min-height: 0;
+      }
+
+      canvas {
+        border-radius: 14px;
+        box-shadow: 0 12px 22px rgba(51, 34, 12, 0.14);
+        max-width: 100%;
+      }
+
+      #toast {
+        bottom: 14px;
+        background: #fffaf0;
+        color: #2a241c;
+        border-color: rgba(111, 79, 41, 0.18);
+      }
+
+      .right {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+        border-radius: 16px;
+        background: #fffaf0;
+        border: 1px solid rgba(111, 79, 41, 0.14);
+        box-shadow: 0 16px 30px rgba(79, 55, 28, 0.16);
+        width: calc(100% - 16px);
+        margin: 0 8px 8px;
+      }
+
+      .right > * {
+        width: 100%;
+      }
+
+      .right .pill,
+      .right label,
+      .right button {
+        min-width: 0;
+        font-size: 13px;
+      }
+
+      .right .pill {
+        padding: 6px 8px;
+      }
+
+      .right label {
+        display: flex !important;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .right #sideWrap {
+        grid-column: 1 / -1;
+      }
+
+      .right #copyLink {
+        grid-column: 1 / -1;
+      }
+
+      .mobile-actions-host {
+        display: block;
+        padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+        background: #fffaf0;
+        border-top: 1px solid rgba(111, 79, 41, 0.14);
+        box-shadow: 0 -12px 24px rgba(79, 55, 28, 0.12);
+      }
+
+      .mobile-primary-bar {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .mobile-primary-bar button {
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 13px;
+        border-radius: 12px;
+      }
+
+      .mobile-more-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 54;
+        background: rgba(25, 18, 10, 0.08);
+      }
+
+      body.mobile-more-open .mobile-more-backdrop {
+        display: block;
+      }
+
+      header .right {
+        display: none;
+      }
+
+      .mobile-actions-host .right {
+        position: fixed;
+        right: 8px;
+        bottom: calc(70px + env(safe-area-inset-bottom));
+        z-index: 55;
+        display: none;
+        width: min(320px, calc(100vw - 16px));
+        max-height: min(430px, calc(100dvh - 110px));
+        overflow: auto;
+        margin: 0;
+      }
+
+      body.mobile-more-open .mobile-actions-host .right {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+
+<body class="mobile-board-first">
+  <div id="wrap">
+    <header>
+      <div class="left">
+        <div class="title">在线五子棋（17×17 · 绿色预落子 · 每步60秒）</div>
+        <div class="hint">人机可选执黑/白；黑145白144；点击一次预览，再点同格落子。</div>
+      </div>
+      <div class="mobile-status" id="mobileStatus">
+        <span id="mobileTurn">回合：黑</span>
+        <span id="mobileTimer">剩余：60s</span>
+        <span id="mobileRoom">房间：-</span>
+      </div>
+
+      <div class="right mobile-drawer">
+        <span class="pill" id="turn">回合：黑</span>
+        <span class="pill" id="timer">剩余：60s</span>
+
+        <span class="pill" id="remainB">黑剩：145</span>
+        <span class="pill" id="remainW">白剩：144</span>
+        <span class="pill" id="roleBadge">身份：-</span>
+        <span class="pill" id="roomCount">房间：-</span>
+
+
+        <label class="pill" style="display:flex;gap:6px;align-items:center">
+          模式
+          <select id="mode">
+            <option value="pvp">双人对弈</option>
+            <option value="ai">人机对战</option>
+          </select>
+        </label>
+
+        <label class="pill" id="sideWrap" style="display:flex;gap:6px;align-items:center">
+          你执
+          <select id="side">
+            <option value="black">黑（先手）</option>
+            <option value="white">白（后手）</option>
+          </select>
+        </label>
+
+        <button id="undo">悔棋</button>
+        <button id="restart">申请重开</button>
+        <button id="copyLink">复制房间链接</button>
+        <button id="swapSide">开始前换黑白</button>
+        <button id="rematch">再来一局</button>
+
+
+      </div>
+    </header>
+
+    <div id="game">
+      <canvas id="c"></canvas>
+      <div id="toast"></div>
+    </div>
+
+    <div id="mobileMoreBackdrop" class="mobile-more-backdrop hidden"></div>
+    <div id="mobileActionsHost" class="mobile-actions-host">
+      <div id="mobilePrimaryBar" class="mobile-primary-bar hidden">
+        <button id="mobileUndo" type="button">&#24724;&#26827;</button>
+        <button id="mobileRestart" type="button">&#37325;&#24320;</button>
+        <button id="mobileRematch" type="button">&#20877;&#26469;</button>
+        <button id="mobileMore" type="button">&#26356;&#22810;</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./online.js"></script>
+
+  <script>
+    (() => {
+      // ===== 17路棋盘 =====
+      const SIZE = 17;
+      const EMPTY = 0, BLACK = 1, WHITE = 2;
+
+      // ===== 棋子总数（17 路配置：黑 145 白 144）=====
+      const MAX_BLACK = 145;
+      const MAX_WHITE = 144;
+
+      // ===== 计时 =====
+      const MOVE_LIMIT_SEC = 60;
+
+      // ===== AI 强度参数（越大越强但更耗性能）=====
+      const SEARCH_DEPTH = 3;       // 3：明显强于单步；手机也能跑
+      const CAND_LIMIT = 12;      // 每层保留候选点数量（越大越强但更慢）
+      const NEAR_RANGE = 2;       // 只考虑距离已有棋子 NEAR_RANGE 范围内的空点
+
+      const canvas = document.getElementById('c');
+      const gameEl = document.getElementById('game');
+      const turnEl = document.getElementById('turn');
+      const timerEl = document.getElementById('timer');
+      const remainBEl = document.getElementById('remainB');
+      const remainWEl = document.getElementById('remainW');
+      const toastEl = document.getElementById('toast');
+      const modeEl = document.getElementById('mode');
+      const sideEl = document.getElementById('side');
+      const sideWrap = document.getElementById('sideWrap');
+      const undoBtn = document.getElementById('undo');
+      const restartBtn = document.getElementById('restart');
+      const copyLinkBtn = document.getElementById('copyLink');
+      const swapBtn = document.getElementById('swapSide');
+      const rematchBtn = document.getElementById('rematch');
+
+
+
+      const roleBadgeEl = document.getElementById("roleBadge");
+      const roomCountEl = document.getElementById("roomCount");
+      const mobileStatusEl = document.getElementById("mobileStatus");
+      const mobileTurnEl = document.getElementById("mobileTurn");
+      const mobileTimerEl = document.getElementById("mobileTimer");
+      const mobileRoomEl = document.getElementById("mobileRoom");
+      const headerEl = document.querySelector("header");
+      const mobileActionsHost = document.getElementById("mobileActionsHost");
+      const mobilePrimaryBar = document.getElementById("mobilePrimaryBar");
+      const mobileMoreBackdrop = document.getElementById("mobileMoreBackdrop");
+      const rightEl = document.querySelector(".right");
+      const mobileUndoBtn = document.getElementById("mobileUndo");
+      const mobileRestartBtn = document.getElementById("mobileRestart");
+      const mobileRematchBtn = document.getElementById("mobileRematch");
+      const mobileMoreBtn = document.getElementById("mobileMore");
+
+      function isMobileLayout() {
+        return window.matchMedia("(max-width: 520px)").matches;
+      }
+
+      function closeMobileMore() {
+        document.body.classList.remove("mobile-more-open");
+      }
+
+      function toggleMobileMore() {
+        if (!isMobileLayout()) return;
+        document.body.classList.toggle("mobile-more-open");
+      }
+
+      function syncMobileStatus() {
+        if (mobileTurnEl) mobileTurnEl.textContent = turnEl.textContent;
+        if (mobileTimerEl) mobileTimerEl.textContent = timerEl.textContent;
+        if (mobileRoomEl) mobileRoomEl.textContent = roomCountEl.textContent;
+      }
+
+
+      const net = new OnlineClient({
+        // ✅ 建议：wsBase 支持数组，国内/海外双线路兜底（可按你自己的域名替换）
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://你的国内线路域名"],
+        wsBase: "wss://ws.cjx88.eu.cc",
+        wsPath: "/ws", // 五子棋用 /ws（权威）
+        tokenKeyPrefix: "gm_token", // ✅ 关键：刷新/断线重连也能“续座”
+        connectTimeoutMs: 8000,
+        onStatus: (s) => {
+          // online.js 会同时回调 object + string，这里统一兼容
+          const status = (typeof s === "string") ? s : (s && s.status) || "";
+          if (status === "connecting") toast("正在连接联机…");
+          if (status === "connected") toast("联机已连接");
+          if (status === "timeout") toast("联机连接超时，正在切换线路/重连…");
+          if (status === "disconnected") toast("联机断开，正在重连…");
+          if (status === "error") toast("联机错误");
+        },
+        onPresence: (n) => {
+          roomCountEl.textContent = `房间：${n}人`;
+          syncMobileStatus();
+        },
+        onRole: (role) => {
+          roleBadgeEl.textContent =
+            role === 1 ? "身份：黑" : role === 2 ? "身份：白" : "身份：观战";
+          updateGameButtons();
+        },
+        onMessage: (msg) => {
+
+          if (msg.type === "reject") {
+            toast(msg.reason || "操作无效");
+            return;
+          }
+
+          // === 交换黑白后：后端会定向发你是谁 ===
+          if (msg.type === "role") {
+            net.role = (msg.you ?? msg.role ?? 0);
+
+            roleBadgeEl.textContent =
+              net.role === 1 ? "身份：黑" : net.role === 2 ? "身份：白" : "身份：观战";
+            updateGameButtons();
+            return;
+          }
+
+          // === 有人发起“换黑白” ===
+          if (msg.type === "swap_pending") {
+            toast("对方请求换黑白：你也点一下即可同意");
+            return;
+          }
+
+          // === 有人发起“再来一局” ===
+          if (msg.type === "rematch_pending") {
+            toast("对方请求再来一局：你也点一下即可开始");
+            return;
+          }
+
+          // === 新局状态（再来一局成功后广播）===
+          if (msg.type === "state") {
+            stopTimer();
+            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+            moves = [];
+            current = BLACK;
+            gameOver = false;
+            aiThinking = false;
+
+            for (const m of (msg.moves || [])) {
+              current = m.p;
+              doPlace(m.r, m.c, true); // 回放 silent
+            }
+
+            gameOver = !!msg.gameOver;
+            current = msg.current || current;
+
+            updateTurn();
+            updateRemainUI();
+            draw();
+            startTurnTimer();
+
+            toast("新一局开始！");
+            updateGameButtons();
+            return;
+          }
+
+          // === 你原来的 init（保留）===
+          if (msg.type === "init") {
+            // 重置盘面 + 回放历史（不 nextTurn）
+            stopTimer();
+            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+            moves = [];
+            current = BLACK;
+            gameOver = false;
+            aiThinking = false;
+
+            for (const m of (msg.moves || [])) {
+              current = m.p;
+              doPlace(m.r, m.c, true); // ✅ 回放用 silent
+            }
+            gameOver = !!msg.gameOver; // ✅ 以服务器状态为准
+
+            current = msg.current || current;
+            updateTurn();
+            updateRemainUI();
+            draw();
+            startTurnTimer();
+            updateGameButtons();
+            return;
+          }
+
+          // === 你原来的 move（保留）===
+          if (msg.type === "move") {
+            current = msg.p;
+            if (!doPlace(msg.r, msg.c)) return;
+
+            if (msg.win) {
+              endGame(msg.win, `${colorName(msg.win)}胜！`);
+              return;
+            }
+
+            nextTurn();
+
+            if (msg.next) {
+              current = msg.next;
+              updateTurn();
+            }
+            return;
+          }
+        }
+
+      });
+
+      copyLinkBtn.addEventListener("click", () => {
+        net.copyLink()
+          .then(() => toast("房间链接已复制"))
+          .catch(() => toast("复制失败，请手动复制地址栏"));
+      });
+
+
+      const ctx = canvas.getContext('2d');
+
+      let board, moves, current, gameOver, cell, pad, pxRatio;
+      let previewMove = null;
+      let aiThinking = false;
+
+
+
+
+      // 选边：人机模式下有效
+      let humanColor = BLACK;
+      let aiColor = WHITE;
+
+      // 计时
+      let timeLeft = MOVE_LIMIT_SEC;
+      let timerId = null;
+
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => toastEl.classList.remove('show'), 1200);
+      }
+
+
+
+
+      function colorName(p) { return p === BLACK ? "黑" : "白"; }
+      function other(p) { return p === BLACK ? WHITE : BLACK; }
+
+      function setSideFromUI() {
+        if (sideEl.value === "white") { humanColor = WHITE; aiColor = BLACK; }
+        else { humanColor = BLACK; aiColor = WHITE; }
+      }
+
+      function placedCount(color) {
+        let n = 0;
+        for (const m of moves) if (m.p === color) n++;
+        return n;
+      }
+      function remainCount(color) {
+        const used = placedCount(color);
+        return (color === BLACK ? MAX_BLACK : MAX_WHITE) - used;
+      }
+      function updateRemainUI() {
+        remainBEl.textContent = `黑剩：${remainCount(BLACK)}`;
+        remainWEl.textContent = `白剩：${remainCount(WHITE)}`;
+      }
+
+      function updateTurn(extra = "") {
+        turnEl.textContent = `回合：${colorName(current)}${extra}`;
+        syncMobileStatus();
+      }
+      function updateTimerUI() {
+        timerEl.textContent = `剩余：${timeLeft}s`;
+        syncMobileStatus();
+      }
+      function stopTimer() {
+        if (timerId) clearInterval(timerId);
+        timerId = null;
+      }
+
+      function endGame(winner, msg) {
+        gameOver = true;
+        aiThinking = false;
+        stopTimer();
+        updateTurn("（结束）");
+        toast(msg || `${colorName(winner)}胜！`);
+        updateGameButtons();
+
+      }
+
+      function startTurnTimer() {
+        stopTimer();
+        if (gameOver) return;
+
+        timeLeft = MOVE_LIMIT_SEC;
+        updateTimerUI();
+
+        timerId = setInterval(() => {
+          if (gameOver) { stopTimer(); return; }
+          timeLeft -= 1;
+          updateTimerUI();
+          if (timeLeft <= 0) {
+            stopTimer();
+            const winner = other(current);
+            endGame(winner, `${colorName(current)}超时！${colorName(winner)}胜`);
+          }
+        }, 1000);
+      }
+
+            function updateGameButtons() {
+  const isPvp = modeEl.value !== "ai";
+  const isPlayer = (net.role === 1 || net.role === 2);
+
+  // 换边只能在第一手之前申请
+  swapBtn.disabled = !isPvp || !isPlayer || gameOver || moves.length !== 0;
+
+  // 重开现在随时都能申请，结束后也可以直接点
+  restartBtn.disabled = isPvp && !isPlayer;
+  rematchBtn.disabled = isPvp && !isPlayer;
+}
+
+      function reset() {
+        stopTimer();
+
+        setSideFromUI();
+
+        board = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+        moves = [];
+        current = BLACK;       // 黑先
+        gameOver = false;
+        aiThinking = false;
+
+        draw();
+        updateTurn();
+        updateRemainUI();
+        startTurnTimer();
+
+        if (modeEl.value === "ai") {
+          net.close(); // ✅ 人机：彻底断联机+停止重连
+          toast(`人机：你执${colorName(humanColor)}（黑145白144 / 每步${MOVE_LIMIT_SEC}s）`);
+          if (current === aiColor) aiMove();
+        } else {
+          toast(`双人对弈：黑先（黑145白144 / 每步${MOVE_LIMIT_SEC}s）`);
+          net.autoReconnect = true; // ✅ 可选：确保回到PVP会自动重连
+          net.connect();
+        }
+
+ 
+        updateGameButtons();
+
+      }
+
+
+      // ✅ “重开”按钮：人机=直接重开；联机=对局结束后发起“再来一局”（避免本地清空后又被服务器旧棋谱覆盖）
+            function requestRematch() {
+        if (modeEl.value === "ai") {
+          reset();
+          return;
+        }
+
+        if (!(net.role === 1 || net.role === 2)) return toast("观战不能点");
+        if (!net.send({ type: "rematch" })) return toast("未连接联机");
+        toast(gameOver ? "已申请重开一局" : "已发起重开申请，等对方同意");
+      }
+
+
+      function resize() {
+        const w = gameEl.clientWidth;
+        const isMobile = window.matchMedia("(max-width: 520px)").matches;
+        const h = gameEl.clientHeight;
+        const side = Math.floor(Math.max(
+          0,
+          Math.min(w - (isMobile ? 4 : 0), h - (isMobile ? 4 : 0))
+        ));
+
+        pxRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(side * pxRatio);
+        canvas.height = Math.floor(side * pxRatio);
+        canvas.style.width = side + "px";
+        canvas.style.height = side + "px";
+
+        pad = Math.floor((isMobile ? 8 : 16) * pxRatio);
+        cell = Math.floor((canvas.width - pad * 2) / (SIZE - 1));
+        draw();
+      }
+
+      function draw() {
+        if (!board) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const boardX = pad - cell * 0.5;
+        const boardY = pad - cell * 0.5;
+        const boardW = cell * (SIZE - 1) + cell;
+        const boardH = cell * (SIZE - 1) + cell;
+
+        // 木质棋盘背景（浅木纹）
+        ctx.fillStyle = "#f4e2bf";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const woodBase = ctx.createLinearGradient(0, boardY, 0, boardY + boardH);
+        woodBase.addColorStop(0, "#edd2a2");
+        woodBase.addColorStop(0.5, "#e2bd7d");
+        woodBase.addColorStop(1, "#c89052");
+        ctx.fillStyle = woodBase;
+        ctx.fillRect(boardX, boardY, boardW, boardH);
+
+        // 木纹细节（轻微条纹）
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        for (let i = 0; i < 22; i++) {
+          const y = boardY + (boardH / 22) * i + Math.sin(i * 0.9) * (2 * pxRatio);
+          ctx.strokeStyle = i % 2 === 0 ? "#b8844f" : "#e7cda9";
+          ctx.lineWidth = Math.max(1, 1 * pxRatio);
+          ctx.beginPath();
+          ctx.moveTo(boardX, y);
+          ctx.lineTo(boardX + boardW, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // 棋盘外部背景保持深色衬托
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.fillStyle = "#0b1225";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+
+        // 网格线
+        ctx.strokeStyle = "rgba(90,60,30,0.45)";
+        ctx.lineWidth = Math.max(1, Math.floor(1 * pxRatio));
+        for (let i = 0; i < SIZE; i++) {
+          const x = pad + i * cell;
+          const y = pad + i * cell;
+          ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + (SIZE - 1) * cell, y); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + (SIZE - 1) * cell); ctx.stroke();
+        }
+
+        // 星位（17路：4,8,12）
+        const stars = [4, 8, 12];
+        ctx.fillStyle = "rgba(70, 48, 26, 0.58)";
+        for (const r of stars) for (const c of stars) {
+          const x = pad + c * cell, y = pad + r * cell;
+          ctx.beginPath(); ctx.arc(x, y, Math.max(2, 3 * pxRatio), 0, Math.PI * 2); ctx.fill();
+        }
+
+        // 棋子
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            const v = board[r][c];
+            if (v === EMPTY) continue;
+            const x = pad + c * cell, y = pad + r * cell;
+            const radius = cell * 0.42;
+
+            // 阴影
+            ctx.fillStyle = "rgba(0,0,0,0.35)";
+            ctx.beginPath(); ctx.arc(x + 2 * pxRatio, y + 2 * pxRatio, radius, 0, Math.PI * 2); ctx.fill();
+
+            // 渐变
+            const g = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.2, x, y, radius);
+            if (v === BLACK) { g.addColorStop(0, "#4a5568"); g.addColorStop(1, "#111827"); }
+            else { g.addColorStop(0, "#fffdf8"); g.addColorStop(1, "#d7c7b2"); }
+
+            ctx.fillStyle = g;
+            ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+
+            // 最后一步标记
+            if (moves.length && moves[moves.length - 1].r === r && moves[moves.length - 1].c === c) {
+              ctx.strokeStyle = "rgba(239,68,68,0.85)";
+              ctx.lineWidth = Math.max(2, 2 * pxRatio);
+              ctx.beginPath(); ctx.arc(x, y, radius * 0.35, 0, Math.PI * 2); ctx.stroke();
+            }
+          }
+        }
+
+        // 绿色预落子点：第一次点只预览，第二次点同格才落子
+        if (previewMove && inBounds(previewMove.r, previewMove.c) && board[previewMove.r][previewMove.c] === EMPTY && !gameOver) {
+          const x = pad + previewMove.c * cell;
+          const y = pad + previewMove.r * cell;
+          const dotRadius = Math.max(4 * pxRatio, cell * 0.18);
+          ctx.save();
+          ctx.fillStyle = "rgba(34,197,94,0.95)";
+          ctx.strokeStyle = "rgba(255,255,255,0.92)";
+          ctx.lineWidth = Math.max(2, 2 * pxRatio);
+          ctx.beginPath();
+          ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.globalAlpha = 0.22;
+          ctx.fillStyle = "#22c55e";
+          ctx.beginPath();
+          ctx.arc(x, y, dotRadius * 2.1, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function inBounds(r, c) { return r >= 0 && r < SIZE && c >= 0 && c < SIZE; }
+
+      function checkWin(r, c, player) {
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+        for (const [dr, dc] of dirs) {
+          let cnt = 1;
+          for (let k = 1; k < 5; k++) {
+            const rr = r + dr * k, cc = c + dc * k;
+            if (!inBounds(rr, cc) || board[rr][cc] !== player) break;
+            cnt++;
+          }
+          for (let k = 1; k < 5; k++) {
+            const rr = r - dr * k, cc = c - dc * k;
+            if (!inBounds(rr, cc) || board[rr][cc] !== player) break;
+            cnt++;
+          }
+          if (cnt >= 5) return true;
+        }
+        return false;
+      }
+
+      function isHumanTurn() {
+        return modeEl.value !== "ai" || current === humanColor;
+      }
+
+      function nextTurn() {
+        current = other(current);
+        updateTurn();
+        startTurnTimer();
+
+        if (modeEl.value === "ai" && current === aiColor && !gameOver) {
+          aiMove();
+        }
+      }
+
+      function canPlace(color) {
+        return remainCount(color) > 0;
+      }
+      function doPlace(r, c, silent = false) {
+        // silent=true：回放历史/初始化时不弹 toast
+        if (gameOver) return false;
+        if (!inBounds(r, c) || board[r][c] !== EMPTY) return false;
+
+        // 棋子用尽判负
+        if (!canPlace(current)) {
+          const winner = other(current);
+          if (!silent) endGame(winner, `${colorName(current)}棋子用尽！${colorName(winner)}胜`);
+          else gameOver = true;
+          return false;
+        }
+
+        previewMove = null;
+        board[r][c] = current;
+        moves.push({ r, c, p: current });
+
+        updateRemainUI();
+        draw();
+
+        // 胜负判断
+        if (checkWin(r, c, current)) {
+          if (!silent) endGame(current, `${colorName(current)}胜！`);
+          else gameOver = true;
+        }
+        return true;
+      }
+
+
+      function place(r, c) {
+        if (gameOver || aiThinking) return;
+        if (!inBounds(r, c) || board[r][c] !== EMPTY) return;
+
+        // ===== 联机 PVP：只发消息，等服务器广播回来再落子 =====
+        // PVP 联机：发消息，等服务器广播回来再落子
+        if (modeEl.value !== "ai") {
+          if (net.role === 0) return toast("你是观战，不能落子");
+          if (current !== net.role) return toast("还没轮到你");
+          if (!net.send({ type: "move", r, c })) return toast("未连接联机");
+          return;
+        }
+
+
+        // 人机：只允许人类在自己回合落
+        if (!isHumanTurn()) return;
+
+        if (!doPlace(r, c)) return;
+        nextTurn();
+      }
+
+
+
+
+      function clearPreviewMove() {
+        previewMove = null;
+        draw();
+      }
+
+      function setPreviewMove(r, c) {
+        previewMove = { r, c };
+        draw();
+        toast("绿色预落子，再点一次确认落子");
+      }
+
+      function confirmPreviewOrMove(r, c) {
+        if (gameOver || aiThinking) return;
+        if (!inBounds(r, c) || board[r][c] !== EMPTY) {
+          previewMove = null;
+          draw();
+          return;
+        }
+        if (previewMove && previewMove.r === r && previewMove.c === c) {
+          previewMove = null;
+          place(r, c);
+          return;
+        }
+        setPreviewMove(r, c);
+      }
+      function eventToCell(e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * pxRatio;
+        const y = (e.clientY - rect.top) * pxRatio;
+        const c = Math.round((x - pad) / cell);
+        const r = Math.round((y - pad) / cell);
+        const cx = pad + c * cell;
+        const cy = pad + r * cell;
+        const maxHit = cell * 0.42;
+        if (Math.abs(x - cx) > maxHit || Math.abs(y - cy) > maxHit) return null;
+        return { r, c };
+      }
+
+      // =========================
+      // 更强 AI：候选点 + 评估 + Minimax(αβ)
+      // =========================
+
+      function hasNeighbor(r, c, range = NEAR_RANGE) {
+        for (let dr = -range; dr <= range; dr++) {
+          for (let dc = -range; dc <= range; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const rr = r + dr, cc = c + dc;
+            if (inBounds(rr, cc) && board[rr][cc] !== EMPTY) return true;
+          }
+        }
+        return false;
+      }
+
+      // 评估窗口（5 连窗口）得分：只要同窗内有双方棋子则无效
+      function windowScore(count, open) {
+        // count: 该方在窗口/线段中形成的连势（近似），open: 两端开放(0/1/2)
+        // 用于整体评估：分值层级拉开，AI 更重视威胁
+        if (count >= 5) return 1e9;
+        if (count === 4 && open === 2) return 500000;
+        if (count === 4 && open === 1) return 120000;
+        if (count === 3 && open === 2) return 22000;
+        if (count === 3 && open === 1) return 4500;
+        if (count === 2 && open === 2) return 1200;
+        if (count === 2 && open === 1) return 250;
+        if (count === 1 && open === 2) return 45;
+        return 8;
+      }
+
+      // 线段评估：以“连续段+开放端”来打分（比单点更稳）
+      function lineEvalAt(r, c, dr, dc, player) {
+        // 从 (r,c) 向两端扩展统计连续 player 与开放端
+        let cnt1 = 0, cnt2 = 0, open1 = 0, open2 = 0;
+
+        for (let k = 1; k < 6; k++) {
+          const rr = r + dr * k, cc = c + dc * k;
+          if (!inBounds(rr, cc)) break;
+          if (board[rr][cc] === player) cnt1++;
+          else { if (board[rr][cc] === EMPTY) open1 = 1; break; }
+        }
+        for (let k = 1; k < 6; k++) {
+          const rr = r - dr * k, cc = c - dc * k;
+          if (!inBounds(rr, cc)) break;
+          if (board[rr][cc] === player) cnt2++;
+          else { if (board[rr][cc] === EMPTY) open2 = 1; break; }
+        }
+
+        const cnt = cnt1 + cnt2 + 1;
+        const open = open1 + open2;
+        return windowScore(cnt, open);
+      }
+
+      // 点打分（用于候选点排序）：进攻 + 防守
+      function pointHeuristic(r, c, player) {
+        const opp = other(player);
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+        let s = 0;
+        for (const [dr, dc] of dirs) {
+          // 进攻
+          s += lineEvalAt(r, c, dr, dc, player) * 1.0;
+          // 防守（略大一点，让 AI 更难被“秒杀”）
+          s += lineEvalAt(r, c, dr, dc, opp) * 0.95;
+        }
+        // 中心偏好（微弱）
+        const center = (SIZE - 1) / 2;
+        const dist = Math.abs(r - center) + Math.abs(c - center);
+        s += Math.max(0, 9 - dist) * 2;
+        return s;
+      }
+
+      // 生成候选空点（只取附近 & 取前 K）
+      function genCandidates(player) {
+        const cands = [];
+        if (moves.length === 0) {
+          const mid = Math.floor(SIZE / 2);
+          return [{ r: mid, c: mid }];
+        }
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            if (board[r][c] !== EMPTY) continue;
+            if (!hasNeighbor(r, c, NEAR_RANGE)) continue;
+            const h = pointHeuristic(r, c, player);
+            cands.push({ r, c, h });
+          }
+        }
+        cands.sort((a, b) => b.h - a.h);
+        return cands.slice(0, CAND_LIMIT);
+      }
+
+      // 全局评估：对所有已有棋子附近空点进行“潜力和”评估（AI - 人类）
+      function evaluate(forPlayer) {
+        const opp = other(forPlayer);
+        let score = 0;
+
+        // 只在“相关区域”打分（靠近棋子），避免 19x19 全扫太慢
+        const seen = new Set();
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+
+        function key(r, c) { return r + "#" + c; }
+
+        // 收集相关点：所有棋子周围 2 格内的空位 + 棋子本身
+        for (const m of moves) {
+          for (let dr = -2; dr <= 2; dr++) {
+            for (let dc = -2; dc <= 2; dc++) {
+              const rr = m.r + dr, cc = m.c + dc;
+              if (!inBounds(rr, cc)) continue;
+              const k = key(rr, cc);
+              if (seen.has(k)) continue;
+              seen.add(k);
+
+              if (board[rr][cc] === EMPTY) {
+                // 假设这里落子，评估进攻/防守潜力
+                const pPot = pointHeuristic(rr, cc, forPlayer);
+                const oPot = pointHeuristic(rr, cc, opp);
+                score += pPot * 0.06;
+                score -= oPot * 0.06;
+              } else {
+                // 对已落子位置：按连势给少量加成
+                const owner = board[rr][cc];
+                for (const [d1, d2] of dirs) {
+                  const v = lineEvalAt(rr, cc, d1, d2, owner);
+                  if (owner === forPlayer) score += v * 0.0008;
+                  else score -= v * 0.0008;
+                }
+              }
+            }
+          }
+        }
+        return score;
+      }
+
+      function minimax(depth, alpha, beta, playerToMove, maximizingFor) {
+        // 终止
+        if (depth === 0 || gameOver) {
+          return evaluate(maximizingFor);
+        }
+
+        // 若该方没棋可下，直接判负（对评估来说给极大负/正）
+        if (!canPlace(playerToMove)) {
+          return (playerToMove === maximizingFor) ? -1e8 : 1e8;
+        }
+
+        const cands = genCandidates(playerToMove);
+        if (cands.length === 0) return evaluate(maximizingFor);
+
+        const isMax = (playerToMove === maximizingFor);
+        let best = isMax ? -Infinity : Infinity;
+
+        for (const { r, c } of cands) {
+          // 落子
+          const prevCurrent = current;
+          current = playerToMove;
+
+          board[r][c] = playerToMove;
+          moves.push({ r, c, p: playerToMove });
+
+          // 立即胜负判断：比继续搜索更快更准
+          let val;
+          if (checkWin(r, c, playerToMove)) {
+            val = (playerToMove === maximizingFor) ? 1e8 : -1e8;
+          } else {
+            val = minimax(depth - 1, alpha, beta, other(playerToMove), maximizingFor);
+          }
+
+          // 撤销
+          moves.pop();
+          board[r][c] = EMPTY;
+          current = prevCurrent;
+
+          if (isMax) {
+            if (val > best) best = val;
+            if (best > alpha) alpha = best;
+            if (beta <= alpha) break; // β剪枝
+          } else {
+            if (val < best) best = val;
+            if (best < beta) beta = best;
+            if (beta <= alpha) break; // α剪枝
+          }
+        }
+        return best;
+      }
+
+      function aiChooseMove() {
+        // 先找“必胜一步”或“必防一步”，减少搜索压力
+        const opp = other(aiColor);
+        const cands = genCandidates(aiColor);
+
+        // 1) AI 一步必胜
+        for (const { r, c } of cands) {
+          board[r][c] = aiColor;
+          const win = checkWin(r, c, aiColor);
+          board[r][c] = EMPTY;
+          if (win) return { r, c };
+        }
+
+        // 2) 必须防守对手下一步必胜
+        for (const { r, c } of genCandidates(opp)) {
+          board[r][c] = opp;
+          const win = checkWin(r, c, opp);
+          board[r][c] = EMPTY;
+          if (win) return { r, c }; // 这里 AI 下这个点去堵
+        }
+
+        // 3) Minimax 搜索
+        let bestMove = null;
+        let bestVal = -Infinity;
+
+        const searchCands = genCandidates(aiColor);
+        for (const { r, c } of searchCands) {
+          // 试走
+          const prevCurrent = current;
+          current = aiColor;
+
+          board[r][c] = aiColor;
+          moves.push({ r, c, p: aiColor });
+
+          let val;
+          if (checkWin(r, c, aiColor)) val = 1e8;
+          else val = minimax(SEARCH_DEPTH - 1, -Infinity, Infinity, opp, aiColor);
+
+          // 撤销
+          moves.pop();
+          board[r][c] = EMPTY;
+          current = prevCurrent;
+
+          if (val > bestVal) {
+            bestVal = val;
+            bestMove = { r, c };
+          }
+        }
+
+        if (!bestMove) {
+          const mid = Math.floor(SIZE / 2);
+          bestMove = { r: mid, c: mid };
+        }
+        return bestMove;
+      }
+
+      function aiMove() {
+        if (gameOver) return;
+        if (!canPlace(aiColor)) {
+          endGame(humanColor, `AI（${colorName(aiColor)}）棋子用尽！你胜`);
+          return;
+        }
+
+        aiThinking = true;
+        updateTurn("（AI思考中…）");
+
+        // 给 UI 一点时间刷新
+        setTimeout(() => {
+          if (gameOver) { aiThinking = false; return; }
+
+          const { r, c } = aiChooseMove();
+
+          aiThinking = false;
+          updateTurn();
+
+          // AI 落子
+          if (!doPlace(r, c)) return;
+          nextTurn();
+        }, 80);
+      }
+
+      // 悔棋：
+      // - PVP：撤 1 步
+      // - AI：撤 2 步（尽量回到你走之前）
+      function undo() {
+        if (modeEl.value !== "ai") return toast("联机模式暂不支持悔棋");
+
+
+        if (aiThinking) return;
+        if (moves.length === 0) return toast("还没下子");
+
+        stopTimer();
+        if (gameOver) gameOver = false;
+
+        const popOne = () => {
+          const m = moves.pop();
+          if (!m) return false;
+          board[m.r][m.c] = EMPTY;
+          current = m.p;
+          return true;
+        };
+
+        if (modeEl.value === "ai") {
+          const a = popOne();
+          const b = popOne();
+          toast(b ? "已悔棋（两步）" : "已悔棋（一步）");
+        } else {
+          popOne();
+          toast("已悔棋");
+        }
+
+        updateRemainUI();
+        draw();
+        updateTurn();
+        startTurnTimer();
+
+        // 悔棋后如果轮到 AI，让 AI 接着走（保持自然对局）
+        if (modeEl.value === "ai" && current === aiColor && !gameOver) {
+          aiMove();
+        }
+      }
+
+      // 触屏/鼠标落子
+      canvas.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        if (gameOver) return toast("已结束，点重开");
+        const hit = eventToCell(e);
+        if (!hit) return toast("点到线外了");
+        const { r, c } = hit;
+        confirmPreviewOrMove(r, c);
+      }, { passive: false });
+
+      // 防止部分安卓浏览器滚动干扰
+      document.addEventListener("touchmove", (e) => {
+        if (e.target === canvas) e.preventDefault();
+      }, { passive: false });
+      undoBtn.addEventListener('click', undo);
+      restartBtn.addEventListener('click', requestRematch);
+      mobileUndoBtn.addEventListener("click", undo);
+      mobileRestartBtn.addEventListener("click", requestRematch);
+      mobileRematchBtn.addEventListener("click", requestRematch);
+      mobileMoreBtn.addEventListener("click", toggleMobileMore);
+      mobileMoreBackdrop.addEventListener("click", closeMobileMore);
+
+// ===== 开始前换黑白 =====
+swapBtn.addEventListener("click", () => {
+  if (modeEl.value === "ai") return toast("人机模式不用换边");
+  if (gameOver) return toast("已结束，请点再来一局");
+  if (moves.length !== 0) return toast("开局后不能换边");
+  if (!(net.role === 1 || net.role === 2)) return toast("观战不能换边");
+
+  if (!net.send({ type: "swap" })) {
+    toast("未连接联机");
+    return;
+  }
+
+  toast("已请求换黑白（双方都点才会生效）");
+});
+
+// ===== 再来一局 =====
+rematchBtn.addEventListener("click", () => {
+  requestRematch();
+});
+
+
+
+
+
+      modeEl.addEventListener('change', () => {
+        sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+        reset();
+      });
+
+      sideEl.addEventListener('change', () => {
+        if (modeEl.value === "ai") reset();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'r') requestRematch();
+        if (e.key.toLowerCase() === 'z') undo();
+        if (e.key === 'Escape') closeMobileMore();
+      });
+
+      // 初始化
+      sideWrap.classList.toggle('hidden', modeEl.value !== "ai");
+      function applyMobileLayout() {
+        const isMobile = isMobileLayout();
+        if (!headerEl || !rightEl || !mobileActionsHost || !mobilePrimaryBar || !mobileMoreBackdrop) return;
+        if (isMobile) {
+          if (rightEl.parentElement !== mobileActionsHost) mobileActionsHost.appendChild(rightEl);
+          mobileActionsHost.classList.remove("hidden");
+          mobilePrimaryBar.classList.remove("hidden");
+          mobileMoreBackdrop.classList.remove("hidden");
+        } else {
+          if (rightEl.parentElement !== headerEl) headerEl.appendChild(rightEl);
+          mobileActionsHost.classList.add("hidden");
+          mobilePrimaryBar.classList.add("hidden");
+          mobileMoreBackdrop.classList.add("hidden");
+          closeMobileMore();
+        }
+      }
+      applyMobileLayout();
+      window.addEventListener("resize", () => {
+        applyMobileLayout();
+        resize();
+      }, { passive: true });
+      window.addEventListener("orientationchange", () => {
+        applyMobileLayout();
+        setTimeout(() => resize(), 50);
+      }, { passive: true });
+      resize();
+      reset();
+    })();
+  </script>
+</body>
+
+</html>
+
+
+
+
+
