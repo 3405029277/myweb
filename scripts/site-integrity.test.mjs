@@ -57,8 +57,8 @@ for (const file of ["index.html", "post.html", "comments.html"]) {
 
 for (const file of ["archive.html", "about.html", "links.html"]) {
   const html = fs.readFileSync(file, "utf8");
-  assert.match(html, /assets\/site\.css\?v=20260613-v6-clamp/, `${file} should load the Mizuki redesign stylesheet`);
-  assert.match(html, /assets\/site\.js\?v=20260613-v6-clamp/, `${file} should load the Mizuki redesign script`);
+  assert.match(html, /assets\/site\.css\?v=20260613-final/, `${file} should load the Mizuki redesign stylesheet`);
+  assert.match(html, /assets\/site\.js\?v=20260613-final/, `${file} should load the Mizuki redesign script`);
   assert.match(html, /<main id="siteRoute" class="shell-inner page-grid">/, `${file} should expose stable SPA route container`);
 }
 

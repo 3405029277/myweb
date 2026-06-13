@@ -660,8 +660,8 @@ body.has-banner .page-grid { margin-top: -2px; }
 .author-card, .profile-card { text-align: center; }
 
 .profile-avatar-wrap {
-  width: 100%;
-  max-width: clamp(6rem, 15vw, 12rem);
+  width: 6rem;
+  max-width: 6rem;
   margin: 0.25rem auto 0.9rem;
   border-radius: 50%;
   overflow: hidden;
