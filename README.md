@@ -1,204 +1,244 @@
 # cjx 知微录 / myweb
 
-个人博客与项目展示站点，主站使用 Node.js + Express 托管静态页面和 Markdown 文章接口，评论/账号使用 Supabase，音乐代理与缓存使用 Cloudflare Worker + R2。
+个人博客与项目展示站点，采用静态页面 + SPA 架构，评论系统基于 Supabase，音乐播放器使用自建 Cloudflare Worker API + R2 缓存。
 
-## 功能概览
+## ✨ 核心特性
 
-- 首页三栏布局：个人信息、项目入口、文章列表、站点统计。
-- Markdown 文章系统：`posts/` 目录存放文章，支持 front matter、目录、代码块和本地 Markdown 兜底渲染。
-- 留言/评论系统：Supabase 登录、注册、评论、回复和 SPA remount。
-- 音乐播放器：APlayer 固定迷你播放器，桌面可拖动，移动端适配，页面切换时保持播放。
-- Karpov 音乐源：服务端/Worker 代理请求，前端不暴露 API key 或 cookie。
-- Cloudflare R2 音频缓存：播放过的歌曲通过 Worker 缓存到 R2，缓存上限 900MB，超限删除最旧一半。
-- 独立小游戏页面：五子棋、中国象棋、你画我猜等。
+- **📝 Markdown 文章系统** - 支持 front matter、自动目录、代码高亮、数学公式渲染
+- **💬 Supabase 评论** - JWT 登录、注册、多级回复、SPA 无刷新切换
+- **🎵 音乐播放器** - APlayer 迷你固定播放器，桌面可拖动，移动端自适应，跨页面保持播放
+- **☁️ Cloudflare Worker 音乐 API** - 自建网易云代理，WEAPI 加密，R2 永久音频缓存（900MB 限额）
+- **🎮 独立小游戏** - 五子棋、中国象棋 AI、你画我猜等互动页面
+- **🎨 Mizuki 设计** - 毛玻璃质感，浅色/深色主题，色相可调（0-360°）
 
-## 目录结构
+## 🚀 快速开始
 
-```text
-.
-├── index.html                 # 首页
-├── post.html                  # 文章详情页
-├── comments.html              # 留言页
-├── server.js                  # Express 服务入口
-├── supabase_all_in_one.jwt.js # Supabase 登录/评论逻辑
-├── cloudflare-music-worker.js # 音乐代理、歌词/歌单缓存、R2 音频缓存
-├── wrangler-music.toml        # 音乐 Worker 部署配置
-├── assets/
-│   ├── site.css
-│   ├── site.js
-│   ├── music-config.js        # 公开音乐配置，不放密钥
-│   ├── music-player.css
-│   ├── music-player.js
-│   └── vendor/                # APlayer / MetingJS 本地依赖
-├── posts/                     # Markdown 文章
-├── scripts/                   # 测试、发文、导入脚本
-└── docs/                      # 项目结构备忘
-```
-
-## 本地运行
+### 本地运行
 
 ```bash
 npm install
 npm start
 ```
 
-默认监听：
+服务默认运行在 `http://127.0.0.1:12811`（或环境变量 `PORT` 指定端口）
 
-```text
-http://127.0.0.1:12811
-```
-
-如果部署平台设置了 `PORT` 环境变量，会优先使用平台端口。
-
-## 常用命令
+### 常用命令
 
 ```bash
-npm test
+npm test                          # 运行所有测试
+npm run new:post -- "文章标题"      # 创建新文章
+npm run import:posts              # 导入 Markdown 文件
+npm run deploy:music-worker       # 部署音乐 Worker
+```
+
+## 📂 项目结构
+
+```
+.
+├── index.html                     # 首页（三栏布局）
+├── post.html                      # 文章详情页
+├── comments.html                  # 留言板
+├── archive.html / about.html      # 归档 / 关于
+├── server.js                      # Express 服务入口（/api/posts）
+├── supabase_all_in_one.jwt.js     # Supabase 登录/评论逻辑
+├── cloudflare-music-worker.js     # 音乐 Worker（网易云 API 代理）
+├── wrangler-music.toml            # Worker 部署配置
+├── assets/
+│   ├── site.css                   # 全局样式（Mizuki 主题）
+│   ├── site.js                    # SPA 路由、主题切换、文章渲染
+│   ├── music-config.js            # 音乐播放器配置（公开）
+│   ├── music-player.js            # 播放器逻辑（三层 fallback）
+│   ├── music-player.css           # 播放器样式
+│   └── vendor/                    # APlayer 本地依赖
+├── posts/                         # Markdown 文章目录
+├── scripts/                       # 测试脚本、发文工具
+├── docs/                          # 项目文档、架构说明
+└── backups/                       # 临时备份（.gitignore）
+```
+
+## 🎵 音乐系统架构
+
+### 三层 Fallback 机制
+
+```
+Cloudflare Worker (优先)
+    ↓ 失败
+MetingJS 第三方 API
+    ↓ 失败
+本地音频 background.wav
+```
+
+### Worker API 路由
+
+| 路由 | 功能 | 缓存策略 |
+|------|------|----------|
+| `/api/music/playlist` | 歌单信息（trackIds + 批量查询） | 1 小时 |
+| `/api/music/url` | 播放链接（302 跳转） | 10 分钟（浏览器端） |
+| `/api/music/audio` | 音频代理 + R2 缓存 | R2 永久缓存 |
+| `/api/music/lyric` | 歌词（LRC 格式） | 30 天 |
+
+### R2 音频缓存
+
+- **总容量限制**：900MB
+- **自动淘汰**：超限时删除最旧一半音频
+- **存储路径**：`audio/{provider}/{song_id}/{quality}`
+- **命中优先级**：R2 > 网易云 API
+- **Range 请求支持**：支持断点续播
+
+### VIP Cookie 配置
+
+Worker 支持网易云 VIP Cookie，用于播放受限歌曲：
+
+```bash
+# 使用 wrangler secret（推荐）
+wrangler secret put NETEASE_COOKIE -c wrangler-music.toml
+```
+
+详细配置教程：[docs/cloudflare-worker-vip-cookie.md](docs/cloudflare-worker-vip-cookie.md)
+
+## 📝 文章发布
+
+### 创建新文章
+
+```bash
 npm run new:post -- "文章标题"
-npm run import:posts
-npm run deploy:music-worker
 ```
 
-## 环境变量
+自动生成模板：
 
-本地可以在 `.env` 中配置，`.env` 已被 `.gitignore` 忽略，不要提交。
+```markdown
+---
+title: "文章标题"
+date: 2026-06-13
+tags: []
+---
 
-```text
-KARPOV_GATEWAY_API_KEY=你的 Karpov API key
-KARPOV_GATEWAY_COOKIE=可选 cookie
-KARPOV_GATEWAY_BASE_URL=https://ldc.karpov.cn
-KARPOV_MUSIC_PROVIDER=netease
-KARPOV_MUSIC_PLAYLIST_ID=2668671168
-KARPOV_MUSIC_QUALITY=MP3_320
+文章内容...
 ```
 
-服务器端 `server.js` 会读取 `.env`，浏览器端 `assets/music-config.js` 只保存公开配置，不包含密钥。
-
-## 音乐系统
-
-### 浏览器侧
-
-`assets/music-player.js` 会优先使用 Karpov 源：
-
-```text
-/api/music/playlist  # 歌单元数据
-/api/music/audio     # 音频代理/R2 缓存
-/api/music/lyric     # 歌词
-```
-
-Karpov 不可用时回退到 MetingJS，再失败时回退本地 `assets/music/background.wav`。
-
-### Cloudflare Worker
-
-`cloudflare-music-worker.js` 支持：
-
-```text
-/api/music/playlist
-/api/music/url
-/api/music/audio
-/api/music/lyric
-```
-
-缓存策略：
-
-```text
-歌单 metadata       1 小时
-歌词 LRC           30 天
-歌曲 URL 查询结果   短缓存，按上游过期时间收缩
-音频内容 R2 缓存    30 天响应缓存，R2 总量限制 900MB
-```
-
-R2 绑定要求：
-
-```text
-Binding name: MUSIC_BUCKET
-```
-
-R2 对象路径示例：
-
-```text
-audio/netease/<song-id>/MP3_320
-```
-
-当 `audio/` 缓存总量加上新歌超过 900MB 时，Worker 会按上传时间删除最旧的一半音频对象，再写入新歌。
-
-## Cloudflare 手动部署提示
-
-如果在 Cloudflare 后台手动部署 Worker，需要确认：
-
-1. Worker 代码是最新的 `cloudflare-music-worker.js`。
-2. R2 bucket 已绑定到 Worker。
-3. 绑定名是 `MUSIC_BUCKET`。
-4. Karpov API key/cookie 配在 Worker 的变量或 Secret 中。
-5. 路由指向站点域名下的 `/api/music/*`。
-
-如果使用 Wrangler 部署，需要确保 `wrangler-music.toml` 与后台绑定保持一致。
-
-## 文章发布
-
-新建文章：
-
-```bash
-npm run new:post -- "题解标题"
-```
-
-导入已有 Markdown：
+### 导入已有 Markdown
 
 ```bash
 npm run import:posts
 ```
 
-注意：从 Typora 导入的图片不要保留 `C:\Users\...` 或 `file:///...` 本地路径，应复制到 `assets/` 或其它公开资源目录后使用相对路径。
+**注意**：从 Typora 等编辑器导入的图片需复制到 `assets/` 并使用相对路径，不要保留 `C:\Users\...` 或 `file:///` 本地路径。
 
-## 测试
+## 🧪 测试
 
 ```bash
 npm test
 ```
 
-测试覆盖：
+测试套件：
+- `site-integrity.test.mjs` - 核心文件完整性、版本一致性、安全断言
+- `import-select.test.mjs` - Markdown 导入选择逻辑
+- `game-mobile-layout.test.mjs` - 游戏页面移动端布局
+- `draw-guess.test.mjs` - 你画我猜脚本验证
 
-- 站点核心 HTML/JS/CSS 完整性。
-- 音乐播放器、Worker、R2 缓存关键断言。
-- Markdown 导入选择逻辑。
-- 游戏移动端布局。
-- 你画我猜脚本。
+## 🔐 环境变量
 
-## 部署上传清单
+### 本地开发（.env）
 
-主站服务器通常需要上传：
+```env
+# 网易云音乐 API（已迁移到 Cloudflare Worker）
+# KARPOV_GATEWAY_API_KEY=已废弃
+# KARPOV_GATEWAY_COOKIE=已废弃
 
-```text
+# 服务端口（可选，默认 12811）
+PORT=12811
+```
+
+**⚠️ `.env` 已在 `.gitignore`，不要提交！**
+
+### Cloudflare Worker 配置
+
+在 `wrangler-music.toml` 或 Cloudflare Dashboard 设置：
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `MUSIC_PROVIDER` | 音乐平台 | `netease` |
+| `MUSIC_PLAYLIST_ID` | 默认歌单 ID | `2668671168` |
+| `MUSIC_QUALITY` | 音质（比特率） | `320000` |
+| `NETEASE_COOKIE` | VIP Cookie（Secret） | - |
+
+### Supabase 配置
+
+前端 `supabase_all_in_one.jwt.js` 需配置：
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`（可公开，权限由 RLS 控制）
+
+## 📦 部署
+
+### 主站部署
+
+上传以下文件到服务器：
+
+```
 server.js
-index.html
-post.html
-comments.html
+index.html, post.html, comments.html, archive.html, about.html
+五子棋.html, 中国象棋ai.html, 你画我猜.html
 assets/
 posts/
 supabase_all_in_one.jwt.js
 package.json
-package-lock.json
 scripts/
 ```
 
-音乐 Worker 单独部署：
+启动服务：
 
-```text
-cloudflare-music-worker.js
-wrangler-music.toml
+```bash
+npm install --production
+PORT=12811 node server.js
 ```
 
-不要上传或提交：
+### Worker 部署
 
-```text
-.env
-.env.*
-node_modules/
+```bash
+# 首次部署
+wrangler login
+wrangler deploy -c wrangler-music.toml
+
+# 配置 VIP Cookie
+wrangler secret put NETEASE_COOKIE -c wrangler-music.toml
 ```
 
-## 安全说明
+**确认 R2 绑定**：
+- Binding name: `MUSIC_BUCKET`
+- Bucket: `site-music-cache`
 
-- Karpov API key 和 cookie 只放在服务器/Worker 环境变量里。
-- 前端配置文件不得出现 `Bearer`、API key、cookie 等敏感信息。
-- Supabase 前端 anon key 可公开，但数据库规则/RLS 要在 Supabase 后台控制权限。
-- R2 音频缓存仅通过 Worker 访问，不需要公开 bucket 列表。
+## 🔒 安全说明
+
+### 已防护
+
+- ✅ 网易云 Cookie 存储在 Cloudflare Secret，不在代码
+- ✅ `.env` 已被 gitignore，本地密钥不会提交
+- ✅ 前端配置文件无 API key / Bearer token
+- ✅ Supabase RLS 规则控制评论权限
+- ✅ R2 bucket 仅 Worker 可访问，不公开
+
+### 风险提示
+
+- 🔴 **不要提交** `.env`、`wrangler-music.toml`（含真实 Cookie）
+- 🟡 **定期更新** 网易云 Cookie（30-90 天过期）
+- 🟡 **监控流量** Worker 免费额度 10 万请求/天
+
+## 🛠️ 技术栈
+
+- **前端**：原生 JS + SPA 路由（History API）
+- **后端**：Node.js + Express
+- **数据库**：Supabase（PostgreSQL + RLS）
+- **CDN/缓存**：Cloudflare Workers + R2
+- **播放器**：APlayer（固定迷你模式）
+- **样式**：CSS 变量 + Mizuki 设计语言
+- **测试**：Node.js Assert（无外部框架）
+
+## 📄 许可
+
+MIT License
+
+---
+
+**项目状态**：✅ 生产就绪  
+**最后更新**：2026-06-13  
+**维护者**：[@cjx](https://github.com/3405029277)
