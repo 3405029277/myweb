@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ÖĞ¹úÏóÆå - ÈË»ú / ±¾µØË«ÈË / Áª»ú£¨·¿¼ä¡¤¶ÏÏßÖØÁ¬¡¤»»±ß¡¤ÔÙÀ´Ò»¾Ö£©</title>
+  <title>ä¸­å›½è±¡æ£‹ - äººæœº / æœ¬åœ°åŒäºº / è”æœºï¼ˆæˆ¿é—´Â·æ–­çº¿é‡è¿Â·æ¢è¾¹Â·å†æ¥ä¸€å±€ï¼‰</title>
   <style>
-    /* --- »ù´¡ÉèÖÃ --- */
+    /* --- åŸºç¡€è®¾ç½® --- */
     :root{
       color-scheme: dark;
       --board-bg:#e6b380;
@@ -22,8 +22,8 @@
     body{
       margin:0; padding:0;
       background:#262626;
-      font-family:"KaiTi","¿¬Ìå",serif;
-      /* ? ÊÓ¿Ú¸ß¶È¼æÈİ£ºÏÈÓÃ 100vh ¶µµ×£¬ÔÙÓÃ 100dvh ĞŞ¸´ÊÖ»úµØÖ·À¸µ¼ÖÂµÄ¸ß¶ÈÌø±ä */
+      font-family:"KaiTi","æ¥·ä½“",serif;
+      /* âœ… è§†å£é«˜åº¦å…¼å®¹ï¼šå…ˆç”¨ 100vh å…œåº•ï¼Œå†ç”¨ 100dvh ä¿®å¤æ‰‹æœºåœ°å€æ å¯¼è‡´çš„é«˜åº¦è·³å˜ */
       min-height:100vh; height:100vh; width:100vw;
       min-height:100dvh; height:100dvh;
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -33,20 +33,20 @@
       overflow:hidden; user-select:none; -webkit-user-select:none;
     }
 
-    /* --- ÓÎÏ·Ö÷ÇøÓò --- */
+    /* --- æ¸¸æˆä¸»åŒºåŸŸ --- */
     .game-area{
       position:relative;
       width:min(96vw, 600px);
       height:min(96vh, 860px);
       height:min(96dvh, 860px);
       max-height:860px;
-      /* flex ×ÓÔªËØÔÊĞíÊÕËõ£¨±ÜÃâÄ³Ğ©ÊÖ»úÉÏ board-wrapper ±»¼·µ½ 0 ¸ß¶È£© */
+      /* flex å­å…ƒç´ å…è®¸æ”¶ç¼©ï¼ˆé¿å…æŸäº›æ‰‹æœºä¸Š board-wrapper è¢«æŒ¤åˆ° 0 é«˜åº¦ï¼‰ */
       min-height:0;
       display:flex; flex-direction:column;
       align-items:center;
     }
 
-    /* ¶¥²¿ĞÅÏ¢À¸ */
+    /* é¡¶éƒ¨ä¿¡æ¯æ  */
     .header{
       width:100%;
       height:12%;
@@ -107,10 +107,10 @@
     .timer-box.urgent{color:#f00; box-shadow:0 0 8px rgba(255,0,0,0.5); animation:pulse .5s infinite;}
     @keyframes pulse{0%{opacity:1;} 50%{opacity:.5;} 100%{opacity:1;}}
 
-    /* --- ÆåÅÌÈİÆ÷ --- */
+    /* --- æ£‹ç›˜å®¹å™¨ --- */
     .board-wrapper{
       position:relative;
-      /* ? ÓÃ JS + Ã÷È·¿í¸ßÀ´ÊÊÅäÊÖ»ú£¨·ÀÖ¹²¿·Öä¯ÀÀÆ÷ÓÃ¸ß¶ÈÍÆµ¼¿í¶Èµ¼ÖÂ¡°³¬³öÆÁÄ»¡±£© */
+      /* âœ… ç”¨ JS + æ˜ç¡®å®½é«˜æ¥é€‚é…æ‰‹æœºï¼ˆé˜²æ­¢éƒ¨åˆ†æµè§ˆå™¨ç”¨é«˜åº¦æ¨å¯¼å®½åº¦å¯¼è‡´â€œè¶…å‡ºå±å¹•â€ï¼‰ */
       width:100%;
       max-width:100%;
       margin:0 auto;
@@ -181,7 +181,7 @@
       box-sizing:border-box;
     }
 
-    /* ½«¾üÏÔĞÎÏß */
+    /* å°†å†›æ˜¾å½¢çº¿ */
     .check-line{
       position:absolute;
       background-color:rgba(255,0,0,.82);
@@ -243,7 +243,7 @@
     .muted{opacity:.8; font-size:.95rem; margin:0;}
     .hint{opacity:.72; font-size:.9rem; margin:6px 0 0; line-height:1.4;}
 
-    /* ½«¾üÌáÊ¾¿ò */
+    /* å°†å†›æç¤ºæ¡† */
     .check-toast{
       position:absolute; top:50%; left:50%; width:90%;
       transform:translate(-50%,-50%) scale(0);
@@ -263,7 +263,7 @@
       75%{transform:translate(-50%,-50%) rotate(5deg)}
     }
 
-    /* Í¨ÓÃ toast */
+    /* é€šç”¨ toast */
     .toast-msg{
       position:fixed;
       left:50%;
@@ -394,16 +394,16 @@
   <div class="game-area">
     <div class="header">
       <div class="left">
-        <div id="turnInfo">µÈ´ı¿ªÊ¼...</div>
+        <div id="turnInfo">ç­‰å¾…å¼€å§‹...</div>
         <div class="mini-row">
-          <span class="pill" id="roleBadge">ÄãÊÇ£ºÎ´Á¬½Ó</span>
-          <span class="pill" id="roomCount">·¿¼ä£º0ÈË</span>
-          <span class="pill" id="netStatus">ÀëÏß</span>
+          <span class="pill" id="roleBadge">ä½ æ˜¯ï¼šæœªè¿æ¥</span>
+          <span class="pill" id="roomCount">æˆ¿é—´ï¼š0äºº</span>
+          <span class="pill" id="netStatus">ç¦»çº¿</span>
         </div>
       </div>
       <div class="right">
         <div id="timer" class="timer-box">60</div>
-        <button id="copyLinkBtn" class="btn small" style="display:none;">¸´ÖÆ·¿¼äÁ´½Ó</button>
+        <button id="copyLinkBtn" class="btn small" style="display:none;">å¤åˆ¶æˆ¿é—´é“¾æ¥</button>
       </div>
     </div>
 
@@ -429,98 +429,98 @@
           <line x1="350" y1="50" x2="550" y2="250" /><line x1="550" y1="50" x2="350" y2="250" />
           <line x1="350" y1="950" x2="550" y2="750" /><line x1="550" y1="950" x2="350" y2="750" />
         </g>
-        <text x="250" y="520" font-size="50" fill="#5d3a1a" text-anchor="middle" dominant-baseline="middle">³ş ºÓ</text>
-        <text x="650" y="520" font-size="50" fill="#5d3a1a" text-anchor="middle" dominant-baseline="middle">ºº ½ç</text>
+        <text x="250" y="520" font-size="50" fill="#5d3a1a" text-anchor="middle" dominant-baseline="middle">æ¥š æ²³</text>
+        <text x="650" y="520" font-size="50" fill="#5d3a1a" text-anchor="middle" dominant-baseline="middle">æ±‰ ç•Œ</text>
       </svg>
 
       <div id="piecesLayer" class="pieces-layer"></div>
       <div id="clickLayer" class="click-layer"></div>
 
-      <!-- ½«¾üÌáÊ¾¿ò -->
+      <!-- å°†å†›æç¤ºæ¡† -->
       <div id="checkToast" class="check-toast">
         <div class="toast-inner">
-          <strong id="chkTitle">½«¾ü!</strong>
+          <strong id="chkTitle">å°†å†›!</strong>
           <span id="chkDetail"></span>
         </div>
       </div>
     </div>
 
     <div class="controls">
-      <button id="undoBtn" class="btn" onclick="game.undo()">»ÚÆå</button>
-      <button class="btn primary" onclick="showSettings()">ĞÂ¾Ö</button>
-      <button id="requestRematchBtn" class="btn">ÉêÇëÖØ¿ª</button>
+      <button id="undoBtn" class="btn" onclick="game.undo()">æ‚”æ£‹</button>
+      <button class="btn primary" onclick="showSettings()">æ–°å±€</button>
+      <button id="requestRematchBtn" class="btn">ç”³è¯·é‡å¼€</button>
     </div>
   </div>
 
-  <!-- ¿ªÊ¼²Ëµ¥ -->
+  <!-- å¼€å§‹èœå• -->
   <div class="modal-overlay" id="startModal">
     <div class="modal">
-      <h2 style="margin:0 0 6px;">ÖĞ¹úÏóÆå</h2>
-      <p class="muted">Ã¿²½ 60 Ãë ¡¤ ÈË»ú / ±¾µØË«ÈË / Áª»ú£¨Ãâ·Ñ£©</p>
+      <h2 style="margin:0 0 6px;">ä¸­å›½è±¡æ£‹</h2>
+      <p class="muted">æ¯æ­¥ 60 ç§’ Â· äººæœº / æœ¬åœ°åŒäºº / è”æœºï¼ˆå…è´¹ï¼‰</p>
 
-      <div class="section-title">ÈË»ú¶ÔÕ½</div>
+      <div class="section-title">äººæœºå¯¹æˆ˜</div>
       <div class="row" style="margin:10px 0 0;">
         <div class="role-btn" onclick="startAIGame(1)" style="border:1px solid #c00;">
-          <strong style="color:#c00; font-size:1.6em;">Ë§</strong><br>Ö´ºìÏÈĞĞ
+          <strong style="color:#c00; font-size:1.6em;">å¸…</strong><br>æ‰§çº¢å…ˆè¡Œ
         </div>
         <div class="role-btn" onclick="startAIGame(-1)" style="border:1px solid #000;">
-          <strong style="color:#000; font-size:1.6em;">½«</strong><br>Ö´ºÚºóĞĞ
+          <strong style="color:#000; font-size:1.6em;">å°†</strong><br>æ‰§é»‘åè¡Œ
         </div>
       </div>
 
-      <div class="section-title">±¾µØË«ÈË</div>
+      <div class="section-title">æœ¬åœ°åŒäºº</div>
       <div class="row">
-        <button class="btn" onclick="startLocal()">Ë«ÈË±¾µØ</button>
+        <button class="btn" onclick="startLocal()">åŒäººæœ¬åœ°</button>
       </div>
 
-      <div class="section-title">Áª»ú¶ÔÕ½</div>
+      <div class="section-title">è”æœºå¯¹æˆ˜</div>
       <div class="row">
-        <button class="btn primary" onclick="startOnline('red')">Áª»úÖ´ºì</button>
-        <button class="btn primary" onclick="startOnline('black')">Áª»úÖ´ºÚ</button>
-        <button class="btn" onclick="startOnline('spectate')">¹ÛÕ½</button>
+        <button class="btn primary" onclick="startOnline('red')">è”æœºæ‰§çº¢</button>
+        <button class="btn primary" onclick="startOnline('black')">è”æœºæ‰§é»‘</button>
+        <button class="btn" onclick="startOnline('spectate')">è§‚æˆ˜</button>
       </div>
-      <p class="hint">ÌáÊ¾£º½øÈëÁª»úºóµãÓÒÉÏ½Ç¡¸¸´ÖÆ·¿¼äÁ´½Ó¡¹·¢¸øÅóÓÑ¡£Í¬Ò»·¿¼ä×î¶à 2 ÈË¶ÔŞÄ£¬ÆäÓà¹ÛÕ½¡£¶ÏÏß»á×Ô¶¯ÖØÁ¬£¨±£×ùÎ»Ò»¶ÎÊ±¼ä£©¡£</p>
+      <p class="hint">æç¤ºï¼šè¿›å…¥è”æœºåç‚¹å³ä¸Šè§’ã€Œå¤åˆ¶æˆ¿é—´é“¾æ¥ã€å‘ç»™æœ‹å‹ã€‚åŒä¸€æˆ¿é—´æœ€å¤š 2 äººå¯¹å¼ˆï¼Œå…¶ä½™è§‚æˆ˜ã€‚æ–­çº¿ä¼šè‡ªåŠ¨é‡è¿ï¼ˆä¿åº§ä½ä¸€æ®µæ—¶é—´ï¼‰ã€‚</p>
     </div>
   </div>
 
-  <!-- ½áÊøµ¯´° -->
+  <!-- ç»“æŸå¼¹çª— -->
   <div class="modal-overlay" id="endModal" style="display:none;">
     <div class="modal">
-      <h2 id="endTitle" style="color:#c00; margin:0 0 6px;">ÓÎÏ·½áÊø</h2>
-      <p id="endReason" class="muted" style="margin:0 0 12px;">Ô­Òò</p>
+      <h2 id="endTitle" style="color:#c00; margin:0 0 6px;">æ¸¸æˆç»“æŸ</h2>
+      <p id="endReason" class="muted" style="margin:0 0 12px;">åŸå› </p>
 
-      <!-- Áª»ú£ºË«·½Í¬Òâ -->
+      <!-- è”æœºï¼šåŒæ–¹åŒæ„ -->
       <div id="onlineEndBox" style="display:none;">
         <div class="row">
-          <button id="onlineRematchBtn" class="btn primary">ÔÙÀ´Ò»¾Ö£¨Ë«·½Í¬Òâ£©</button>
-          <button id="onlineSwapBtn" class="btn">»»±ß£¨Ë«·½Í¬Òâ£©</button>
+          <button id="onlineRematchBtn" class="btn primary">å†æ¥ä¸€å±€ï¼ˆåŒæ–¹åŒæ„ï¼‰</button>
+          <button id="onlineSwapBtn" class="btn">æ¢è¾¹ï¼ˆåŒæ–¹åŒæ„ï¼‰</button>
         </div>
         <p id="voteHint" class="hint" style="margin-top:10px;"></p>
       </div>
 
-      <!-- ·ÇÁª»ú£º±¾µØ -->
+      <!-- éè”æœºï¼šæœ¬åœ° -->
       <div id="offlineEndBox" style="display:none;">
         <div class="row">
-          <button id="offlineAgainBtn" class="btn primary">ÔÙÀ´Ò»¾Ö</button>
-          <button id="offlineSwapBtn" class="btn">»»±ß</button>
+          <button id="offlineAgainBtn" class="btn primary">å†æ¥ä¸€å±€</button>
+          <button id="offlineSwapBtn" class="btn">æ¢è¾¹</button>
         </div>
       </div>
 
       <div class="row" style="margin-top:12px;">
-        <button class="btn" onclick="closeModal('endModal')">²é¿´Æå¾Ö</button>
-        <button class="btn" onclick="showSettings()">·µ»Ø²Ëµ¥</button>
+        <button class="btn" onclick="closeModal('endModal')">æŸ¥çœ‹æ£‹å±€</button>
+        <button class="btn" onclick="showSettings()">è¿”å›èœå•</button>
       </div>
     </div>
   </div>
 
   <div id="toast" class="toast-msg"></div>
 
-  <!-- ? ¸´ÓÃÁª»úÄ£¿é£¨Çë°ÑÄã²Ö¿âÀïµÄ online_final.js ¸ÄÃûÎª online.js ·ÅÍ¬Ä¿Â¼£© -->
+  <!-- âœ… å¤ç”¨è”æœºæ¨¡å—ï¼ˆè¯·æŠŠä½ ä»“åº“é‡Œçš„ online_final.js æ”¹åä¸º online.js æ”¾åŒç›®å½•ï¼‰ -->
   <script src="./online.js"></script>
 
   <script>
     // ===========================
-    // ³£Á¿ / ÒıÇæ£¨»ùÓÚÄãÔ­À´µÄ°æ±¾£©
+    // å¸¸é‡ / å¼•æ“ï¼ˆåŸºäºä½ åŸæ¥çš„ç‰ˆæœ¬ï¼‰
     // ===========================
     const RED = 1, BLACK = -1;
     const ROLES = { K:1, A:2, E:3, H:4, R:5, C:6, P:7 };
@@ -546,8 +546,8 @@
     };
 
     const TEXTS = {
-      [RED]:{1:'Ë§',2:'ÊË',3:'Ïà',4:'Âí',5:'³µ',6:'ÅÚ',7:'±ø'},
-      [BLACK]:{1:'½«',2:'Ê¿',3:'Ïó',4:'Âí',5:'³µ',6:'ÅÚ',7:'×ä'}
+      [RED]:{1:'å¸…',2:'ä»•',3:'ç›¸',4:'é©¬',5:'è½¦',6:'ç‚®',7:'å…µ'},
+      [BLACK]:{1:'å°†',2:'å£«',3:'è±¡',4:'é©¬',5:'è½¦',6:'ç‚®',7:'å’'}
     };
     const PIECE_VALS = {1:10000, 5:900, 6:450, 4:400, 3:200, 2:200, 7:100};
 
@@ -560,7 +560,7 @@
           if (ch && CHAR_CFG[ch]) this.board[r][c] = {...CHAR_CFG[ch]};
         }
         this.turn = RED;
-        this.mySide = side;   // 1 ºì / -1 ºÚ / 0 ±¾µØË«ÈË or ¹ÛÕ½
+        this.mySide = side;   // 1 çº¢ / -1 é»‘ / 0 æœ¬åœ°åŒäºº or è§‚æˆ˜
         this.gameOver = false;
         this.history = [];
         this.selected = null;
@@ -600,7 +600,7 @@
           }
         };
 
-        if (type === ROLES.R){ // ³µ
+        if (type === ROLES.R){ // è½¦
           [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr,dc])=>{
             for (let i=1;;i++){
               const tr=r+dr*i, tc=c+dc*i;
@@ -611,7 +611,7 @@
             }
           });
         }
-        else if (type === ROLES.C){ // ÅÚ
+        else if (type === ROLES.C){ // ç‚®
           [[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr,dc])=>{
             let platform=false;
             for (let i=1;;i++){
@@ -630,7 +630,7 @@
             }
           });
         }
-        else if (type === ROLES.H){ // Âí
+        else if (type === ROLES.H){ // é©¬
           [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dr,dc])=>{
             const tr=r+dr, tc=c+dc;
             const lr=r+(Math.abs(dr)===2?Math.sign(dr):0);
@@ -638,7 +638,7 @@
             if (tr>=0&&tr<ROWS&&tc>=0&&tc<COLS&&!this.board[lr][lc]) push(tr,tc);
           });
         }
-        else if (type === ROLES.E){ // Ïà/Ïó
+        else if (type === ROLES.E){ // ç›¸/è±¡
           [[2,2],[2,-2],[-2,2],[-2,-2]].forEach(([dr,dc])=>{
             const tr=r+dr, tc=c+dc;
             const er=r+dr/2, ec=c+dc/2;
@@ -646,7 +646,7 @@
             if (tr>=0&&tr<ROWS&&tc>=0&&tc<COLS&&!this.board[er][ec]) push(tr,tc);
           });
         }
-        else if (type === ROLES.A){ // ÊË/Ê¿
+        else if (type === ROLES.A){ // ä»•/å£«
           [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>{
             const tr=r+dr, tc=c+dc;
             if (tc<3||tc>5) return;
@@ -654,7 +654,7 @@
             push(tr,tc);
           });
         }
-        else if (type === ROLES.K){ // ½«/Ë§
+        else if (type === ROLES.K){ // å°†/å¸…
           [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
             const tr=r+dr, tc=c+dc;
             if (tc<3||tc>5) return;
@@ -662,7 +662,7 @@
             push(tr,tc);
           });
         }
-        else if (type === ROLES.P){ // ±ø/×ä
+        else if (type === ROLES.P){ // å…µ/å’
           const dir = color===RED ? -1 : 1;
           push(r+dir, c);
           if ((color===RED && r<=4) || (color===BLACK && r>=5)) { push(r,c+1); push(r,c-1); }
@@ -693,7 +693,7 @@
 
         const enemy = (color===RED ? BLACK : RED);
 
-        // 1) ·É½«
+        // 1) é£å°†
         for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
           const p=this.board[r][c];
           if (p && p.t===ROLES.K && p.c===enemy){
@@ -707,7 +707,7 @@
           }
         }
 
-        // 2) ÆÕ¹¥£¨º¬ÅÚ£©
+        // 2) æ™®æ”»ï¼ˆå«ç‚®ï¼‰
         for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++){
           const p=this.board[r][c];
           if (p && p.c===enemy){
@@ -760,17 +760,17 @@
     }
 
     // ===========================
-    // UI + ÓÎÏ·Âß¼­
+    // UI + æ¸¸æˆé€»è¾‘
     // ===========================
     const engine = new Engine();
     let uiLock = false;
     let timerVal = TIME_LIMIT;
     let timerInterval = null;
 
-    // Ä£Ê½
+    // æ¨¡å¼
     let onlineMode = false;
     let net = null;
-    let lastOfflineMode = { type:"ai", side: RED }; // ÓÃÓÚ¡°ÔÙÀ´Ò»¾Ö/»»±ß¡±
+    let lastOfflineMode = { type:"ai", side: RED }; // ç”¨äºâ€œå†æ¥ä¸€å±€/æ¢è¾¹â€
 
     // DOM
     const roleBadgeEl = document.getElementById("roleBadge");
@@ -790,7 +790,7 @@
 
     const toastEl = document.getElementById("toast");
 
-    // ===== ÊÖ»ú¶ËÆåÅÌ×ÔÊÊÅä£¨±ÜÃâ¿í¶È³¬ÆÁ + Ê×Ö¡²»»æÖÆ£©=====
+    // ===== æ‰‹æœºç«¯æ£‹ç›˜è‡ªé€‚é…ï¼ˆé¿å…å®½åº¦è¶…å± + é¦–å¸§ä¸ç»˜åˆ¶ï¼‰=====
     const gameAreaEl = document.querySelector(".game-area");
     const headerEl = document.querySelector(".header");
     const controlsEl = document.querySelector(".controls");
@@ -809,7 +809,7 @@
       const availH = Math.max(200, gaH - (isMobile ? 0 : headerH + controlsH) - padding);
       const availW = Math.max(200, gaW);
 
-      // 9/10 µÄÆåÅÌ±ÈÀı£ºw <= availW ÇÒ h=w*10/9 <= availH  => w <= availH*9/10
+      // 9/10 çš„æ£‹ç›˜æ¯”ä¾‹ï¼šw <= availW ä¸” h=w*10/9 <= availH  => w <= availH*9/10
       const w = Math.floor(Math.min(availW, availH * 9 / 10) * scale);
       const h = Math.floor(w * 10 / 9);
 
@@ -835,13 +835,13 @@
 
     function setRoleBadgeText(){
       if (!onlineMode) {
-        roleBadgeEl.textContent = (engine.mySide===0) ? "±¾µØ£ºË«ÈË" : (engine.mySide===RED ? "ÈË»ú£ºÄãÊÇºì" : "ÈË»ú£ºÄãÊÇºÚ");
+        roleBadgeEl.textContent = (engine.mySide===0) ? "æœ¬åœ°ï¼šåŒäºº" : (engine.mySide===RED ? "äººæœºï¼šä½ æ˜¯çº¢" : "äººæœºï¼šä½ æ˜¯é»‘");
         return;
       }
-      if (engine.mySide === 0) roleBadgeEl.textContent = "Áª»ú£ºÄãÊÇ¹ÛÕ½";
-      else if (engine.mySide === RED) roleBadgeEl.textContent = "Áª»ú£ºÄãÊÇºì";
-      else if (engine.mySide === BLACK) roleBadgeEl.textContent = "Áª»ú£ºÄãÊÇºÚ";
-      else roleBadgeEl.textContent = "Áª»ú£ºÎ´ÖªÉí·İ";
+      if (engine.mySide === 0) roleBadgeEl.textContent = "è”æœºï¼šä½ æ˜¯è§‚æˆ˜";
+      else if (engine.mySide === RED) roleBadgeEl.textContent = "è”æœºï¼šä½ æ˜¯çº¢";
+      else if (engine.mySide === BLACK) roleBadgeEl.textContent = "è”æœºï¼šä½ æ˜¯é»‘";
+      else roleBadgeEl.textContent = "è”æœºï¼šæœªçŸ¥èº«ä»½";
     }
 
     function setNetStatus(text){ netStatusEl.textContent = text; }
@@ -854,7 +854,7 @@
       if (timerVal <= 10) el.classList.add("urgent"); else el.classList.remove("urgent");
     }
 
-    // online£º³¬Ê±Ö»ÉÏ±¨·şÎñÆ÷£»offline£º±¾µØÅĞ¸º
+    // onlineï¼šè¶…æ—¶åªä¸ŠæŠ¥æœåŠ¡å™¨ï¼›offlineï¼šæœ¬åœ°åˆ¤è´Ÿ
     let onlineTimeoutSent = false;
     function startTimer(){
       stopTimer();
@@ -871,10 +871,10 @@
           stopTimer();
 
           if (onlineMode) {
-            // Ö»ÓĞ×ßÆå·½ + Íæ¼ÒÉí·İ ²ÅÉÏ±¨³¬Ê±
+            // åªæœ‰èµ°æ£‹æ–¹ + ç©å®¶èº«ä»½ æ‰ä¸ŠæŠ¥è¶…æ—¶
             if (!onlineTimeoutSent && engine.mySide !== 0 && engine.turn === engine.mySide) {
               onlineTimeoutSent = true;
-              toast("Äã³¬Ê±ÁË¡­µÈ´ı·şÎñÆ÷ÅĞ¶¨");
+              toast("ä½ è¶…æ—¶äº†â€¦ç­‰å¾…æœåŠ¡å™¨åˆ¤å®š");
               if (net) net.send({ type:"xq_timeout" });
             }
             return;
@@ -882,37 +882,37 @@
 
           // offline
           engine.gameOver = true;
-          const loser = engine.turn === RED ? "ºì·½" : "ºÚ·½";
+          const loser = engine.turn === RED ? "çº¢æ–¹" : "é»‘æ–¹";
           playSound("win");
-          endGame(engine.turn === RED ? "ºÚ·½" : "ºì·½", `${loser}³¬Ê±ÅĞ¸º`);
+          endGame(engine.turn === RED ? "é»‘æ–¹" : "çº¢æ–¹", `${loser}è¶…æ—¶åˆ¤è´Ÿ`);
         }
       }, 1000);
     }
 
     function startGame(side){
-      // side: 1(ºì) -1(ºÚ) 0(±¾µØË«ÈË/¹ÛÕ½)
+      // side: 1(çº¢) -1(é»‘) 0(æœ¬åœ°åŒäºº/è§‚æˆ˜)
       closeModal("startModal");
       engine.init(side);
 
-      // ·­×ªÆåÅÌ£ºÖ´ºÚ·½£¨ÎŞÂÛÈË»ú/Áª»ú£©¶¼·­×ª£¬ÈÃ¼º·½ÔÚÏÂ·½
+      // ç¿»è½¬æ£‹ç›˜ï¼šæ‰§é»‘æ–¹ï¼ˆæ— è®ºäººæœº/è”æœºï¼‰éƒ½ç¿»è½¬ï¼Œè®©å·±æ–¹åœ¨ä¸‹æ–¹
       const br = document.getElementById("boardRef");
       if (side === BLACK) br.classList.add("flipped");
       else br.classList.remove("flipped");
 
-      // ? ÏÈ¼ÆËãÆåÅÌ¿í¸ß£¨ÒÆ¶¯¶Ë±ÜÃâ³¬ÆÁ / Ê×Ö¡²»»æÖÆ£©
+      // âœ… å…ˆè®¡ç®—æ£‹ç›˜å®½é«˜ï¼ˆç§»åŠ¨ç«¯é¿å…è¶…å± / é¦–å¸§ä¸ç»˜åˆ¶ï¼‰
       fitBoard();
-      // Ç¿ÖÆÒ»´ÎÖØÅÅ£¬ĞŞ¸´²¿·ÖÊÖ»ú±³¾°/ÆåÅÌÏßÊ×Ö¡²»ÏÔÊ¾
+      // å¼ºåˆ¶ä¸€æ¬¡é‡æ’ï¼Œä¿®å¤éƒ¨åˆ†æ‰‹æœºèƒŒæ™¯/æ£‹ç›˜çº¿é¦–å¸§ä¸æ˜¾ç¤º
       void br.offsetHeight;
 
       render();
       updateStatus();
-      // ? Ä³Ğ©ÊÖ»úä¯ÀÀÆ÷Ê×´Î²¼¾Ö»á³öÏÖ 0 ¸ß¶È/²»Ë¢ĞÂ£ºÏÂÒ»Ö¡ÔÙäÖÈ¾Ò»´Î
+      // âœ… æŸäº›æ‰‹æœºæµè§ˆå™¨é¦–æ¬¡å¸ƒå±€ä¼šå‡ºç° 0 é«˜åº¦/ä¸åˆ·æ–°ï¼šä¸‹ä¸€å¸§å†æ¸²æŸ“ä¸€æ¬¡
       requestAnimationFrame(() => { fitBoard(); try { render(); } catch {} });
       setTimeout(() => { fitBoard(); try { render(); } catch {} }, 80);
       setRoleBadgeText();
       startTimer();
 
-      // ? Ö»ÓĞÈË»úÄ£Ê½²ÅÈÃ AI ×ß
+      // âœ… åªæœ‰äººæœºæ¨¡å¼æ‰è®© AI èµ°
       if (!onlineMode && side === BLACK) {
         uiLock = true;
         setTimeout(aiTurn, 1000 + Math.random() * 1000);
@@ -943,34 +943,34 @@
       startGame(0);
     }
 
-    // ===== Áª»ú =====
+    // ===== è”æœº =====
     function ensureNet(){
       if (net) return net;
 
       if (!window.OnlineClient) {
-        toast("È±ÉÙ online.js£¨Çë°Ñ online_final.js ÖØÃüÃûÎª online.js£©");
+        toast("ç¼ºå°‘ online.jsï¼ˆè¯·æŠŠ online_final.js é‡å‘½åä¸º online.jsï¼‰");
         return null;
       }
 
       net = new OnlineClient({
-        // ? wsBase Ö§³ÖÊı×é£º¹úÄÚ/º£ÍâË«ÏßÂ·¶µµ×£¨¿É°´Äã×Ô¼ºµÄÓòÃûÌæ»»£©
-        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://ÄãµÄ¹úÄÚÏßÂ·ÓòÃû"],
+        // âœ… wsBase æ”¯æŒæ•°ç»„ï¼šå›½å†…/æµ·å¤–åŒçº¿è·¯å…œåº•ï¼ˆå¯æŒ‰ä½ è‡ªå·±çš„åŸŸåæ›¿æ¢ï¼‰
+        // wsBase: ["wss://ws.cjx88.eu.cc", "wss://ä½ çš„å›½å†…çº¿è·¯åŸŸå"],
         wsBase: "wss://ws.cjx88.eu.cc",
         wsPath: "/relay",
         query: { game: "xq" },
         tokenKeyPrefix: "xq_token",
         connectTimeoutMs: 8000,
         onStatus: (s) => {
-          // ¼æÈİ string / object Á½ÖÖ»Øµ÷
+          // å…¼å®¹ string / object ä¸¤ç§å›è°ƒ
           const status = (typeof s === "string") ? s : (s && s.status) || "";
-          if (status === "connecting") setNetStatus("Áª»ú£ºÁ¬½ÓÖĞ");
-          else if (status === "connected" || status === "open") setNetStatus("Áª»ú£ºÒÑÁ¬½Ó");
-          else if (status === "disconnected" || status === "closed") setNetStatus("Áª»ú£º¶Ï¿ª£¨×Ô¶¯ÖØÁ¬£©");
-          else if (status === "error") setNetStatus("Áª»ú£º´íÎó");
+          if (status === "connecting") setNetStatus("è”æœºï¼šè¿æ¥ä¸­");
+          else if (status === "connected" || status === "open") setNetStatus("è”æœºï¼šå·²è¿æ¥");
+          else if (status === "disconnected" || status === "closed") setNetStatus("è”æœºï¼šæ–­å¼€ï¼ˆè‡ªåŠ¨é‡è¿ï¼‰");
+          else if (status === "error") setNetStatus("è”æœºï¼šé”™è¯¯");
         },
-        onPresence: (n) => { roomCountEl.textContent = `·¿¼ä£º${n}ÈË`; },
+        onPresence: (n) => { roomCountEl.textContent = `æˆ¿é—´ï¼š${n}äºº`; },
         onRole: (role) => {
-          // role: 0¹ÛÕ½ 1ºì 2ºÚ£¨·şÎñ¶Ë£©
+          // role: 0è§‚æˆ˜ 1çº¢ 2é»‘ï¼ˆæœåŠ¡ç«¯ï¼‰
           if (!onlineMode) return;
           if (role === 1) engine.mySide = RED;
           else if (role === 2) engine.mySide = BLACK;
@@ -987,7 +987,7 @@
       stopOnline();
       onlineMode = true;
       copyLinkBtn.style.display = "";
-      undoBtn.style.display = "none"; // Áª»ú½ûÓÃ»ÚÆå
+      undoBtn.style.display = "none"; // è”æœºç¦ç”¨æ‚”æ£‹
 
       const n = ensureNet();
       if (!n) return;
@@ -995,10 +995,10 @@
       // want: red / black / spectate
       n.setExtraQuery({ want });
 
-      // ÏÈ¿ª¾ÖÎª¹ÛÕ½£¨µÈ init ÔÙÕæÕıÉèÖÃÉí·İ/Í¬²½ÆåÆ×£©
+      // å…ˆå¼€å±€ä¸ºè§‚æˆ˜ï¼ˆç­‰ init å†çœŸæ­£è®¾ç½®èº«ä»½/åŒæ­¥æ£‹è°±ï¼‰
       startGame(0);
 
-      toast("ÕıÔÚÁ¬½ÓÁª»ú¡­");
+      toast("æ­£åœ¨è¿æ¥è”æœºâ€¦");
       n.connect();
     }
 
@@ -1007,29 +1007,29 @@
       try { net.send({ type:"xq_leave" }); } catch {}
       try { net.close(); } catch {}
       net = null;
-      setNetStatus("ÀëÏß");
-      roomCountEl.textContent = "·¿¼ä£º0ÈË";
+      setNetStatus("ç¦»çº¿");
+      roomCountEl.textContent = "æˆ¿é—´ï¼š0äºº";
     }
 
     copyLinkBtn.addEventListener("click", async () => {
       try {
         const n = ensureNet();
         const url = n ? await n.copyLink() : location.href;
-        toast("ÒÑ¸´ÖÆ·¿¼äÁ´½Ó");
+        toast("å·²å¤åˆ¶æˆ¿é—´é“¾æ¥");
       } catch {
         // fallback
         try{
           await navigator.clipboard.writeText(location.href);
-          toast("ÒÑ¸´ÖÆ·¿¼äÁ´½Ó");
+          toast("å·²å¤åˆ¶æˆ¿é—´é“¾æ¥");
         }catch{
-          toast("¸´ÖÆÊ§°Ü£ºÇëÊÖ¶¯¸´ÖÆµØÖ·À¸Á´½Ó");
+          toast("å¤åˆ¶å¤±è´¥ï¼šè¯·æ‰‹åŠ¨å¤åˆ¶åœ°å€æ é“¾æ¥");
         }
       }
     });
 
-    // ===== ÍøÂçÏûÏ¢´¦Àí =====
+    // ===== ç½‘ç»œæ¶ˆæ¯å¤„ç† =====
     function roleToColor(role){
-      // server role: 1ºì 2ºÚ
+      // server role: 1çº¢ 2é»‘
       return role === 1 ? RED : BLACK;
     }
 
@@ -1037,14 +1037,14 @@
       if (!onlineMode) return;
 
       if (msg.type === "init") {
-        // ½ÇÉ«
+        // è§’è‰²
         const youRole = msg.you || 0;
         const mySide = (youRole === 1) ? RED : (youRole === 2) ? BLACK : 0;
 
-        // ÓÃ startGame ³õÊ¼»¯ UI + ·­×ªµÈ
+        // ç”¨ startGame åˆå§‹åŒ– UI + ç¿»è½¬ç­‰
         startGame(mySide);
 
-        // »Ø·ÅÀúÊ·£¨²»´¥·¢ AI / ²»±¾µØÅĞ¸º£©
+        // å›æ”¾å†å²ï¼ˆä¸è§¦å‘ AI / ä¸æœ¬åœ°åˆ¤è´Ÿï¼‰
         stopTimer();
         engine.turn = RED;
         engine.gameOver = false;
@@ -1060,7 +1060,7 @@
           applyMoveInternal(m.from, m.to, { replay:true });
         }
 
-        // ÒÔ·şÎñÆ÷ current Îª×¼£¨server current: 1ºì 2ºÚ£©
+        // ä»¥æœåŠ¡å™¨ current ä¸ºå‡†ï¼ˆserver current: 1çº¢ 2é»‘ï¼‰
         if (msg.current === 1 || msg.current === 2) {
           engine.turn = (msg.current === 1) ? RED : BLACK;
         }
@@ -1073,8 +1073,8 @@
 
         if (engine.gameOver) {
           const winnerRole = msg.winner || 0;
-          const winnerText = (winnerRole === 1) ? "ºì·½" : (winnerRole === 2) ? "ºÚ·½" : "Î´Öª";
-          endGame(winnerText, msg.reason || "ÒÑ½áÊø");
+          const winnerText = (winnerRole === 1) ? "çº¢æ–¹" : (winnerRole === 2) ? "é»‘æ–¹" : "æœªçŸ¥";
+          endGame(winnerText, msg.reason || "å·²ç»“æŸ");
         } else {
           startTimer();
         }
@@ -1086,7 +1086,7 @@
         const moverRole = msg.p || 0;
         const nextRole = msg.next || 0;
 
-        // Ç¿ÖÆÍ¬²½ turn£¨Èİ´í£©
+        // å¼ºåˆ¶åŒæ­¥ turnï¼ˆå®¹é”™ï¼‰
         if (moverRole === 1 || moverRole === 2) engine.turn = (moverRole === 1 ? RED : BLACK);
 
         applyMoveInternal(msg.from, msg.to, { replay:false });
@@ -1103,23 +1103,23 @@
 
       if (msg.type === "xq_over") {
         const w = msg.winner;
-        const winnerText = (w === 1) ? "ºì·½" : (w === 2) ? "ºÚ·½" : "Î´Öª";
+        const winnerText = (w === 1) ? "çº¢æ–¹" : (w === 2) ? "é»‘æ–¹" : "æœªçŸ¥";
         engine.gameOver = true;
         stopTimer();
-        endGame(winnerText, msg.reason || "Ê¤Àû");
+        endGame(winnerText, msg.reason || "èƒœåˆ©");
         return;
       }
 
       if (msg.type === "xq_reset") {
-        // reset »áÔÚË«·½Í¬Òâºó´¥·¢£»Ò²¿ÉÄÜÊÇ swap µÄÖØÁ¬Ç°´¥·¢
-        // ? ĞÂ¾Ö¿ªÊ¼Ê±×Ô¶¯¹Ø±Õ½áËãµ¯´°£¬±ÜÃâ°´Å¥ÈÔÔÚµ¯´°Àïµ¼ÖÂ¡°ÔÙÀ´Ò»¾ÖÃ»·´Ó¦¡±µÄ´í¾õ
+        // reset ä¼šåœ¨åŒæ–¹åŒæ„åè§¦å‘ï¼›ä¹Ÿå¯èƒ½æ˜¯ swap çš„é‡è¿å‰è§¦å‘
+        // âœ… æ–°å±€å¼€å§‹æ—¶è‡ªåŠ¨å…³é—­ç»“ç®—å¼¹çª—ï¼Œé¿å…æŒ‰é’®ä»åœ¨å¼¹çª—é‡Œå¯¼è‡´â€œå†æ¥ä¸€å±€æ²¡ååº”â€çš„é”™è§‰
         closeModal("endModal");
         updateVoteHint({});
         uiLock = false;
 
         const mySide = engine.mySide;
         startGame(mySide);
-        toast(msg.reason === "swap" ? "ÒÑ»»±ß£¬ÕıÔÚË¢ĞÂÉí·İ¡­" : "ĞÂ¾Ö¿ªÊ¼");
+        toast(msg.reason === "swap" ? "å·²æ¢è¾¹ï¼Œæ­£åœ¨åˆ·æ–°èº«ä»½â€¦" : "æ–°å±€å¼€å§‹");
         return;
       }
 
@@ -1131,40 +1131,40 @@
 
       if (msg.type === "reject") {
         uiLock = false;
-        toast(msg.reason || "²Ù×÷ÎŞĞ§");
+        toast(msg.reason || "æ“ä½œæ— æ•ˆ");
         return;
       }
     }
 
         function updateVoteHint(votes){
-      const r1 = votes?.rematch?.[1] ? "¡Ì" : "-";
-      const r2 = votes?.rematch?.[2] ? "¡Ì" : "-";
-      const s1 = votes?.swap?.[1] ? "¡Ì" : "-";
-      const s2 = votes?.swap?.[2] ? "¡Ì" : "-";
-      voteHintEl.textContent = `ÔÙÀ´Ò»¾Ö£ººì${r1} ºÚ${r2} £ü »»±ß£ººì${s1} ºÚ${s2}`;
+      const r1 = votes?.rematch?.[1] ? "âˆš" : "-";
+      const r2 = votes?.rematch?.[2] ? "âˆš" : "-";
+      const s1 = votes?.swap?.[1] ? "âˆš" : "-";
+      const s2 = votes?.swap?.[2] ? "âˆš" : "-";
+      voteHintEl.textContent = `å†æ¥ä¸€å±€ï¼šçº¢${r1} é»‘${r2} ï½œ æ¢è¾¹ï¼šçº¢${s1} é»‘${s2}`;
     }
 
     // ===========================
-    // ×ß×Ó / äÖÈ¾ / AI
+    // èµ°å­ / æ¸²æŸ“ / AI
     // ===========================
     document.getElementById("clickLayer").addEventListener("pointerdown", (e) => {
       e.preventDefault();
       if (engine.gameOver || uiLock) return;
 
-      // ? Áª»ú£º¹ÛÕ½½ûÖ¹¡¢·Ç×Ô¼º»ØºÏ½ûÖ¹
+      // âœ… è”æœºï¼šè§‚æˆ˜ç¦æ­¢ã€éè‡ªå·±å›åˆç¦æ­¢
       if (onlineMode) {
-        if (engine.mySide === 0) return toast("¹ÛÕ½ÖĞ£¬²»ÄÜ²Ù×÷");
-        if (engine.turn !== engine.mySide) return toast("»¹Ã»ÂÖµ½Äã");
+        if (engine.mySide === 0) return toast("è§‚æˆ˜ä¸­ï¼Œä¸èƒ½æ“ä½œ");
+        if (engine.turn !== engine.mySide) return toast("è¿˜æ²¡è½®åˆ°ä½ ");
       } else {
-        // offline£ºÈË»úÊ±Ö»ÓĞ×Ô¼º»ØºÏ¿Éµã
-        if (engine.mySide !== 0 && engine.turn !== engine.mySide) return toast("µçÄÔ»ØºÏ");
+        // offlineï¼šäººæœºæ—¶åªæœ‰è‡ªå·±å›åˆå¯ç‚¹
+        if (engine.mySide !== 0 && engine.turn !== engine.mySide) return toast("ç”µè„‘å›åˆ");
       }
 
       const rect = e.target.getBoundingClientRect();
       let xPct = (e.clientX - rect.left) / rect.width;
       let yPct = (e.clientY - rect.top) / rect.height;
 
-      // Ö´ºÚ·­ÅÌ£º×ø±êÒ²Òª·­
+      // æ‰§é»‘ç¿»ç›˜ï¼šåæ ‡ä¹Ÿè¦ç¿»
       if (engine.mySide === BLACK) { xPct = 1 - xPct; yPct = 1 - yPct; }
 
       const c = Math.round((xPct * 900 - 50) / 100);
@@ -1197,9 +1197,9 @@
 
     let pendingAckTimer = null;
     function submitOnlineMove(move){
-      if (!net) return toast("Î´Á¬½ÓÁª»ú");
-      // ÔÙ¼ì²éÒ»±é
-      if (engine.mySide === 0) return toast("¹ÛÕ½²»ÄÜ×ßÆå");
+      if (!net) return toast("æœªè¿æ¥è”æœº");
+      // å†æ£€æŸ¥ä¸€é
+      if (engine.mySide === 0) return toast("è§‚æˆ˜ä¸èƒ½èµ°æ£‹");
       if (engine.turn !== engine.mySide) return;
 
       uiLock = true;
@@ -1209,7 +1209,7 @@
       pendingAckTimer = setTimeout(() => { uiLock = false; }, 1500);
     }
 
-    // ===== ×ß×Ó£ºoffline£¨±¾µØ/ÈË»ú£©=====
+    // ===== èµ°å­ï¼šofflineï¼ˆæœ¬åœ°/äººæœºï¼‰=====
     function executeMoveOffline(move){
       const hash = engine.getBoardHash();
       if (!engine.repMap[hash]) engine.repMap[hash] = 0;
@@ -1227,7 +1227,7 @@
       const newHash = engine.getBoardHash();
       engine.repMap[newHash] = (engine.repMap[newHash] || 0) + 1;
 
-      // Ê¤¸ºÅĞ¶¨
+      // èƒœè´Ÿåˆ¤å®š
       const src = engine.getCheckSource(engine.turn);
       engine.checkInfo = src;
 
@@ -1243,13 +1243,13 @@
         engine.gameOver = true;
         stopTimer();
         playSound("win");
-        endGame(engine.turn === RED ? "ºÚ·½" : "ºì·½", src ? "¾øÉ±" : "À§±Ğ");
+        endGame(engine.turn === RED ? "é»‘æ–¹" : "çº¢æ–¹", src ? "ç»æ€" : "å›°æ¯™");
         return;
       }
 
       startTimer();
 
-      // ÈË»ú£ºÂÖµ½µçÄÔ
+      // äººæœºï¼šè½®åˆ°ç”µè„‘
       if (engine.mySide !== 0 && engine.turn !== engine.mySide && !engine.gameOver) {
         uiLock = true;
         setTimeout(aiTurn, 1000 + Math.random() * 1000);
@@ -1258,14 +1258,14 @@
       }
     }
 
-    // ===== ×ß×Ó£ºonline ±¾µØÂä×Ó£¨·şÎñÆ÷¹ã²¥»ØÀ´²Å»áµ÷ÓÃ£©=====
+    // ===== èµ°å­ï¼šonline æœ¬åœ°è½å­ï¼ˆæœåŠ¡å™¨å¹¿æ’­å›æ¥æ‰ä¼šè°ƒç”¨ï¼‰=====
     function applyMoveInternal(from, to, opts){
       opts = opts || {};
       const replay = !!opts.replay;
 
       if (!from || !to) return;
 
-      // ×é×°Ò»¸ö move ½á¹¹£¨¼æÈİÄãÔ­À´µÄäÖÈ¾£©
+      // ç»„è£…ä¸€ä¸ª move ç»“æ„ï¼ˆå…¼å®¹ä½ åŸæ¥çš„æ¸²æŸ“ï¼‰
       const move = { from: { r: from.r|0, c: from.c|0 }, to: { r: to.r|0, c: to.c|0 } };
 
       const captured = engine.board[move.to.r][move.to.c];
@@ -1277,7 +1277,7 @@
       engine.hints = [];
       engine.turn = (engine.turn === RED ? BLACK : RED);
 
-      // ½«¾üĞÅÏ¢£¨½öÏÔÊ¾£¬²»×öÊ¤¸º²Ã¾ö£©
+      // å°†å†›ä¿¡æ¯ï¼ˆä»…æ˜¾ç¤ºï¼Œä¸åšèƒœè´Ÿè£å†³ï¼‰
       engine.checkInfo = engine.getCheckSource(engine.turn);
 
       if (!replay) {
@@ -1341,30 +1341,30 @@
     }
 
     function updateStatus(){
-      const t = (engine.turn === RED) ? "ºì·½" : "ºÚ·½";
+      const t = (engine.turn === RED) ? "çº¢æ–¹" : "é»‘æ–¹";
 
       let s = "";
       if (onlineMode) {
-        if (engine.mySide === 0) s = `¹ÛÕ½ÖĞ£ºµ±Ç° ${t}×ßÆå`;
-        else s = (engine.turn === engine.mySide) ? `ÂÖµ½ÄãÁË£¨${t}£©` : `µÈ´ı¶Ô·½£¨${t}£©`;
+        if (engine.mySide === 0) s = `è§‚æˆ˜ä¸­ï¼šå½“å‰ ${t}èµ°æ£‹`;
+        else s = (engine.turn === engine.mySide) ? `è½®åˆ°ä½ äº†ï¼ˆ${t}ï¼‰` : `ç­‰å¾…å¯¹æ–¹ï¼ˆ${t}ï¼‰`;
       } else {
         s = (engine.mySide === 0)
-          ? `µ±Ç°: ${t}×ßÆå`
-          : (engine.turn === engine.mySide ? `ÂÖµ½ÄãÁË` : `µçÄÔË¼¿¼ÖĞ`);
+          ? `å½“å‰: ${t}èµ°æ£‹`
+          : (engine.turn === engine.mySide ? `è½®åˆ°ä½ äº†` : `ç”µè„‘æ€è€ƒä¸­`);
       }
 
       document.getElementById("turnInfo").innerText = s;
     }
 
     function aiTurn(){
-      // Ö»ÔÚÀëÏßÈË»úÄ£Ê½ÏÂÔËĞĞ
+      // åªåœ¨ç¦»çº¿äººæœºæ¨¡å¼ä¸‹è¿è¡Œ
       if (onlineMode) return;
       if (engine.gameOver) return;
 
       const moves = engine.getMoves(engine.turn);
       if (moves.length === 0) return;
 
-      // ¼ò»¯£ºÏÈ³Ô×Ó£¬ÔÙ¼«Ğ¡¼«´óÉî¶È2
+      // ç®€åŒ–ï¼šå…ˆåƒå­ï¼Œå†æå°æå¤§æ·±åº¦2
       moves.sort((a,b)=>(b.capture?PIECE_VALS[b.capture.t]:0)-(a.capture?PIECE_VALS[a.capture.t]:0));
 
       let best = -Infinity, bestMove = null, alpha = -Infinity, beta = Infinity;
@@ -1415,26 +1415,26 @@
       const title = document.getElementById("chkTitle");
       const detail = document.getElementById("chkDetail");
 
-      const victim = (engine.turn === RED) ? "ºì·½" : "ºÚ·½";
-      title.innerText = `${victim}±»½«¾ü!`;
+      const victim = (engine.turn === RED) ? "çº¢æ–¹" : "é»‘æ–¹";
+      title.innerText = `${victim}è¢«å°†å†›!`;
 
-      if (info.type === "FLY") detail.innerText = `Ğ×ÊÖ: ¶ÔÃæÀÏ½« (·É½«)`;
-      else if (info.screen) detail.innerText = `Ğ×ÊÖ: ${info.name}(${info.from.r},${info.from.c}) ÅÚ¼Ü: ${info.screen.name}`;
-      else detail.innerText = `Ğ×ÊÖ: ${info.name}(${info.from.r},${info.from.c})`;
+      if (info.type === "FLY") detail.innerText = `å‡¶æ‰‹: å¯¹é¢è€å°† (é£å°†)`;
+      else if (info.screen) detail.innerText = `å‡¶æ‰‹: ${info.name}(${info.from.r},${info.from.c}) ç‚®æ¶: ${info.screen.name}`;
+      else detail.innerText = `å‡¶æ‰‹: ${info.name}(${info.from.r},${info.from.c})`;
 
       t.classList.add("active");
       setTimeout(() => t.classList.remove("active"), 2600);
     }
 
     function endGame(winnerText, reason){
-      document.getElementById("endTitle").innerText = winnerText.includes("ºÍ") ? "ºÍÆå" : `${winnerText}Ê¤Àû`;
+      document.getElementById("endTitle").innerText = winnerText.includes("å’Œ") ? "å’Œæ£‹" : `${winnerText}èƒœåˆ©`;
       document.getElementById("endReason").innerText = reason || "";
       document.getElementById("endModal").style.display = "flex";
 
       if (onlineMode) {
         onlineEndBox.style.display = "";
         offlineEndBox.style.display = "none";
-        updateVoteHint({}); // Çå¿ÕÏÔÊ¾
+        updateVoteHint({}); // æ¸…ç©ºæ˜¾ç¤º
       } else {
         onlineEndBox.style.display = "none";
         offlineEndBox.style.display = "";
@@ -1442,7 +1442,7 @@
     }
 
     function showSettings(){
-      // »Øµ½²Ëµ¥£ºÊÓÎªÍË³öÁª»ú
+      // å›åˆ°èœå•ï¼šè§†ä¸ºé€€å‡ºè”æœº
       if (onlineMode) {
         onlineMode = false;
         stopOnline();
@@ -1454,20 +1454,20 @@
       document.getElementById("startModal").style.display = "flex";
       document.getElementById("endModal").style.display = "none";
       stopTimer();
-      setNetStatus("ÀëÏß");
-      roomCountEl.textContent = "·¿¼ä£º0ÈË";
-      roleBadgeEl.textContent = "ÄãÊÇ£ºÎ´Á¬½Ó";
-      document.getElementById("turnInfo").innerText = "µÈ´ı¿ªÊ¼...";
+      setNetStatus("ç¦»çº¿");
+      roomCountEl.textContent = "æˆ¿é—´ï¼š0äºº";
+      roleBadgeEl.textContent = "ä½ æ˜¯ï¼šæœªè¿æ¥";
+      document.getElementById("turnInfo").innerText = "ç­‰å¾…å¼€å§‹...";
     }
 
     function closeModal(id){
       document.getElementById(id).style.display = "none";
     }
 
-    // ===== »ÚÆå =====
+    // ===== æ‚”æ£‹ =====
     window.game = {
       undo: function(){
-        if (onlineMode) return toast("Áª»úÄ£Ê½²»ÄÜ»ÚÆå");
+        if (onlineMode) return toast("è”æœºæ¨¡å¼ä¸èƒ½æ‚”æ£‹");
         if (engine.history.length < 2 && engine.mySide !== 0) return;
         if (engine.mySide !== 0 && engine.turn !== engine.mySide) return;
 
@@ -1490,7 +1490,7 @@
       }
     };
 
-    // ===== ½áÊøµ¯´°°´Å¥°ó¶¨ =====
+    // ===== ç»“æŸå¼¹çª—æŒ‰é’®ç»‘å®š =====
     offlineAgainBtn.addEventListener("click", () => {
       closeModal("endModal");
       if (lastOfflineMode.type === "local") startLocal();
@@ -1506,9 +1506,9 @@
 
     function requestOnlineRematch() {
       if (!onlineMode || !net) return;
-      if (engine.mySide === 0) return toast("¹ÛÕ½²»ÄÜ·¢Æğ");
-      if (!net.send({ type:"xq_rematch" })) return toast("Î´Á¬½ÓÁª»ú");
-      toast(engine.gameOver ? "ÒÑÉêÇëÖØ¿ªÒ»¾Ö" : "ÒÑ·¢ÆğÖØ¿ªÉêÇë£¬µÈ¶Ô·½Í¬Òâ");
+      if (engine.mySide === 0) return toast("è§‚æˆ˜ä¸èƒ½å‘èµ·");
+      if (!net.send({ type:"xq_rematch" })) return toast("æœªè¿æ¥è”æœº");
+      toast(engine.gameOver ? "å·²ç”³è¯·é‡å¼€ä¸€å±€" : "å·²å‘èµ·é‡å¼€ç”³è¯·ï¼Œç­‰å¯¹æ–¹åŒæ„");
     }
 
     onlineRematchBtn.addEventListener("click", () => {
@@ -1525,13 +1525,13 @@
 
     onlineSwapBtn.addEventListener("click", () => {
       if (!onlineMode || !net) return;
-      if (!engine.gameOver && engine.history.length > 0) return toast("¶Ô¾Ö½øĞĞÖĞ²»ÄÜ»»±ß");
-      if (engine.mySide === 0) return toast("¹ÛÕ½²»ÄÜ·¢Æğ");
-      if (!net.send({ type:"xq_swap" })) return toast("Î´Á¬½ÓÁª»ú");
-      toast("ÒÑÇëÇó£º»»±ß£¨µÈ´ı¶Ô·½£©");
+      if (!engine.gameOver && engine.history.length > 0) return toast("å¯¹å±€è¿›è¡Œä¸­ä¸èƒ½æ¢è¾¹");
+      if (engine.mySide === 0) return toast("è§‚æˆ˜ä¸èƒ½å‘èµ·");
+      if (!net.send({ type:"xq_swap" })) return toast("æœªè¿æ¥è”æœº");
+      toast("å·²è¯·æ±‚ï¼šæ¢è¾¹ï¼ˆç­‰å¾…å¯¹æ–¹ï¼‰");
     });
 
-    // ===== ÉùÒô =====
+    // ===== å£°éŸ³ =====
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let audioCtx = new AudioCtx();
 
@@ -1559,7 +1559,7 @@
       }
     }
 
-    // ³õÊ¼ÏÔÊ¾²Ëµ¥
+    // åˆå§‹æ˜¾ç¤ºèœå•
     showSettings();
   </script>
 </body>
