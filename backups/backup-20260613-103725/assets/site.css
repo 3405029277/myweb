@@ -468,10 +468,12 @@ body[data-page="post"] .hero-banner,
   left: 0;
   z-index: 4;
   width: 100%;
-  height: 6vh;
-  min-height: 2rem;
-  max-height: 5rem;
+  height: 10vh;
+  min-height: 3.125rem;
+  max-height: 9.375rem;
 }
+
+@media (min-width: 768px) { .waves { height: 15vh; } }
 
 .waves svg { width: 100%; height: 100%; display: block; }
 
@@ -480,10 +482,10 @@ body[data-page="post"] .hero-banner,
   animation: waveMove 25s cubic-bezier(0.55, 0.5, 0.45, 0.5) infinite;
 }
 
-.waves .parallax > use:nth-child(1) { opacity: 0.15; animation-delay: -2s; animation-duration: 7s; }
-.waves .parallax > use:nth-child(2) { opacity: 0.3; animation-delay: -3s; animation-duration: 10s; }
-.waves .parallax > use:nth-child(3) { opacity: 0.5; animation-delay: -4s; animation-duration: 13s; }
-.waves .parallax > use:nth-child(4) { opacity: 0.7; animation-delay: -5s; animation-duration: 20s; }
+.waves .parallax > use:nth-child(1) { opacity: 0.25; animation-delay: -2s; animation-duration: 7s; }
+.waves .parallax > use:nth-child(2) { opacity: 0.5; animation-delay: -3s; animation-duration: 10s; }
+.waves .parallax > use:nth-child(3) { opacity: 0.75; animation-delay: -4s; animation-duration: 13s; }
+.waves .parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 20s; }
 
 @keyframes waveMove {
   0% { transform: translate3d(-90px, 0, 0); }
@@ -1700,12 +1702,6 @@ body > #backToTopBtn {
   .right-rail { display: none; }
 }
 
-@media (max-width: 768px) {
-  .post-list-container { grid-template-columns: 1fr; }
-  .panel, .content-card, .article-card { padding: 1rem; }
-  .profile-avatar-wrap { width: 6rem !important; max-width: 6rem !important; }
-}
-
 @media (max-width: 900px) {
   .shell-inner { width: min(calc(100% - 1.5rem), var(--page-width)); }
 
@@ -1753,7 +1749,7 @@ body > #backToTopBtn {
     padding: 0 0 0 1rem;
   }
 
-  .hero-banner { height: 35vh; min-height: 18rem; }
+  .hero-banner { height: 50vh; min-height: 20rem; }
 
   .post-list-container { grid-template-columns: 1fr; }
 
@@ -1793,37 +1789,6 @@ body > #backToTopBtn {
     border-radius: 0.2rem;
     background: var(--primary);
   }
-
-  /* 防止横向溢出 */
-  .comment-submit-row,
-  .comment-compose-head,
-  .hero-actions,
-  .auth-cta-row,
-  .toolbar-row,
-  .section-inline-head {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .comment-submit-row button,
-  .hero-actions button,
-  .auth-cta-row button {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  textarea,
-  input[type="search"],
-  input[type="text"] {
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  .comment-compose-card,
-  .modal-card {
-    max-width: 100%;
-    box-sizing: border-box;
-  }
 }
 
 @media (max-width: 560px) {
@@ -1837,7 +1802,7 @@ body > #backToTopBtn {
 
   .nav-row { gap: 0.6rem; }
   .icon-button { width: 2.5rem; height: 2.5rem; }
-  .hero-banner { height: 35vh; min-height: 15rem; }
+  .hero-banner { height: 40vh; min-height: 17rem; }
   .page-grid { padding-top: 0.875rem; }
 
   .panel, .content-card, .article-card { border-radius: var(--radius-md); }

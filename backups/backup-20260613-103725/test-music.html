@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Music Player Test</title>
+  <link rel="stylesheet" href="assets/vendor/aplayer/APlayer.min.css">
+</head>
+<body>
+  <h1>Music Player Fallback Test</h1>
+  <div id="status">Initializing...</div>
+
+  <script src="assets/vendor/aplayer/APlayer.min.js"></script>
+  <script src="assets/vendor/meting/Meting.min.js"></script>
+  <script src="assets/music-config.js?v=3"></script>
+  <script src="assets/music-player.js?v=30"></script>
+
+  <script>
+    setTimeout(() => {
+      const musicPlayer = document.getElementById('siteMusicPlayer');
+      const meting = musicPlayer ? musicPlayer.querySelector('meting-js') : null;
+      const aplayers = musicPlayer ? musicPlayer.querySelectorAll('.aplayer') : [];
+
+      document.getElementById('status').innerHTML = `
+        <h2>Status after 15 seconds:</h2>
+        <ul>
+          <li>siteMusicPlayer exists: ${!!musicPlayer}</li>
+          <li>meting element: ${!!meting}</li>
+          <li>meting.aplayer: ${meting && !!meting.aplayer}</li>
+          <li>.aplayer DOM count: ${aplayers.length}</li>
+          <li>__SITE_MUSIC_READY__: ${!!window.__SITE_MUSIC_READY__}</li>
+        </ul>
+        <p>Check console for [Music] logs</p>
+      `;
+    }, 15000);
+  </script>
+</body>
+</html>
