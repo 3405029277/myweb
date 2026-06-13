@@ -1843,6 +1843,8 @@ body > #backToTopBtn {
   .panel, .content-card, .article-card { border-radius: var(--radius-md); }
   .content-card, .article-card { padding: 1rem; }
 
+  .profile-avatar-wrap { width: 6rem !important; max-width: 6rem !important; }
+
   .archive-row, .timeline article { grid-template-columns: 1fr; display: grid; }
   .archive-row small { white-space: normal; }
 
