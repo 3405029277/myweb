@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>链接 | cjx 知微录</title>
+  <link rel="icon" href="assets/favicon.png">
+  <script>(function(){try{document.documentElement.dataset.theme=localStorage.getItem('theme')||'light';document.documentElement.dataset.wallpaperMode=localStorage.getItem('wallpaperMode')||'banner';document.documentElement.dataset.listLayout=localStorage.getItem('postListLayout')||'grid';document.documentElement.style.setProperty('--hue',localStorage.getItem('hue')||'275')}catch(e){}})();</script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;700;900&display=swap">
+  <link rel="stylesheet" href="assets/site.css?v=20260612-vmss">
+  <link rel="stylesheet" href="assets/vendor/aplayer/APlayer.min.css">
+  <link rel="stylesheet" href="assets/music-player.css?v=22">
+</head>
+<body data-page="links">
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <div class="site-shell">
+    <header class="site-header" id="siteHeader">
+      <div class="nav-row shell-inner">
+        <a class="brand" href="index.html"><img class="brand-logo" src="assets/logo.png" alt="logo"><strong>cjx 知微录</strong></a>
+        <nav class="site-nav" id="siteNav"><a href="index.html">主页</a><a href="archive.html">归档</a><a href="index.html#projects">项目</a><a href="links.html">链接</a><a href="comments.html">留言</a><a href="about.html">关于</a></nav>
+        <div class="nav-actions"><button class="icon-button" data-open-search type="button" aria-label="Search">⌕</button><button class="icon-button" data-open-settings type="button" aria-label="Display Settings">◐</button><button class="icon-button" id="themeToggle" type="button" aria-label="Light/Dark Mode"><svg id="iconSun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/></svg><svg id="iconMoon" viewBox="0 0 24 24" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button><button class="icon-button mobile-only" id="menuToggle" type="button" aria-label="Menu">☰</button></div>
+      </div>
+    </header>
+    <section class="hero-bar"><div class="shell-inner"><p>Links</p><h1>友情链接</h1><span>一些入口、项目与交流方式。</span></div></section>
+    <div class="search-panel site-modal" id="searchPanel" hidden><div class="modal-backdrop"></div><section class="modal-card"><button class="modal-close" data-close-search type="button">×</button><h2>搜索文章</h2><input id="searchInput" type="search" placeholder="输入关键词"><div class="search-results" id="searchResults"></div></section></div>
+    <div class="display-panel site-modal" id="displaySettings" hidden><div class="modal-backdrop"></div><section class="modal-card"><button class="modal-close" data-close-settings type="button">×</button><h2>显示设置</h2><label>主题色相 <input id="hueRange" type="range" min="0" max="360" value="275"></label><div class="setting-grid"><button data-wallpaper="banner" type="button">横幅模式</button><button data-wallpaper="full" type="button">全屏模式</button><button data-wallpaper="hidden" type="button">隐藏壁纸</button><button data-layout="list" type="button">列表</button><button data-layout="grid" type="button">网格</button></div></section></div>
+    <main id="siteRoute" class="shell-inner page-grid">
+      <aside class="left-rail"><section class="panel author-card"><div class="profile-avatar-wrap"><img class="sidebar-avatar" src="assets/avatar.jpg" alt="头像"></div><h2>交换友链</h2><p>欢迎在留言板留下站点名称、链接和一句简介。</p><div class="social-row"><a href="comments.html">去留言</a></div></section><section class="panel"><h3>标签</h3><div class="tag-cloud" id="tagCloudSide"></div></section></aside>
+      <section class="main-column">
+        <section class="content-card"><div class="section-inline-head"><div><p class="eyebrow">Friends</p><h2>站点入口</h2></div></div><div class="links-grid"><a href="index.html"><strong>知微录首页</strong><span>项目、文章、留言聚合</span></a><a href="archive.html"><strong>文章归档</strong><span>按时间和分类浏览</span></a><a href="comments.html"><strong>留言板</strong><span>登录后可以交流</span></a><a href="五子棋.html" target="_blank" rel="noopener noreferrer"><strong>五子棋</strong><span>在线 AI / 联机对战</span></a><a href="中国象棋ai.html" target="_blank" rel="noopener noreferrer"><strong>中国象棋</strong><span>棋类项目实验</span></a><a href="你画我猜.html" target="_blank" rel="noopener noreferrer"><strong>你画我猜</strong><span>实时联机绘画</span></a></div></section>
+        <section class="content-card"><h2>友链申请格式</h2><div class="prose"><p>站点名称、站点链接、头像地址、一句话简介。发到留言板即可。</p></div></section>
+      </section>
+      <aside class="right-rail"><section class="panel stats-card"><h3>站点统计</h3><div class="stat-list"><span>文章 <strong id="statPostCount">-</strong></span><span>分类 <strong id="statCategoryCount">-</strong></span><span>标签 <strong id="statTagCount">-</strong></span><span>总字数 <strong id="statWordCount">-</strong></span><span>运行天数 <strong id="statRunDays">-</strong></span><span>最近更新 <strong id="statLatestDate">-</strong></span></div></section><section class="panel"><div id="calendarWidget"></div></section><section class="panel"><h3>最近文章</h3><div class="list-rows" id="latestList"></div></section></aside>
+    </main>
+    <footer class="site-footer"><p>© 2026 cjx 知微录</p></footer>
+  </div>
+  <button class="floating-btn hide" id="backToTopBtn" data-back-top type="button">↑</button>
+  <script src="assets/posts-manifest.js?v=20260612-vmss"></script>
+  <script src="assets/vendor/aplayer/APlayer.min.js"></script>
+  <script src="assets/vendor/meting/Meting.min.js"></script>
+  <script src="assets/music-config.js?v=3"></script>
+  <script src="assets/music-player.js?v=30"></script>
+  <script src="assets/site.js?v=20260612-vmss"></script>
+</body>
+</html>

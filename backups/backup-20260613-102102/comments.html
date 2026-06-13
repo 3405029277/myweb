@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="留言板">
+  <meta name="theme-color" content="#f4f6fa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1d1520" media="(prefers-color-scheme: dark)">
+  <title>留言板 | cjx 知微录</title>
+  <link rel="icon" href="assets/favicon.png">
+  <script>
+    (function () {
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.dataset.wallpaperMode = localStorage.getItem('wallpaperMode') || 'banner';
+        document.documentElement.dataset.listLayout = localStorage.getItem('postListLayout') || 'grid';
+        document.documentElement.style.setProperty('--hue', localStorage.getItem('hue') || '275');
+      } catch (error) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;700;900&display=swap">
+  <link rel="stylesheet" href="assets/site.css?v=20260612-vmss">
+  <link rel="stylesheet" href="assets/vendor/aplayer/APlayer.min.css">
+  <link rel="stylesheet" href="assets/music-player.css?v=22">
+</head>
+<body data-page="comments">
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <div class="site-bg" id="siteBgCarousel" aria-hidden="true"></div>
+  <div class="site-shell">
+    <header class="site-header" id="siteHeader">
+      <div class="nav-row shell-inner">
+        <a class="brand" href="index.html" aria-label="返回首页">
+          <img class="brand-logo" src="assets/logo.png" alt="logo">
+          <strong>cjx 知微录</strong>
+        </a>
+        <nav class="site-nav" id="siteNav" aria-label="主导航">
+          <a href="index.html">主页</a>
+          <a href="archive.html">归档</a>
+          <div class="dropdown-container">
+            <button type="button">项目 <span class="dropdown-caret">▾</span></button>
+            <div class="dropdown-menu"><div class="dropdown-content">
+              <a href="五子棋.html" target="_blank" rel="noopener noreferrer">五子棋试玩</a>
+              <a href="中国象棋ai.html" target="_blank" rel="noopener noreferrer">中国象棋试玩</a>
+              <a href="你画我猜.html" target="_blank" rel="noopener noreferrer">你画我猜联机</a>
+              <a href="post.html?slug=gomoku-product-notes">项目笔记</a>
+            </div></div>
+          </div>
+          <a href="links.html">链接</a>
+          <a href="comments.html">留言</a>
+          <div class="dropdown-container">
+            <button type="button">关于 <span class="dropdown-caret">▾</span></button>
+            <div class="dropdown-menu"><div class="dropdown-content">
+              <a href="about.html">关于我</a>
+              <a href="links.html">友情链接</a>
+            </div></div>
+          </div>
+        </nav>
+        <div class="nav-actions">
+          <button class="icon-button" data-open-search type="button" aria-label="搜索">⌕</button>
+          <button class="icon-button" data-open-settings type="button" aria-label="显示设置">◐</button>
+          <button class="icon-button" id="themeToggle" type="button" aria-label="切换明暗主题">
+            <svg id="iconSun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <svg id="iconMoon" viewBox="0 0 24 24" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          </button>
+          <button class="icon-button mobile-only" id="menuToggle" type="button" aria-label="打开菜单" aria-expanded="false">☰</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero-bar">
+      <div class="shell-inner">
+        <p>Guestbook</p>
+        <h1>留言板</h1>
+        <span>登录后即可评论，欢迎留下你的足迹。</span>
+      </div>
+    </section>
+
+    <div class="search-panel site-modal" id="searchPanel" hidden>
+      <div class="modal-backdrop"></div>
+      <section class="modal-card">
+        <button class="modal-close" data-close-search type="button">×</button>
+        <h2>搜索文章</h2>
+        <input id="searchInput" type="search" placeholder="输入标题、标签或分类">
+        <div class="search-results" id="searchResults"></div>
+      </section>
+    </div>
+
+    <div class="display-panel site-modal" id="displaySettings" hidden>
+      <div class="modal-backdrop"></div>
+      <section class="modal-card">
+        <button class="modal-close" data-close-settings type="button">×</button>
+        <h2>显示设置</h2>
+        <label>主题色相 <input id="hueRange" type="range" min="0" max="360" value="275"></label>
+        <div class="setting-grid">
+          <button data-wallpaper="banner" type="button">横幅模式</button>
+          <button data-wallpaper="full" type="button">全屏模式</button>
+          <button data-wallpaper="hidden" type="button">隐藏壁纸</button>
+          <button data-layout="grid" type="button">网格</button>
+          <button data-layout="list" type="button">列表</button>
+        </div>
+      </section>
+    </div>
+
+    <main id="siteRoute" class="shell-inner page-grid">
+      <aside class="left-rail">
+        <section class="panel author-card onload-animation" style="--i:1">
+          <a class="profile-avatar-wrap" href="about.html" aria-label="关于我">
+            <img class="sidebar-avatar" src="assets/avatar.jpg" alt="头像">
+          </a>
+          <h2 class="profile-title">留言区</h2>
+          <p class="profile-desc">欢迎留言。左侧和右侧栏位保持统一，只中间换为评论交互区。</p>
+        </section>
+
+        <section class="panel onload-animation" style="--i:2">
+          <h3>标签</h3>
+          <div class="tag-cloud" id="tagCloudSide"></div>
+        </section>
+      </aside>
+
+      <section class="main-column">
+        <section class="content-card comment-shell onload-animation" style="--i:1">
+          <div class="section-inline-head">
+            <div>
+              <p class="eyebrow">Guestbook</p>
+              <h2>留言板</h2>
+            </div>
+            <p>登录后即可评论。</p>
+          </div>
+
+          <div class="comment-compose-card">
+            <div class="comment-compose-head">
+              <div>
+                <h3>评论区</h3>
+                <p id="commentAuthStatus" class="auth-state warn">未登录</p>
+                <p id="commentAuthTip" class="auth-tip">点击登录 / 注册后即可评论。</p>
+              </div>
+              <span id="commentCount" class="comment-count">0 条</span>
+            </div>
+            <div class="hero-actions auth-cta-row" data-auth-cta>
+              <button class="button primary" type="button" data-open-auth>登录 / 注册</button>
+            </div>
+            <p class="comment-page-key">当前页面 key：<code id="pageKey"></code></p>
+            <div id="replyTarget" class="reply-target"></div>
+            <textarea id="commentInput" rows="5" placeholder="写点什么吧……" disabled></textarea>
+            <div class="comment-submit-row">
+              <p id="commentTip">未登录时无法发表评论。</p>
+              <button class="button primary" id="btnPost" type="button" disabled>发表评论</button>
+            </div>
+          </div>
+
+          <div id="commentList" class="comment-list-wrap"></div>
+        </section>
+      </section>
+
+      <aside class="right-rail">
+        <section class="panel stats-card onload-animation" style="--i:2">
+          <h3>站点统计</h3>
+          <div class="stat-list">
+            <span>文章 <strong id="statPostCount">-</strong></span>
+            <span>分类 <strong id="statCategoryCount">-</strong></span>
+            <span>标签 <strong id="statTagCount">-</strong></span>
+            <span>总字数 <strong id="statWordCount">-</strong></span>
+            <span>运行天数 <strong id="statRunDays">-</strong></span>
+            <span>最近更新 <strong id="statLatestDate">-</strong></span>
+          </div>
+        </section>
+
+        <section class="panel onload-animation" style="--i:3">
+          <h3>快捷入口</h3>
+          <div class="quick-grid">
+            <a href="index.html">返回首页</a>
+            <a href="archive.html">文章归档</a>
+            <a href="post.html?slug=gomoku-product-notes">项目笔记</a>
+            <a href="五子棋.html" target="_blank" rel="noopener noreferrer">五子棋</a>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="site-footer">
+      <p>© 2026 cjx 知微录. All Rights Reserved.</p>
+      <p><a href="index.html">首页</a> · <a href="archive.html">归档</a> · <a href="links.html">友链</a> · <a href="comments.html">留言</a></p>
+      <p>Powered by static-first tiny blog · 风格致敬 Mizuki</p>
+    </footer>
+  </div>
+
+  <div class="floating-control">
+    <button class="floating-btn hide" id="backToTopBtn" data-back-top type="button" aria-label="回到顶部">↑</button>
+  </div>
+
+  <script src="assets/posts-manifest.js?v=20260612-vmss"></script>
+  <script src="assets/vendor/aplayer/APlayer.min.js"></script>
+  <script src="assets/vendor/meting/Meting.min.js"></script>
+  <script src="assets/music-config.js?v=3"></script>
+  <script src="assets/music-player.js?v=30"></script>
+  <script src="assets/site.js?v=20260612-vmss"></script>
+  <script defer src="supabase_all_in_one.jwt.js?v=12"></script>
+</body>
+</html>
