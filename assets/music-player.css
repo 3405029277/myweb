@@ -163,7 +163,7 @@
     left: 10px !important;
     top: auto !important;
     right: auto !important;
-    bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px)) !important;
+    bottom: max(80px, calc(env(safe-area-inset-bottom) + 60px)) !important;
     width: min(340px, calc(100vw - 20px));
   }
 
@@ -187,7 +187,7 @@
     left: 8px !important;
     top: auto !important;
     right: auto !important;
-    bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px)) !important;
+    bottom: max(70px, calc(env(safe-area-inset-bottom) + 50px)) !important;
     width: calc(100vw - 16px);
   }
 
