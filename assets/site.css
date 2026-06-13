@@ -1703,7 +1703,7 @@ body > #backToTopBtn {
 @media (max-width: 768px) {
   .post-list-container { grid-template-columns: 1fr; }
   .panel, .content-card, .article-card { padding: 1rem; }
-  .profile-avatar-wrap { max-width: 8rem; }
+  .profile-avatar-wrap { max-width: 6rem; }
 }
 
 @media (max-width: 900px) {
