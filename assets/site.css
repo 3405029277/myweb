@@ -661,7 +661,7 @@ body.has-banner .page-grid { margin-top: -2px; }
 
 .profile-avatar-wrap {
   width: 100%;
-  max-width: 12rem;
+  max-width: clamp(6rem, 15vw, 12rem);
   margin: 0.25rem auto 0.9rem;
   border-radius: 50%;
   overflow: hidden;
