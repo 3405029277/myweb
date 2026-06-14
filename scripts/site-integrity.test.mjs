@@ -49,7 +49,7 @@ for (const file of ["index.html", "post.html", "comments.html"]) {
   assert.match(html, /assets\/vendor\/aplayer\/APlayer\.min\.css/, `${file} should load local APlayer CSS`);
   assert.match(html, /assets\/vendor\/aplayer\/APlayer\.min\.js/, `${file} should load local APlayer JS`);
   assert.match(html, /assets\/vendor\/meting\/Meting\.min\.js/, `${file} should load local MetingJS`);
-  assert.match(html, /assets\/music-config\.js\?v=3/, `${file} should load music config`);
+  assert.match(html, /assets\/music-config\.js\?v=4/, `${file} should load music config`);
   assert.match(html, /assets\/music-player\.css\?v=22/, `${file} should load versioned music player stylesheet`);
   assert.match(html, /assets\/music-player\.js\?v=30/, `${file} should load versioned music player script`);
   assert.match(html, /<main id="siteRoute" class="shell-inner page-grid">/, `${file} should expose stable SPA route container`);
