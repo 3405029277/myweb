@@ -86,7 +86,7 @@ assert.match(musicJs, /new APlayer/, "music player should keep local APlayer fal
 assert.match(musicJs, /createAPlayerContainer\(\)/, "direct APlayer paths should use a nested player container like MetingJS");
 assert.match(musicConfigJs, /SITE_MUSIC_CONFIG/, "music config should expose global music config");
 assert.match(musicConfigJs, /source:\s*"karpov"/, "music config should prefer Karpov source");
-assert.match(musicConfigJs, /endpoint:\s*("\/api\/music\/playlist"|"https:\/\/site-music-proxy\.3405029277\.workers\.dev\/api\/music\/playlist")/, "music config should point at music proxy route or Cloudflare Worker");
+assert.match(musicConfigJs, /endpoint:\s*("\/api\/music\/playlist"|"https:\/\/site-music-proxy\.3405029277\.workers\.dev\/api\/music\/playlist"|"https:\/\/music\.cjx88\.eu\.cc\/api\/music\/playlist")/, "music config should point at music proxy route or Cloudflare Worker or custom domain");
 assert.match(musicConfigJs, /limit:\s*0/, "music config should request the full playlist metadata list");
 assert.match(musicConfigJs, /fallback:\s*\{/, "music config should have fallback configuration");
 assert.doesNotMatch(musicConfigJs, /Bearer\s+|KARPOV_GATEWAY_API_KEY|api[_-]?key/i, "browser music config should not contain Karpov secrets");
